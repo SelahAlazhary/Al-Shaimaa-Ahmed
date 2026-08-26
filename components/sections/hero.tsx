@@ -131,7 +131,7 @@ export function Hero() {
                 variant="foil"
                 className="w-full sm:w-auto"
               >
-                <IconPlay anim="bob" className="size-6" />
+                <IconPlay anim="bob" className="size-5" />
                 {freeBusy ? "جارٍ التحميل…" : content.cta?.secondaryLabel || "شاهد درساً مجانياً"}
               </PlaqueButton>
             )}

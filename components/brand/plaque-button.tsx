@@ -24,7 +24,7 @@ export function PlaqueButton({
   onClick,
   disabled,
   variant = "ink",
-  height = 78,
+  height = 112,
   className = "",
   style,
   type = "button",
@@ -54,7 +54,8 @@ export function PlaqueButton({
 
   const h = height;
   const mid = h / 2;
-  const notch = Math.round(h * 0.22); // عمق تدبيب الطرف — ضحل كي لا يقضم النصّ
+  // التدبيب ثابت لا يتبع الارتفاع: لو تبعه لالتهم النصّ عند الأزرار الطويلة
+  const notch = 18;
   const ink = variant === "ink";
 
   // الهندسة لا تُرسم قبل معرفة العرض الحقيقي (تفادي وميض شكل خاطئ)
@@ -139,7 +140,7 @@ export function PlaqueButton({
 
       {/* النصّ فوق الرسم */}
       <span
-        className={`relative z-10 inline-flex items-center gap-2.5 font-display text-[1.15rem] ${
+        className={`relative z-10 inline-flex items-center gap-2.5 font-display text-[1.05rem] ${
           ink ? "text-white" : "text-primary"
         }`}
       >
@@ -156,7 +157,8 @@ export function PlaqueButton({
   const sized: React.CSSProperties = {
     height: h,
     // مسافة تضمن ابتعاد النصّ عن الطرف المدبّب مهما طال
-    paddingInline: notch + 34,
+    // ثابت لا يتبع الارتفاع: زيادة الطول يجب ألا تزيد العرض
+    paddingInline: 46,
     // مسافة عبور اللمعة = العرض + عرض اللمعة نفسها
     ["--sweep" as string]: `${w + h * 2}px`,
     ...style,
