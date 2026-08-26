@@ -24,7 +24,7 @@ export function PlaqueButton({
   onClick,
   disabled,
   variant = "ink",
-  height = 54,
+  height = 56,
   className = "",
   style,
   type = "button",
@@ -54,7 +54,7 @@ export function PlaqueButton({
 
   const h = height;
   const mid = h / 2;
-  const notch = Math.round(h * 0.3); // عمق تدبيب الطرف
+  const notch = Math.round(h * 0.22); // عمق تدبيب الطرف — ضحل كي لا يقضم النصّ
   const ink = variant === "ink";
 
   // الهندسة لا تُرسم قبل معرفة العرض الحقيقي (تفادي وميض شكل خاطئ)
@@ -62,10 +62,7 @@ export function PlaqueButton({
   const outer = ready
     ? `M${notch} 0 H${w - notch} L${w} ${mid} L${w - notch} ${h} H${notch} L0 ${mid} Z`
     : "";
-  const i = 5;
-  const inner = ready
-    ? `M${notch + i * 0.8} ${i} H${w - notch - i * 0.8} L${w - i * 0.6} ${mid} L${w - notch - i * 0.8} ${h - i} H${notch + i * 0.8} L${i * 0.6} ${mid} Z`
-    : "";
+  // لا حدّ ذهبي داخلي: كان يبدو شكلاً سداسياً ثانياً متداخلاً مع الأول.
 
   const body = (
     <>
@@ -129,14 +126,13 @@ export function PlaqueButton({
             />
           </g>
 
-          {/* الحدّ الذهبي المزدوج */}
-          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 1.6 : 1.4} />
-          <path d={inner} stroke={`url(#${uid}-gold)`} strokeWidth="0.9" strokeOpacity="0.45" />
+          {/* حدّ ذهبي واحد نظيف */}
+          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2 : 1.6} strokeLinejoin="round" />
 
           {/* وردتان عند الطرفين المدبّبين */}
           <g fill={`url(#${uid}-gold)`}>
-            <path d={`M${notch * 0.62} ${mid} l3.4 -3.4 3.4 3.4 -3.4 3.4Z`} />
-            <path d={`M${w - notch * 0.62} ${mid} l3.4 -3.4 3.4 3.4 -3.4 3.4Z`} />
+            <path d={`M${notch * 0.5} ${mid} l3.2 -3.2 3.2 3.2 -3.2 3.2Z`} />
+            <path d={`M${w - notch * 0.5 - 6.4} ${mid} l3.2 -3.2 3.2 3.2 -3.2 3.2Z`} />
           </g>
         </svg>
       )}
@@ -159,7 +155,8 @@ export function PlaqueButton({
 
   const sized: React.CSSProperties = {
     height: h,
-    paddingInline: Math.round(h * 0.85),
+    // مسافة تضمن ابتعاد النصّ عن الطرف المدبّب مهما طال
+    paddingInline: notch + 24,
     // مسافة عبور اللمعة = العرض + عرض اللمعة نفسها
     ["--sweep" as string]: `${w + h * 2}px`,
     ...style,

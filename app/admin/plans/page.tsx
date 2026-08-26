@@ -36,7 +36,18 @@ const EMPTY: Form = {
 };
 
 /** ألوان جاهزة للخطط. */
-const PLAN_COLORS = ["#12b981", "#2b8bf6", "#7c3aed", "#e11d48", "#f59e0b", "#0ea5e9", "#14b8a6", "#db2777"];
+/* ألوان الخطط — مشتقّة من هوية «مِداد وذهب»: أحبار غامقة ومعادن.
+   اللوحة السابقة (بنفسجي/زمردي فاقع) كانت من هوية المنصّة الأصل. */
+const PLAN_COLORS = [
+  "#233b8b", // مِداد نيلي
+  "#095e86", // أزرق المحبرة
+  "#245c4b", // أندلسي
+  "#87263a", // رُمّاني
+  "#b8860b", // ذهب عتيق
+  "#7c5c2b", // نحاس
+  "#1f3d5c", // ليل المخطوط
+  "#5c3a6e", // أرجوان خافت
+];
 
 export default function PlansPage() {
   const { db, save, content } = useContent();
@@ -200,7 +211,7 @@ export default function PlansPage() {
                     className={`size-8 rounded-full ring-offset-2 ring-offset-[hsl(var(--card))] transition ${f.color === c ? "ring-2 ring-primary" : ""}`}
                     style={{ background: c }} />
                 ))}
-                <input type="color" value={f.color || "#12b981"} onChange={(e) => set({ color: e.target.value })}
+                <input type="color" value={f.color || "#233b8b"} onChange={(e) => set({ color: e.target.value })}
                   className="size-9 cursor-pointer rounded-lg border border-border bg-transparent" title="لون مخصّص" />
               </div>
             </div>

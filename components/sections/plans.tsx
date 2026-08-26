@@ -253,7 +253,17 @@ export function Plans() {
       <div className="container">
         <SectionHeading
           eyebrow={sec.eyebrow || "الخطط"}
-          title={<>{sec.title || "اختر خطة"} <span className="text-gradient">اشتراكك</span></>}
+          title={(() => {
+            /* العنوان يأتي كاملاً من اللوحة؛ نُبرز كلمته الأخيرة فقط.
+               إلحاق كلمة ثابتة كان يكرّرها مع عنوان يحويها أصلاً. */
+            const words = (sec.title || "اختر خطة اشتراكك").trim().split(/\s+/);
+            const last = words.pop() ?? "";
+            return (
+              <>
+                {words.join(" ")} <span className="text-gradient">{last}</span>
+              </>
+            );
+          })()}
           desc={sec.desc || "خطط واضحة بأسعار ثابتة — فعّل خطتك بكود التفعيل وابدأ من الدرس الأول."}
         />
 
