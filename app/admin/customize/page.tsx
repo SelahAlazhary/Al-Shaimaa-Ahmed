@@ -4,7 +4,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Moon, Sun, Check, Upload, Save, ExternalLink, Palette, Type, ImageIcon, Frame, SlidersHorizontal } from "lucide-react";
+import { Moon, Sun, Check, Upload, Save, ExternalLink, Palette, Type, ImageIcon, Frame, SlidersHorizontal, Trash2 } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
@@ -222,6 +222,25 @@ export default function CustomizePage() {
                 tall
               />
 
+              {/* الحذف ملاصق للصورة نفسها — أوضح من دفنه تحت الإعدادات */}
+              {form.background?.image ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = { ...(form.background ?? {}), image: "" };
+                    set({ background: next });
+                    void saveContent({ background: next });
+                  }}
+                  className="-mt-2 inline-flex w-fit items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-bold text-rose-500 transition hover:border-rose-500 hover:bg-rose-500/5"
+                >
+                  <Trash2 className="size-3.5" /> حذف خلفية الموقع
+                </button>
+              ) : (
+                <p className="-mt-2 text-[11px] text-muted-foreground">
+                  لا توجد خلفية مرفوعة — الصفحة تستخدم ألوان الثيم وزخارفها.
+                </p>
+              )}
+
               <div className="grid content-start gap-4">
                 {/* ثابتة أم تتحرّك مع الصفحة */}
                 <div>
@@ -277,19 +296,6 @@ export default function CustomizePage() {
                   }}
                 />
 
-                {form.background?.image && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = { ...(form.background ?? {}), image: "" };
-                      set({ background: next });
-                      void saveContent({ background: next });
-                    }}
-                    className="w-fit rounded-full border border-border px-4 py-2 text-xs font-bold text-rose-500 transition hover:border-rose-500"
-                  >
-                    إزالة الخلفية
-                  </button>
-                )}
               </div>
             </div>
           </Card>

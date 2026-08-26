@@ -7,6 +7,26 @@ export type Preset =
   | "violet" | "emerald" | "ocean" | "crimson";
 
 /**
+ * نصّ يُكتب فوق غلاف الكورس ويُحرَّك بالماوس.
+ * الموضع بالنسبة المئوية من اللوحة لا بالبكسل، فيثبت مكانه في كل المقاسات.
+ */
+export type CoverFont = "display" | "sans" | "kufi";
+
+export type CoverText = {
+  text: string;
+  x: number;         // ٠..١٠٠ — من يسار اللوحة
+  y: number;         // ٠..١٠٠ — من أعلى اللوحة
+  size?: number;     // حجم الخطّ بوحدات اللوحة (الافتراضي ٢٦)
+  font?: CoverFont;  // نوع الخطّ من خطوط الهوية الثلاثة
+  bold?: boolean;
+  color?: string;    // لون النصّ (HEX) — الافتراضي أبيض
+  gradient?: boolean; // تدرّج بين لونين بدل لون واحد
+  color2?: string;   // اللون الثاني للتدرّج
+  align?: "right" | "center" | "left";
+  outline?: boolean; // حدّ داكن يبقي النصّ مقروءاً فوق أي صورة
+};
+
+/**
  * زخرفة لوحة الغلاف (المربّعات خلف الصورة).
  * "auto" = تُشتقّ من معرّف الكورس · "none" = بلا زخرفة · وباقي القيم تختار نمطاً بعينه.
  */
@@ -251,6 +271,7 @@ export type Subject = {
   coverRatio?: number;// نسبة أبعاد الغلاف الأصلية (عرض ÷ ارتفاع) — تُقاس تلقائياً
   coverColor?: string;// لون خلفية اللوحة (HEX). فارغ = ألوان الثيم
   coverPattern?: CoverPattern; // زخرفة اللوحة. فارغ = تُختار تلقائياً من معرّف الكورس
+  coverText?: CoverText;       // نصّ يُكتب على الغلاف ويُوضع بالسحب
   videos: Lesson[];   // دروس الكورس
   materials?: Material[]; // مواد وملفات الكورس (PDF…)
   status: "منشورة" | "مسودّة";

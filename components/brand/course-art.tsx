@@ -11,7 +11,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useUid } from "./use-uid";
 import { mediaSrc } from "@/lib/media";
-import type { CoverPattern, FrameShape, ImageFit } from "@/lib/types";
+import type { CoverFont, CoverPattern, CoverText, FrameShape, ImageFit } from "@/lib/types";
 
 const W = 400;
 const H = 225;
@@ -90,6 +90,13 @@ function platePath(w: number, h: number, r = 22): string {
   ].join(" ");
 }
 
+/** خطوط الهوية المتاحة لنصّ الغلاف. */
+export const COVER_FONTS: { id: CoverFont; label: string; css: string }[] = [
+  { id: "display", label: "نسخ (Amiri)", css: "var(--font-display)" },
+  { id: "sans", label: "واضح (Plex)", css: "var(--font-sans)" },
+  { id: "kufi", label: "كوفي", css: "var(--font-kufi)" },
+];
+
 /** ترتيب الأنماط — يربط اسم الزخرفة برقمها في tileMotif. */
 export const COVER_PATTERNS: { id: Exclude<CoverPattern, "auto" | "none">; label: string; kind: number }[] = [
   { id: "knot", label: "خاتم ثماني", kind: 0 },
@@ -144,6 +151,7 @@ export function CourseArt({
   coverRatio,
   coverColor,
   coverPattern,
+  coverText,
   progress,
   locked = false,
   className = "",
@@ -157,6 +165,8 @@ export function CourseArt({
   coverColor?: string;
   /** زخرفة اللوحة — "none" تزيلها، و"auto"/فارغ تختارها من المعرّف. */
   coverPattern?: CoverPattern;
+  /** نصّ يُكتب فوق اللوحة ويُوضع بالسحب من اللوحة. */
+  coverText?: CoverText;
   progress?: number;
   locked?: boolean;
   className?: string;
@@ -307,6 +317,56 @@ export function CourseArt({
         <path d={`M${W - 16} 26 v22 a20 20 0 0 1 -20 20 h-18`} />
         <path d={`M${W - 16} 40 v8 a32 32 0 0 1 -32 32 h-8`} strokeOpacity={0.2} />
       </g>
+
+      {/* نصّ الغلاف — موضعه بالنسبة المئوية فيثبت في كل المقاسات */}
+      {coverText?.text?.trim() && (() => {
+        const t = coverText;
+        const size = Math.max(8, Math.min(72, t.size ?? 26));
+        const anchor: "start" | "middle" | "end" =
+          t.align === "left" ? "start" : t.align === "right" ? "end" : "middle";
+        const font = COVER_FONTS.find((f) => f.id === (t.font ?? "display"))?.css ?? "var(--font-display)";
+        const lines = t.text.split("\n").slice(0, 4);
+        const fill = t.gradient ? `url(#${uid}-txt)` : (t.color || "#ffffff");
+        return (
+          <>
+            {t.gradient && (
+              <defs>
+                <linearGradient id={`${uid}-txt`} x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor={t.color || "#ffffff"} />
+                  <stop offset="100%" stopColor={t.color2 || "hsl(var(--gold))"} />
+                </linearGradient>
+              </defs>
+            )}
+            <text
+              x={(Math.max(0, Math.min(100, t.x)) / 100) * W}
+              y={(Math.max(0, Math.min(100, t.y)) / 100) * artH}
+              textAnchor={anchor}
+              dominantBaseline="middle"
+              fontSize={size}
+              fontWeight={t.bold === false ? 500 : 700}
+              fontFamily={font}
+              fill={fill}
+              /* paint-order يرسم الحدّ خلف التعبئة، فيبقى النصّ مقروءاً فوق أي صورة */
+              paintOrder="stroke"
+              stroke={t.outline === false ? "none" : "#04121b"}
+              strokeWidth={t.outline === false ? 0 : Math.max(2, size * 0.16)}
+              strokeOpacity={0.55}
+              strokeLinejoin="round"
+              style={{ direction: "rtl" }}
+            >
+              {lines.map((ln, i) => (
+                <tspan
+                  key={i}
+                  x={(Math.max(0, Math.min(100, t.x)) / 100) * W}
+                  dy={i === 0 ? -((lines.length - 1) * size * 0.6) : size * 1.2}
+                >
+                  {ln}
+                </tspan>
+              ))}
+            </text>
+          </>
+        );
+      })()}
 
       {/* حلقة التقدّم */}
       {showRing && (

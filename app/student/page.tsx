@@ -241,6 +241,7 @@ export default function StudentHome() {
                     coverRatio={c.coverRatio}
                     coverColor={c.coverColor}
                     coverPattern={c.coverPattern}
+                    coverText={c.coverText}
                     progress={c.progress}
                     className="h-full transition-opacity duration-300 group-hover:opacity-95"
                   />
