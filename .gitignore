@@ -30,3 +30,7 @@ firebase-debug.log
 
 # ربط فيرسل المحلي
 .vercel
+
+# ملف عميل جوجل
+google-client.json
+google-oauth.txt
