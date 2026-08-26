@@ -8,7 +8,7 @@ import { RegisterSW } from "@/components/pwa/register-sw";
 import { getPublicDB, getScopedDB, loadDB } from "@/lib/db";
 import { touchSession } from "@/lib/session";
 import { defaultContent } from "@/lib/defaults";
-import { buildJsonLd } from "@/lib/seo";
+import { buildJsonLd, buildKeywords, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -65,23 +65,48 @@ function safeUrl(raw?: string): URL {
 }
 
 /** ميتاداتا ديناميكية من قاعدة البيانات (العنوان/الوصف/الأيقونة/OG). */
-export function generateMetadata(): Metadata {
-  const { content: c } = getPublicDB();
+export async function generateMetadata(): Promise<Metadata> {
+  await loadDB();
+  const pub = getPublicDB();
+  const c = pub.content;
+  const site = await siteUrl(c.url);
   // أيقونة الموقع (favicon) = شعار الأستاذة أو صورتها
   const icon = c.teacher?.logo || c.teacher?.avatar || "/teacher.svg";
   return {
     // عنوان الموقع قد يكون فارغاً قبل ضبطه من اللوحة — لا نكسر البناء بسببه
-    metadataBase: safeUrl(c.url),
+    metadataBase: safeUrl(site || c.url),
     title: { default: `${c.brand} | ${c.platformSubtitle}`, template: `%s | ${c.brand}` },
     description: c.teacher.bio,
     openGraph: {
-      type: "website", locale: "ar_EG", url: c.url, siteName: c.brand,
+      type: "website", locale: "ar_EG", url: site || undefined, siteName: c.brand,
       title: `${c.teacher.subject} مع ${c.teacher.name}`,
       description: c.teacher.tagline,
       images: [{ url: icon, width: 1200, height: 630, alt: c.brand }],
     },
-    twitter: { card: "summary_large_image", title: c.brand, description: c.teacher.tagline, images: [icon] },
-    robots: { index: true, follow: true },
+    twitter: {
+      card: "summary_large_image",
+      title: `${c.teacher.subject} مع ${c.teacher.name}`,
+      description: c.teacher.tagline,
+      images: [icon],
+    },
+    keywords: buildKeywords(c, pub.subjects ?? []),
+    authors: [{ name: c.teacher.name }],
+    creator: c.teacher.name,
+    publisher: c.brand,
+    category: "education",
+    // العنوان القانوني يمنع تشتّت الترتيب بين نسخ الرابط (بـwww وبدونه…)
+    alternates: site ? { canonical: site } : undefined,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     manifest: "/manifest.webmanifest",
     applicationName: c.brand,
     appleWebApp: {
@@ -103,7 +128,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // الحمولة الأولى (SSR) مقيّدة بدور صاحب الجلسة — لا تسرّب بيانات لغير أصحابها
   const db = getScopedDB(session);
   const theme = db.content?.theme ?? defaultContent.theme;
-  const jsonLd = buildJsonLd(db.content ?? defaultContent);
+  /* البيانات المهيكلة تُبنى من الحمولة العامة لا من حمولة صاحب الجلسة:
+     حمولة الطالب مُصفّاة بصفّه، ولو بُنيت منها لاختلف الوصف المهيكل من
+     زائر لآخر — وجوجل يريد وصفاً ثابتاً يطابق ما تعرضه الصفحة للعموم. */
+  const pub = getPublicDB();
+  const base = await siteUrl(pub.content?.url);
+  const jsonLd = buildJsonLd(pub.content ?? defaultContent, {
+    base,
+    subjects: pub.subjects ?? [],
+    plans: pub.plans ?? [],
+  });
 
   return (
     <html
