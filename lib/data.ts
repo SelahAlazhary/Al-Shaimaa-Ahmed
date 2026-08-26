@@ -14,6 +14,15 @@ export const TRACK_STAGE = "ثانوية";
 
 export const TRACKS = ["علمي", "أدبي"] as const;
 
+/** النظام التعليمي — يحدّد هل تتفرّع الشعبة العلمية أم لا. */
+export const EDU_SYSTEMS = ["تربية وتعليم", "أزهر"] as const;
+/** النظام الأزهري: الشعبة العلمية فيه لا تنقسم إلى علوم ورياضة. */
+export const AZHAR = "أزهر";
+/** الشعبة التي تتفرّع (في تربية وتعليم وحدها). */
+export const BRANCH_TRACK = "علمي";
+/** فروع الشعبة العلمية. */
+export const SCIENCE_BRANCHES = ["علمي علوم", "علمي رياضة"] as const;
+
 /** روابط تنقّل الصفحة الرئيسية (ثابتة — أقسام الصفحة). */
 export const navLinks = [
   { id: "hero", label: "الرئيسية" },

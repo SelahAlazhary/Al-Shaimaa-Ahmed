@@ -5,52 +5,57 @@ import Link from "next/link";
 import { UserPlus, Loader2, CheckCircle2 } from "lucide-react";
 import { AuthShell, inputCls } from "@/components/auth/auth-shell";
 import { useContent } from "@/components/content/content-provider";
-import { EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE } from "@/lib/data";
-
-/**
- * كل حقول إنشاء الحساب إجبارية.
- * «الشعبة» وحدها مشروطة: لا تُطلب إلا في المرحلة الثانوية لأنها لا تظهر لغيرها.
- * الخادم يفرض القائمة نفسها — التحقّق في المتصفّح للراحة لا للحماية.
- */
-const REQUIRED: { key: string; msg: string; when?: (f: Record<string, string>) => boolean }[] = [
-  { key: "name", msg: "الاسم الكامل مطلوب" },
-  { key: "username", msg: "البريد الإلكتروني مطلوب" },
-  { key: "password", msg: "كلمة المرور مطلوبة" },
-  { key: "phone", msg: "رقم الموبايل مطلوب" },
-  { key: "stage", msg: "المرحلة الدراسية مطلوبة" },
-  { key: "grade", msg: "الصف الدراسي مطلوب" },
-  { key: "track", msg: "الشعبة مطلوبة", when: (f) => f.stage === TRACK_STAGE },
-  { key: "governorate", msg: "المحافظة مطلوبة" },
-  { key: "gender", msg: "النوع مطلوب" },
-  { key: "school", msg: "اسم المدرسة مطلوب" },
-];
+import {
+  EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE,
+  EDU_SYSTEMS, AZHAR, BRANCH_TRACK, SCIENCE_BRANCHES,
+} from "@/lib/data";
+import { showsTrack, showsBranch, signupProblem, normalizePhone } from "@/lib/signup-rules";
 
 export default function RegisterPage() {
   const { db } = useContent();
   const grades = db?.grades ?? [];
-  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", stage: "", grade: "", track: "", gender: "", school: "", governorate: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  /** الشعبة (علمي/أدبي) لا معنى لها إلا في المرحلة الثانوية. */
-  const needsTrack = form.stage === TRACK_STAGE;
+  const needsTrack = showsTrack(form);
+  const needsBranch = showsBranch(form);
 
-  /** تغيير المرحلة يمسح الشعبة تلقائياً حتى لا تُرسل شعبة لمرحلة لا شعب فيها. */
+  /* أي تغيير في الأعلى يمسح ما تحته — فلا تُرسل شعبة لمرحلة بلا شعب،
+     ولا فرع علمي لنظام أزهري أو لشعبة أدبية. */
+  const setEduSystem = (v: string) =>
+    setForm((f) => ({ ...f, eduSystem: v, branch: v === AZHAR ? "" : f.branch }));
+
   const setStage = (v: string) =>
-    setForm((f) => ({ ...f, stage: v, track: v === TRACK_STAGE ? f.track : "" }));
+    setForm((f) => ({ ...f, stage: v, ...(v === TRACK_STAGE ? {} : { track: "", branch: "" }) }));
+
+  const setTrack = (v: string) =>
+    setForm((f) => ({ ...f, track: v, branch: v === BRANCH_TRACK ? f.branch : "" }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
-    const missing = REQUIRED.find(({ key, when }) => (when ? when(form) : true) && !String(form[key as keyof typeof form] ?? "").trim());
-    if (missing) { setErr(missing.msg); return; }
+    if (!form.username.trim()) { setErr("البريد الإلكتروني مطلوب"); return; }
+    if (!form.password) { setErr("كلمة المرور مطلوبة"); return; }
+    // نفس القواعد التي يفرضها الخادم — مصدرها ملف واحد فلا يختلفان
+    const problem = signupProblem(
+      { ...form, grade: form.grade || grades[0]?.name },
+      grades.map((g) => g.name)
+    );
+    if (problem) { setErr(problem); return; }
     setBusy(true);
     const res = await fetch("/api/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, grade: form.grade || grades[0]?.name, track: needsTrack ? form.track : "" }),
+      body: JSON.stringify({
+        ...form,
+        phone: normalizePhone(form.phone),
+        grade: form.grade || grades[0]?.name,
+        track: needsTrack ? form.track : "",
+        branch: needsBranch ? form.branch : "",
+      }),
     });
     const data = await res.json();
     setBusy(false);
@@ -84,7 +89,27 @@ export default function RegisterPage() {
           <Field label="كلمة المرور"><input type="password" required className={inputCls} value={form.password} onChange={(e) => set("password", e.target.value)} /></Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="رقم الموبايل"><input required inputMode="tel" className={inputCls} value={form.phone} onChange={(e) => set("phone", e.target.value)} /></Field>
+          <Field label="رقم الموبايل">
+            <input
+              required
+              inputMode="numeric"
+              dir="ltr"
+              maxLength={11}
+              placeholder="01xxxxxxxxx"
+              className={`${inputCls} text-right`}
+              value={form.phone}
+              /* أرقام فقط وبحدّ ١١ خانة — يمنع الخطأ قبل وقوعه */
+              onChange={(e) => set("phone", normalizePhone(e.target.value).slice(0, 11))}
+            />
+          </Field>
+          <Field label="النظام التعليمي">
+            <select required className={inputCls} value={form.eduSystem} onChange={(e) => setEduSystem(e.target.value)}>
+              <option value="">اختر النظام…</option>
+              {EDU_SYSTEMS.map((sy) => <option key={sy} value={sy}>{sy}</option>)}
+            </select>
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <Field label="المرحلة الدراسية">
             <select required className={inputCls} value={form.stage} onChange={(e) => setStage(e.target.value)}>
               <option value="">اختر المرحلة…</option>
@@ -102,9 +127,18 @@ export default function RegisterPage() {
           </Field>
           {needsTrack && (
             <Field label="الشعبة">
-              <select required className={inputCls} value={form.track} onChange={(e) => set("track", e.target.value)}>
+              <select required className={inputCls} value={form.track} onChange={(e) => setTrack(e.target.value)}>
                 <option value="">اختر الشعبة…</option>
                 {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </Field>
+          )}
+          {/* فرع الشعبة العلمية — لا يظهر للأزهر ولا للشعبة الأدبية */}
+          {needsBranch && (
+            <Field label="فرع الشعبة العلمية">
+              <select required className={inputCls} value={form.branch} onChange={(e) => set("branch", e.target.value)}>
+                <option value="">اختر الفرع…</option>
+                {SCIENCE_BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </Field>
           )}

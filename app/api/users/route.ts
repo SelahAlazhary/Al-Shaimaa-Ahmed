@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { createUser, setUserActive, deleteUser, bindDevice, resetDevice, loadDB, flushDB } from "@/lib/db";
+import { createUser, setUserActive, deleteUser, bindDevice, resetDevice, loadDB, flushDB, getDB } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, sameOrigin, passwordProblem, invalidUsername } from "@/lib/guard";
-import { TRACK_STAGE } from "@/lib/data";
+import { signupProblem, showsTrack, showsBranch, normalizePhone } from "@/lib/signup-rules";
 import { recordEvent, bannedUntil } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -24,26 +24,14 @@ export async function POST(req: Request) {
   }
 
   /**
-   * التسجيل الذاتي: كل الحقول إجبارية — والفرض هنا لا في المتصفّح وحده،
-   * لأن تحقّق الواجهة يمكن تخطّيه بطلب مباشر.
+   * التسجيل الذاتي: كل الحقول إجبارية ومتحقَّق من صيغتها — والفرض هنا لا
+   * في المتصفّح وحده، لأن تحقّق الواجهة يمكن تخطّيه بطلب مباشر.
+   * القواعد في lib/signup-rules.ts يتشاركها الطرفان فلا يختلفان.
    * الأدمن مستثنى: هو ينشئ حسابات مشرفين أيضاً ولا تلزمها بيانات الطالب.
-   * «الشعبة» مشروطة بالمرحلة الثانوية وحدها.
    */
   if (!isAdmin) {
-    // الرسالة كاملة لكل حقل — حتى يطابق التذكير والتأنيث في العربية
-    const need: [string, string][] = [
-      ["phone", "رقم الموبايل مطلوب"],
-      ["stage", "المرحلة الدراسية مطلوبة"],
-      ["grade", "الصف الدراسي مطلوب"],
-      ["governorate", "المحافظة مطلوبة"],
-      ["gender", "النوع مطلوب"],
-      ["school", "اسم المدرسة مطلوب"],
-    ];
-    if (body.stage === TRACK_STAGE) need.push(["track", "الشعبة مطلوبة"]);
-    const missing = need.find(([k]) => !String(body[k] ?? "").trim());
-    if (missing) {
-      return NextResponse.json({ error: missing[1] }, { status: 400 });
-    }
+    const problem = signupProblem(body, getDB().grades.map((g) => g.name));
+    if (problem) return NextResponse.json({ error: problem }, { status: 400 });
   }
 
   // حماية التسجيل الذاتي: حظر، أصل الطلب، حدّ المحاولات، وقوّة البيانات
@@ -74,11 +62,13 @@ export async function POST(req: Request) {
       username: body.username,
       password: body.password,
       role: isAdmin && body.role === "admin" ? "admin" : "student",
-      phone: body.phone,
+      phone: normalizePhone(body.phone) || undefined,
       grade: body.grade,
       stage: body.stage,
-      // الشعبة لا معنى لها خارج الثانوية — لا تُحفظ إلا معها
-      track: body.stage === TRACK_STAGE ? body.track : undefined,
+      eduSystem: body.eduSystem,
+      // الشعبة والفرع لا معنى لهما خارج شرطيهما — لا يُحفظان إلا معهما
+      track: showsTrack(body) ? body.track : undefined,
+      branch: showsBranch(body) ? body.branch : undefined,
       gender: body.gender === "female" ? "female" : body.gender === "male" ? "male" : undefined,
       school: body.school,
       governorate: body.governorate,

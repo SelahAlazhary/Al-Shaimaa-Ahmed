@@ -374,7 +374,9 @@ export type User = {
   phone?: string;
   grade?: string;
   stage?: string;        // المرحلة: ابتدائية/إعدادية/ثانوية
+  eduSystem?: string;    // النظام التعليمي: تربية وتعليم/أزهر
   track?: string;        // الشعبة: علمي/أدبي — للمرحلة الثانوية وحدها
+  branch?: string;       // فرع الشعبة العلمية: علوم/رياضة — لتربية وتعليم وحدها
   gender?: "male" | "female"; // النوع — لصيغة المخاطبة في النصوص
   school?: string;       // اسم المدرسة
   governorate?: string;  // المحافظة (لتجميع بيانات الأماكن فقط)
