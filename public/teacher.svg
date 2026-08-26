@@ -1,12 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="650" viewBox="0 0 520 650" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="650" viewBox="0 0 520 650" fill="none" role="img" aria-label="صورة المعلّمة">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7c3aed"/>
-      <stop offset="1" stop-color="#c026d3"/>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2f6e"/>
+      <stop offset="1" stop-color="#2a4aa8"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a9761f"/>
+      <stop offset="0.5" stop-color="#f0c766"/>
+      <stop offset="1" stop-color="#d99f2b"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f1e4"/>
+      <stop offset="1" stop-color="#efe6d3"/>
     </linearGradient>
   </defs>
-  <rect width="520" height="650" fill="url(#g)" opacity="0.12"/>
-  <circle cx="260" cy="230" r="120" fill="url(#g)" opacity="0.9"/>
-  <path d="M80 650c0-115 80-190 180-190s180 75 180 190z" fill="url(#g)" opacity="0.9"/>
-  <text x="260" y="620" text-anchor="middle" font-family="sans-serif" font-size="26" fill="#ffffff" opacity="0.85">صورة المدرّس (استبدلها)</text>
+
+  <!-- الورق -->
+  <rect width="520" height="650" fill="url(#paper)"/>
+
+  <!-- شمسة مذهّبة خلف الشخصية -->
+  <g transform="translate(260 250)" stroke="url(#gold)" fill="none" opacity="0.5">
+    <circle r="150" stroke-width="1.4"/>
+    <circle r="126" stroke-width="1"/>
+    <path d="M0 -126 109 -63 109 63 0 126 -109 63 -109 -63Z" stroke-width="1.2"/>
+    <path d="M0 -126 -109 -63 -109 63 0 126 109 63 109 -63Z" stroke-width="1.2" opacity="0.7"/>
+    <circle r="58" stroke-width="1"/>
+  </g>
+
+  <!-- الشخصية: كتف ورأس وحجاب — صياغة مجرّدة محترمة -->
+  <path d="M110 650c0-96 67-158 150-158s150 62 150 158Z" fill="url(#ink)"/>
+  <path d="M260 150c-62 0-104 46-104 112 0 62 34 116 68 148 12 12 24 18 36 18s24-6 36-18c34-32 68-86 68-148 0-66-42-112-104-112Z" fill="url(#ink)"/>
+  <!-- حافة مذهّبة للحجاب -->
+  <path d="M260 150c-62 0-104 46-104 112 0 62 34 116 68 148" stroke="url(#gold)" stroke-width="2.5" fill="none" opacity="0.75"/>
+  <path d="M156 330c40 26 168 26 208 0" stroke="url(#gold)" stroke-width="1.6" fill="none" opacity="0.45"/>
+
+  <!-- سطر خطّ عربي مجرّد أسفل الصورة -->
+  <g stroke="url(#gold)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8">
+    <path d="M392 566c-1.6-8-6.4-8-8 0 -2.5 10-13.5 10-16 0 -3-6.5-11-5.5-11 .8 0 5.4 7.4 6 9.2 .6 -1.6-8-6.4-8-8 0 -7 0h-0"/>
+    <path d="M300 566h-24"/>
+    <path d="M262 566c-2.5 10-13.5 10-16 0"/>
+    <path d="M236 566v-18"/>
+    <path d="M214 566c-1.6-8-6.4-8-8 0"/>
+    <path d="M196 566h-20"/>
+  </g>
+  <g fill="url(#gold)" opacity="0.85">
+    <circle cx="252" cy="584" r="3"/>
+    <circle cx="208" cy="552" r="3"/>
+    <circle cx="380" cy="552" r="3"/>
+  </g>
+
+  <!-- إطار مذهّب مزدوج -->
+  <rect x="10" y="10" width="500" height="630" stroke="url(#gold)" stroke-width="2" opacity="0.75"/>
+  <rect x="20" y="20" width="480" height="610" stroke="url(#gold)" stroke-width="1" opacity="0.4"/>
 </svg>

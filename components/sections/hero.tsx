@@ -62,8 +62,8 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28">
-      <KuficBackdrop density={92} opacity={0.42} fade="top" tone="text-primary/20" />
-      <HarakatField count={16} seed={11} tone="text-accent/35" />
+      <KuficBackdrop density={42} opacity={0.3} fade="top" tone="text-primary/14" />
+      <HarakatField count={14} seed={11} tone="text-accent/30" />
 
       <div className="container grid items-center gap-14 lg:grid-cols-2">
         {/* ---------------- العمود النصّي ---------------- */}
@@ -80,7 +80,7 @@ export function Hero() {
             className="pointer-events-none absolute -top-16 right-[-4rem] -z-10 hidden opacity-[0.07] lg:block"
           />
 
-          {!isHidden(content, "hero.statusPill") && (
+          {content.hero.statusPill?.trim() && !isHidden(content, "hero.statusPill") && (
             <Pill className="font-kufi mx-auto border-accent/40 bg-accent/10 text-[11px] tracking-wide text-foreground lg:mx-0">
               <span className="grid size-4 place-items-center rounded-full bg-accent/25">
                 <span className="size-1.5 rounded-full bg-accent" />

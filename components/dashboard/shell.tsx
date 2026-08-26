@@ -112,7 +112,7 @@ export function DashboardShell({
       {/* Sidebar سطح المكتب */}
       <aside className="fixed inset-y-0 right-0 z-40 hidden w-64 flex-col gap-5 overflow-y-auto overscroll-contain border-l border-border bg-card/40 p-5 backdrop-blur-xl lg:flex">
         {/* تبليط كوفي خافت داخل لوح الحبر */}
-        <KuficBackdrop density={64} opacity={0.16} fade="center" tone="text-accent/30" className="!-z-0" />
+        <KuficBackdrop density={34} opacity={0.14} fade="center" tone="text-accent/25" className="!-z-0" />
         <div className="relative">
           <Brand role={role} />
           <div className="mt-4 text-accent/70"><GoldRule /></div>

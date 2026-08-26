@@ -22,7 +22,7 @@ export function Features() {
 
   return (
     <section id="features" className="relative py-24">
-      <KuficBackdrop density={104} opacity={0.24} fade="center" tone="text-primary/14" />
+      <KuficBackdrop density={46} opacity={0.2} fade="center" tone="text-primary/10" />
 
       <div className="container">
         <SectionHeading

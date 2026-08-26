@@ -70,7 +70,7 @@ function safeUrl(raw?: string): URL {
 export function generateMetadata(): Metadata {
   const { content: c } = getPublicDB();
   // أيقونة الموقع (favicon) = شعار الأستاذة أو صورتها
-  const icon = c.teacher?.logo || c.teacher?.avatar || "/teacher.png";
+  const icon = c.teacher?.logo || c.teacher?.avatar || "/teacher.svg";
   return {
     // عنوان الموقع قد يكون فارغاً قبل ضبطه من اللوحة — لا نكسر البناء بسببه
     metadataBase: safeUrl(c.url),

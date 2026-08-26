@@ -15,7 +15,7 @@ export function Faq() {
 
   return (
     <section id="faq" className="relative py-24">
-      <KuficBackdrop density={110} opacity={0.2} fade="center" tone="text-primary/12" />
+      <KuficBackdrop density={46} opacity={0.18} fade="center" tone="text-primary/10" />
       <div className="container max-w-3xl">
         <SectionHeading
           eyebrow="أسئلة شائعة"

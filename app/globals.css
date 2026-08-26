@@ -23,11 +23,11 @@
   --muted-foreground: 222 12% 42%;
   --border: 36 24% 85%;
 
-  --primary: 226 60% 34%;
+  --primary: 218 66% 27%;
   --primary-foreground: 0 0% 100%;
   --accent: 38 76% 50%;
   --accent-foreground: 224 44% 12%;
-  --glow: 226 72% 46%;
+  --glow: 210 72% 36%;
 
   /* حبر التذهيب — يُستخدم في الزخارف المتّجهة وحدها */
   --gold: 38 76% 50%;
@@ -65,9 +65,9 @@
 
 /* مِداد — حبر نيلي وتذهيب (الافتراضي) */
 [data-preset="midad"] {
-  --primary: 226 60% 34%;
+  --primary: 218 66% 27%;
   --accent: 38 76% 50%;
-  --glow: 226 72% 46%;
+  --glow: 210 72% 36%;
   --gold: 38 76% 50%;
   --gold-deep: 32 68% 40%;
   --gold-light: 44 88% 66%;
@@ -104,7 +104,7 @@
 }
 
 /* توافق مع البيانات القديمة (بريسيتات المنصّة السابقة) */
-[data-preset="violet"]  { --primary: 226 60% 34%; --accent: 38 76% 50%; --glow: 226 72% 46%; }
+[data-preset="violet"]  { --primary: 218 66% 27%; --accent: 38 76% 50%; --glow: 210 72% 36%; }
 [data-preset="emerald"] { --primary: 162 44% 25%; --accent: 40 64% 50%; --glow: 160 50% 34%; }
 [data-preset="ocean"]   { --primary: 199 88% 28%; --accent: 43 84% 54%; --glow: 196 86% 40%; }
 [data-preset="crimson"] { --primary: 348 56% 34%; --accent: 26 74% 52%; --glow: 350 64% 44%; }
@@ -437,13 +437,13 @@ body::before {
   --muted: 36 26% 91%;
   --muted-foreground: 222 10% 44%;
   --border: 36 22% 85%;
-  --primary: 226 58% 30%;
+  --primary: 218 64% 25%;
   --primary-foreground: 0 0% 100%;
   --accent: 38 74% 50%;
-  --glow: 226 66% 42%;
+  --glow: 210 68% 34%;
 
-  --ink-deep: 226 52% 15%;
-  --ink: 226 50% 20%;
+  --ink-deep: 218 56% 12%;
+  --ink: 218 54% 17%;
 
   color: hsl(var(--foreground));
 }
