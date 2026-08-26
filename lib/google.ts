@@ -17,7 +17,7 @@ const CALENDAR_EVENTS = "https://www.googleapis.com/calendar/v3/calendars/primar
 const DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
 const DRIVE_FILES = "https://www.googleapis.com/drive/v3/files";
 /** اسم مجلّد الوسائط داخل Drive حساب المعلّمة. */
-const MEDIA_FOLDER = "منصة إيمان زيدان — الوسائط";
+const MEDIA_FOLDER = "منصّة الشيماء أحمد — الوسائط";
 
 /** أقل صلاحية ممكنة: أحداث التقويم + الملفات التي ينشئها هذا التطبيق فقط + البريد.
  *  drive.file لا يمنح أي وصول لبقية ملفات الحساب. */
@@ -306,7 +306,7 @@ export async function uploadToDrive(file: File): Promise<DriveUpload> {
 
 /* ---------- ملفات عامة على Drive (النسخ الاحتياطي) ---------- */
 
-const BACKUP_FOLDER = "منصة إيمان زيدان — النسخ الاحتياطية";
+const BACKUP_FOLDER = "منصّة الشيماء أحمد — النسخ الاحتياطية";
 
 /** مجلّد النسخ الاحتياطية (يُنشأ مرة واحدة ويُحفظ معرّفه). */
 export async function backupFolderId(): Promise<string> {

@@ -9,10 +9,10 @@ import type {
 } from "./types";
 
 export const defaultContent: SiteContent = {
-  brand: "منصّة اللغة العربية",
+  brand: "الشيماء أحمد",
   platformSubtitle: "لُغَةُ الضَّاد",
   teacher: {
-    name: "الأستاذة/ معلّمة اللغة العربية",
+    name: "الأستاذة الشيماء أحمد",
     subject: "اللغة العربية",
     headline: "أتقن",
     tagline: "اللغة العربية للإعدادية · والنحو والصرف والبلاغة والأدب والنصوص للثانوية",
@@ -80,7 +80,7 @@ export const defaultNotifications: import("./types").Notification[] = [];
  */
 export const seedUsers = [
   {
-    name: "مدير المنصّة",
+    name: "الأستاذة الشيماء أحمد",
     role: "admin" as const,
     username: process.env.ADMIN_EMAIL || "admin@example.com",
     password: process.env.ADMIN_PASSWORD || "ChangeMe@2026",
