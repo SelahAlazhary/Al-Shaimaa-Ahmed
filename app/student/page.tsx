@@ -14,12 +14,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   IconPlay, IconClipboardCheck, IconRadio, IconArrowLeft, IconClock,
-  IconCalendar, IconLayers, IconBook,
+  IconCalendar, IconLayers, IconBook, IconChart,
 } from "@/components/brand/icons";
 import { KuficBackdrop, CornerKnot, Shamsa, ElegantRule } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { CourseArt } from "@/components/brand/course-art";
-import { ProgressRing } from "@/components/brand/progress-ring";
+import { StatPlaque } from "@/components/brand/stat-plaque";
 import { EmptyCourses } from "@/components/brand/illustrations";
 import { InstallApp } from "@/components/pwa/install-app";
 import { EnableNotifications } from "@/components/pwa/enable-notifications";
@@ -67,36 +67,26 @@ export default function StudentHome() {
 
         <div className="relative flex flex-wrap items-center justify-between gap-5">
           <div className="min-w-0">
-            <p className="font-kufi text-[11px] tracking-[0.14em] text-white/70">
+            <p className="font-kufi text-base font-bold tracking-[0.04em] text-white/90 drop-shadow-sm sm:text-lg">
               أهلاً {fem ? "بكِ" : "بك"}
             </p>
-            <h1 className="font-display mt-1.5 truncate text-2xl font-bold sm:text-3xl">
+            <h1 className="font-display mt-2 truncate text-3xl font-bold tracking-tight drop-shadow-sm sm:text-4xl">
               {session?.name}
             </h1>
-            <ElegantRule width={200} className="mt-2 text-white/60" />
+            <ElegantRule width={220} className="mt-2.5 text-white/70" />
             {me?.grade && (
-              <p className="font-kufi mt-1 text-[11px] text-white/70">{me.grade}</p>
+              <p className="font-kufi mt-1.5 text-xs font-semibold text-white/80">{me.grade}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-4">
-            <ProgressRing value={avg} size={80} label="متوسّط تقدّمك" tone="#fff" trackOpacity={0.26} />
-          </div>
         </div>
 
-        {/* شريط المؤشّرات — أرقام حقيقية فقط */}
-        <div className="relative mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-1 ring-1 ring-white/20">
-          {[
-            { label: "كورساتك", value: ar(courses.length), icon: <IconBook className="size-4" /> },
-            { label: "اشتراك سارٍ", value: ar(subs.length), icon: <IconLayers className="size-4" /> },
-            { label: "كورس مكتمل", value: ar(done), icon: <IconClipboardCheck className="size-4" /> },
-          ].map((s) => (
-            <div key={s.label} className="flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center">
-              <span className="text-white/70">{s.icon}</span>
-              <span className="font-display text-lg font-bold leading-none">{s.value}</span>
-              <span className="font-kufi text-[9px] leading-none text-white/70">{s.label}</span>
-            </div>
-          ))}
+        {/* شريط المؤشّرات — ألواح SVG، وأرقام حقيقية فقط */}
+        <div className="relative mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatPlaque index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-4" />} />
+          <StatPlaque index={1} value={ar(courses.length)} label="كورساتك" icon={<IconBook className="size-4" />} />
+          <StatPlaque index={2} value={ar(subs.length)} label="اشتراك سارٍ" icon={<IconLayers className="size-4" />} />
+          <StatPlaque index={3} value={ar(done)} label="كورس مكتمل" icon={<IconClipboardCheck className="size-4" />} />
         </div>
       </motion.div>
 
