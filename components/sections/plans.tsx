@@ -3,7 +3,7 @@
 /**
  * قسم الخطط — بطاقات تسعير احترافية مبنية على SVG.
  * • لكل خطة لون خاص (من اللوحة) يلوّن ترويستها وزخرفتها وزرّها.
- * • الخصم يظهر كشريط مائل + السعر القديم مشطوباً + نسبة التوفير + عدّاد انتهاء العرض.
+ * • الخصم يظهر كشريط رأسي على الحافّة اليسرى + السعر القديم مشطوباً + نسبة التوفير + عدّاد انتهاء العرض.
  * • الخطة المميّزة ترتفع وتُوسَم، والترتيب من اللوحة.
  */
 import { useEffect, useState } from "react";
@@ -39,8 +39,8 @@ export function planScopeLabel(p: SitePlan, subjectName?: string): string {
   return subjectName || "كورس محدّد";
 }
 
-/** ترويسة SVG للبطاقة: قوس + زخرفة + شريط خصم مائل. */
-function PlanCrest({ tone, discount, featured }: { tone: string; discount?: number; featured?: boolean }) {
+/** ترويسة SVG للبطاقة: قوس وزخرفة هندسية. */
+function PlanCrest({ tone, featured }: { tone: string; featured?: boolean }) {
   const uid = useUid("crest");
   const W = 400;
   const H = 96;
@@ -68,15 +68,55 @@ function PlanCrest({ tone, discount, featured }: { tone: string; discount?: numb
       <rect width={W} height={H} fill={`url(#${uid}-g)`} />
       <rect width={W} height={H} fill={`url(#${uid}-t)`} mask={`url(#${uid}-m)`} opacity="0.5" />
       <path d={`M0 ${H} Q${W / 2} ${H - 28} ${W} ${H}`} fill="none" stroke={tone} strokeOpacity="0.35" strokeWidth="1.5" />
-      {discount ? (
-        <g>
-          <path d={`M${W - 128} -10 L${W + 10} -10 L${W + 10} 24 L${W - 150} 24 Z`} fill={tone} opacity="0.95" transform={`rotate(-8 ${W - 60} 8)`} />
-          <text x={W - 62} y="14" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800" transform={`rotate(-8 ${W - 62} 10)`}>
-            خصم {discount}٪
-          </text>
-        </g>
-      ) : null}
     </svg>
+  );
+}
+
+/**
+ * شريط الخصم — لوح رأسي على الحافّة اليسرى للبطاقة.
+ * النصّ مكتوب بزاوية ٩٠ درجة داخل SVG، والشريط ينتهي بذيل مشقوق
+ * (شكل الشارة التقليدي) وحافّة مذهّبة دقيقة.
+ */
+function DiscountRibbon({ percent, tone }: { percent: number; tone: string }) {
+  const uid = useUid("ribbon");
+  const W = 38;
+  const H = 172;
+  return (
+    <div className="pointer-events-none absolute left-0 top-8 z-20" aria-hidden="true">
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} fill="none">
+        <defs>
+          <linearGradient id={`${uid}-g`} x1="0" y1="0" x2={W} y2={H} gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor={tone} />
+            <stop offset="100%" stopColor={tone} stopOpacity="0.82" />
+          </linearGradient>
+        </defs>
+        {/* جسم الشريط + الذيل المشقوق أسفله */}
+        <path
+          d={`M0 0 H${W} V${H - 18} L${W / 2} ${H} L0 ${H - 18} Z`}
+          fill={`url(#${uid}-g)`}
+        />
+        {/* خيط مذهّب على الحافّة الداخلية */}
+        <path
+          d={`M${W - 1.5} 0 V${H - 19}`}
+          stroke="hsl(var(--gold-light))"
+          strokeWidth="1.5"
+          strokeOpacity="0.65"
+        />
+        <text
+          x={W / 2}
+          y={H / 2 - 8}
+          fill="#fff"
+          fontSize="15"
+          fontWeight="700"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontFamily: "var(--font-display)" }}
+          transform={`rotate(-90 ${W / 2} ${H / 2 - 8})`}
+        >
+          {`خصم ${percent.toLocaleString("ar-EG")}٪`}
+        </text>
+      </svg>
+    </div>
   );
 }
 
@@ -114,7 +154,10 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
         className={`glass relative flex h-full flex-col overflow-hidden rounded-4xl pt-10 shadow-bento ${featured ? "md:-mt-4 md:pb-4" : ""}`}
         style={featured ? { boxShadow: `0 0 0 2px ${tone}55, 0 24px 60px -32px ${tone}` } : undefined}
       >
-        <PlanCrest tone={tone} discount={priced.active ? priced.percent : undefined} featured={featured} />
+        <PlanCrest tone={tone} featured={featured} />
+        {priced.active && priced.percent ? (
+          <DiscountRibbon percent={priced.percent} tone={tone} />
+        ) : null}
 
         <div className="relative flex h-full flex-col p-6 pt-2">
           {/* الاسم والنطاق */}

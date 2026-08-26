@@ -593,6 +593,8 @@ body {
 /* طفو حروف الخلفية — سعة ومدة مختلفة لكل حرف عبر متغيّرات CSS */
 @keyframes letter-float  { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(var(--amp, -1.2px)) rotate(var(--tilt, 2deg)); } }
 @keyframes ink-bleed     { 0% { transform: scale(.86); opacity: 0; } 55% { opacity: .5; } 100% { transform: scale(1); opacity: .28; } }
+/* لمعة تعبر لوح الزرّ عند التمرير */
+@keyframes plq-sweep     { from { transform: translateX(0); } to { transform: translateX(var(--sweep, 420px)); } }
 
 @media (prefers-reduced-motion: no-preference) {
   .ico-draw > * {
@@ -628,6 +630,10 @@ body {
     transform-origin: center;
   }
   .ink-bleed    { animation: ink-bleed 1.6s ease-out forwards; transform-origin: center; transform-box: fill-box; }
+
+  /* اللمعة ساكنة خارج اللوح، وتعبره مرّة عند التمرير */
+  .plq .plq-sheen { transform: translateX(0); }
+  .plq:hover .plq-sheen { animation: plq-sweep 0.75s cubic-bezier(0.4, 0, 0.2, 1); }
 
   .group:hover .ico-slide { animation: ico-slide 0.55s ease; }
   .group:hover .ico-turn  { animation: ico-spin 1.1s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; transform-box: fill-box; }

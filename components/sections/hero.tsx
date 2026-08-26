@@ -14,7 +14,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Button, Pill } from "@/components/ui/primitives";
+import { Pill } from "@/components/ui/primitives";
+import { PlaqueButton } from "@/components/brand/plaque-button";
 import { CountUp, Stars, SpringArrow } from "@/components/ui/animated-icons";
 import { IconPlay, IconTrophy } from "@/components/brand/icons";
 import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament, ElegantRule } from "@/components/brand/pattern";
@@ -113,25 +114,26 @@ export function Hero() {
             className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start"
           >
             {!isHidden(content, "hero.primary") && (
-              <Button
-                as="a"
+              <PlaqueButton
                 href={content.cta?.registerUrl || "/register"}
                 style={btnStyle(el(content, "hero.primary"))}
-                className="w-full px-7 py-3.5 sm:w-auto"
+                variant="ink"
+                className="w-full sm:w-auto"
               >
                 {content.cta?.heroPrimaryLabel || "أنشئ حساب طالب"} <SpringArrow />
-              </Button>
+              </PlaqueButton>
             )}
             {!isHidden(content, "hero.secondary") && (
-              <button
+              <PlaqueButton
                 onClick={watchFree}
                 disabled={freeBusy}
                 style={btnStyle(el(content, "hero.secondary"))}
-                className="btn-foil group inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold transition hover:text-primary disabled:opacity-60"
+                variant="foil"
+                className="w-full sm:w-auto"
               >
                 <IconPlay anim="bob" className="size-5" />
                 {freeBusy ? "جارٍ التحميل…" : content.cta?.secondaryLabel || "شاهد درساً مجانياً"}
-              </button>
+              </PlaqueButton>
             )}
           </motion.div>
 
