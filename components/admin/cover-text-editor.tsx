@@ -15,6 +15,7 @@
  */
 import { useRef, useState, type PointerEvent as RPointerEvent } from "react";
 import { CourseArt, COVER_FONTS } from "@/components/brand/course-art";
+import { ZoomBar } from "@/components/admin/zoom-bar";
 import type { CoverFont, CoverText, Subject } from "@/lib/types";
 
 const DEFAULTS: CoverText = {
@@ -44,6 +45,7 @@ export function CoverTextEditor({
   const t: CoverText = { ...DEFAULTS, ...(subject.coverText ?? {}) };
   const boxRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState(false);
+  const [zoom, setZoom] = useState(1);
   /** موضع أثناء السحب — محلي حتى لا يُحفظ مع كل حركة. */
   const [live, setLive] = useState<{ x: number; y: number } | null>(null);
 
@@ -99,8 +101,13 @@ export function CoverTextEditor({
     <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_1fr]">
       {/* ---------- المعاينة والسحب ---------- */}
       <div>
-        <span className="lbl">اسحب النصّ إلى مكانه</span>
-        <div ref={boxRef} className="relative select-none overflow-hidden rounded-2xl">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="lbl mb-0">اسحب النصّ إلى مكانه</span>
+          <ZoomBar zoom={zoom} onZoom={setZoom} />
+        </div>
+        {/* التكبير يوسّع الصندوق نفسه فيبقى قياس السحب صحيحاً */}
+        <div className="overflow-auto rounded-2xl">
+          <div ref={boxRef} style={{ width: `${zoom * 100}%` }} className="relative select-none overflow-hidden rounded-2xl">
           <CourseArt
             seed={subject.id}
             title={subject.name}
@@ -132,6 +139,7 @@ export function CoverTextEditor({
               ✥ حرّك
             </button>
           )}
+          </div>
         </div>
         <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
           اسحب المقبض بالماوس، أو ركّز عليه واستخدم الأسهم (مع Shift لخطوة أكبر).

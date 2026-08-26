@@ -144,6 +144,7 @@ export default function MySubjects() {
                     coverColor={c.coverColor}
                     coverPattern={c.coverPattern}
                     coverText={c.coverText}
+                    coverStickers={c.coverStickers}
                     progress={owned ? progress : undefined}
                     locked={!owned}
                     className="transition-opacity duration-300 group-hover:opacity-95"

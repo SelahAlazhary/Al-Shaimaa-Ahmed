@@ -11,7 +11,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useUid } from "./use-uid";
 import { mediaSrc } from "@/lib/media";
-import type { CoverFont, CoverPattern, CoverText, FrameShape, ImageFit } from "@/lib/types";
+import type { CoverFont, CoverPattern, CoverSticker, CoverText, FrameShape, ImageFit } from "@/lib/types";
 
 const W = 400;
 const H = 225;
@@ -152,6 +152,7 @@ export function CourseArt({
   coverColor,
   coverPattern,
   coverText,
+  coverStickers,
   progress,
   locked = false,
   className = "",
@@ -167,6 +168,8 @@ export function CourseArt({
   coverPattern?: CoverPattern;
   /** نصّ يُكتب فوق اللوحة ويُوضع بالسحب من اللوحة. */
   coverText?: CoverText;
+  /** صور تُلصَق فوق اللوحة وتُحرَّك بالسحب. */
+  coverStickers?: CoverSticker[];
   progress?: number;
   locked?: boolean;
   className?: string;
@@ -317,6 +320,36 @@ export function CourseArt({
         <path d={`M${W - 16} 26 v22 a20 20 0 0 1 -20 20 h-18`} />
         <path d={`M${W - 16} 40 v8 a32 32 0 0 1 -32 32 h-8`} strokeOpacity={0.2} />
       </g>
+
+      {/* الصور الملصقة — تُرسم تحت النصّ ليبقى النصّ فوقها دائماً */}
+      {(coverStickers ?? []).map((st) => {
+        if (!st.src) return null;
+        const w = (Math.max(3, Math.min(100, st.size)) / 100) * W;
+        const h = w / (st.ratio && st.ratio > 0 ? st.ratio : 1);
+        const cx = (Math.max(0, Math.min(100, st.x)) / 100) * W;
+        const cy = (Math.max(0, Math.min(100, st.y)) / 100) * artH;
+        const rot = st.rotate ?? 0;
+        return (
+          <g key={st.id} transform={`rotate(${rot} ${cx} ${cy})`} opacity={(st.opacity ?? 100) / 100}>
+            {st.round && (
+              <defs>
+                <clipPath id={`${uid}-st-${st.id}`}>
+                  <ellipse cx={cx} cy={cy} rx={w / 2} ry={h / 2} />
+                </clipPath>
+              </defs>
+            )}
+            <image
+              href={mediaSrc(st.src)}
+              x={cx - w / 2}
+              y={cy - h / 2}
+              width={w}
+              height={h}
+              preserveAspectRatio="xMidYMid meet"
+              clipPath={st.round ? `url(#${uid}-st-${st.id})` : undefined}
+            />
+          </g>
+        );
+      })}
 
       {/* نصّ الغلاف — موضعه بالنسبة المئوية فيثبت في كل المقاسات */}
       {coverText?.text?.trim() && (() => {

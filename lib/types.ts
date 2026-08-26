@@ -10,6 +10,22 @@ export type Preset =
  * نصّ يُكتب فوق غلاف الكورس ويُحرَّك بالماوس.
  * الموضع بالنسبة المئوية من اللوحة لا بالبكسل، فيثبت مكانه في كل المقاسات.
  */
+/**
+ * صورة تُلصَق فوق لوحة الغلاف وتُحرَّك بالماوس.
+ * القياسات كلّها بالنسبة المئوية من اللوحة، فتثبت في كل المقاسات.
+ */
+export type CoverSticker = {
+  id: string;
+  src: string;        // رابط الصورة (بعد أي قصّ أو إزالة خلفية)
+  x: number;          // ٠..١٠٠ — مركز الصورة أفقياً
+  y: number;          // ٠..١٠٠ — مركز الصورة رأسياً
+  size: number;       // ٥..١٠٠ — عرضها كنسبة من عرض اللوحة
+  ratio?: number;     // نسبة أبعادها الأصلية (عرض ÷ ارتفاع) — تُقاس عند الرفع
+  rotate?: number;    // -١٨٠..١٨٠ درجة
+  opacity?: number;   // ٠..١٠٠
+  round?: boolean;    // قصّها دائرية
+};
+
 export type CoverFont = "display" | "sans" | "kufi";
 
 export type CoverText = {
@@ -272,6 +288,7 @@ export type Subject = {
   coverColor?: string;// لون خلفية اللوحة (HEX). فارغ = ألوان الثيم
   coverPattern?: CoverPattern; // زخرفة اللوحة. فارغ = تُختار تلقائياً من معرّف الكورس
   coverText?: CoverText;       // نصّ يُكتب على الغلاف ويُوضع بالسحب
+  coverStickers?: CoverSticker[]; // صور تُلصَق فوق الغلاف وتُحرَّك بالسحب
   videos: Lesson[];   // دروس الكورس
   materials?: Material[]; // مواد وملفات الكورس (PDF…)
   status: "منشورة" | "مسودّة";

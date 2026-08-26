@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
 import { CourseArt, COVER_PATTERNS } from "@/components/brand/course-art";
 import { CoverTextEditor } from "@/components/admin/cover-text-editor";
-import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit, CoverPattern, CoverText } from "@/lib/types";
+import { CoverStickersEditor } from "@/components/admin/cover-stickers-editor";
+import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit, CoverPattern, CoverText, CoverSticker } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 
 /** ألوان خلفية جاهزة للوحة الغلاف — من عائلة هوية المخطوط. */
@@ -112,6 +113,10 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
       ),
     });
 
+  /** الصور الملصقة على الغلاف. */
+  const setCoverStickers = (next: CoverSticker[]) =>
+    save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, coverStickers: next } : s)) });
+
   /** نصّ الغلاف وموضعه — يُحفظ عند كل تغيير (السحب يحفظ عند رفع الإصبع). */
   const setCoverText = (next: CoverText) =>
     save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, coverText: next } : s)) });
@@ -155,7 +160,7 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
         </p>
         <div className="flex flex-wrap items-start gap-5">
           <div className="w-full max-w-xs">
-            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} coverColor={subject.coverColor} coverPattern={subject.coverPattern} coverText={subject.coverText} progress={42} />
+            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} coverColor={subject.coverColor} coverPattern={subject.coverPattern} coverText={subject.coverText} coverStickers={subject.coverStickers} progress={42} />
           </div>
           <div className="flex flex-col gap-2">
             <label className="w-64"><span className="mb-1 block text-xs font-semibold text-muted-foreground">رابط صورة الغلاف</span>
@@ -305,6 +310,18 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
           المئوية فيبقى في مكانه على بطاقة الطالب الصغيرة وعلى المعاينة الكبيرة سواء.
         </p>
         <CoverTextEditor subject={subject} onChange={setCoverText} />
+      </Card>
+
+      {/* صور على الغلاف */}
+      <Card className="mb-6">
+        <h3 className="mb-1 flex items-center gap-2 font-display font-extrabold">
+          <ImageIcon className="size-5 text-primary" /> صور على الغلاف
+        </h3>
+        <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+          ارفع صورة — تُفتح أداة القصّ وإزالة الخلفية أولاً — ثم اسحبها بالماوس إلى مكانها
+          واضبط حجمها ودورانها وشفافيتها. الصور تُرسم تحت نصّ الغلاف ليبقى النصّ فوقها.
+        </p>
+        <CoverStickersEditor subject={subject} onChange={setCoverStickers} />
       </Card>
 
       {/* السعر الشهري */}
