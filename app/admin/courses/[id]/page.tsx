@@ -283,7 +283,7 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
         <Card className="mb-4">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-40 flex-1"><span className="mb-1 block text-xs font-semibold text-muted-foreground">عنوان الملف</span>
-              <input value={mat.title} onChange={(e) => setMat({ ...mat, title: e.target.value })} className="inp" placeholder="مثال: مذكّرة التفسير" />
+              <input value={mat.title} onChange={(e) => setMat({ ...mat, title: e.target.value })} className="inp" placeholder="مثال: مذكّرة النحو" />
             </label>
             <label className="min-w-56 flex-[2]"><span className="mb-1 block text-xs font-semibold text-muted-foreground">رابط الملف</span>
               <input value={mat.url} onChange={(e) => setMat({ ...mat, url: e.target.value })} onKeyDown={(e) => e.key === "Enter" && addMaterial()} dir="ltr" className="inp text-right" placeholder="https://drive.google.com/… أو رابط PDF مباشر" />

@@ -147,7 +147,7 @@ export default function ExamsPage() {
           {/* بيانات الاختبار */}
           <div className="grid gap-3 sm:grid-cols-6">
             <label className="sm:col-span-3"><span className="lbl">عنوان الاختبار</span>
-              <input value={d.title} onChange={(e) => set({ title: e.target.value })} className="inp" placeholder="اختبار الوحدة الأولى — التفسير" />
+              <input value={d.title} onChange={(e) => set({ title: e.target.value })} className="inp" placeholder="اختبار الوحدة الأولى — النحو" />
             </label>
             <label className="sm:col-span-3"><span className="lbl">الكورس (اختياري)</span>
               <select value={d.subjectId} onChange={(e) => set({ subjectId: e.target.value })} className="inp">

@@ -48,7 +48,7 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="إنشاء حساب طالب"
-      subtitle="سجّل بياناتك للبدء في دراسة العلوم الشرعية"
+      subtitle="سجّل بياناتك للبدء في دراسة اللغة العربية"
       footer={<>لديك حساب بالفعل؟ <Link href="/login" className="font-bold text-primary">تسجيل الدخول</Link></>}
     >
       <form onSubmit={submit} className="grid gap-3">

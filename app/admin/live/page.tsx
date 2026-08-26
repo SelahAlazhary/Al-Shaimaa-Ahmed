@@ -273,7 +273,7 @@ export default function LivePage() {
 
           <div className="grid gap-3 sm:grid-cols-6">
             <label className="sm:col-span-3"><span className="lbl">عنوان الجلسة</span>
-              <input value={f.title} onChange={(e) => set({ title: e.target.value })} className="inp" placeholder="مراجعة الفقه الشافعي — الباب الأول" />
+              <input value={f.title} onChange={(e) => set({ title: e.target.value })} className="inp" placeholder="مراجعة البلاغة — الباب الأول" />
             </label>
             <label className="sm:col-span-3"><span className="lbl">الكورس (اختياري — يحدّد مشتركيه)</span>
               <select value={f.subjectId} onChange={(e) => set({ subjectId: e.target.value })} className="inp">

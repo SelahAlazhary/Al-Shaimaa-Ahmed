@@ -53,14 +53,22 @@ export function Navbar() {
             <BrandLockup brand={content.brand} subtitle={content.platformSubtitle} logo={content.teacher.logo} size={36} />
           </a>
 
-          <ul className="hidden items-center gap-1 lg:flex">
-            {visibleLinks.map((l) => (
-              <li key={l.id} className="relative">
+          <ul className="hidden items-center lg:flex">
+            {visibleLinks.map((l, i) => (
+              <li key={l.id} className="relative flex items-center">
+                {/* فاصل مذهّب دقيق بين كل رابطين */}
+                {i > 0 && (
+                  <span aria-hidden="true" className="mx-1 flex h-4 w-px items-center">
+                    <svg viewBox="0 0 1 16" className="h-full w-px text-accent/45" preserveAspectRatio="none">
+                      <line x1="0.5" y1="0" x2="0.5" y2="16" stroke="currentColor" strokeWidth="1" />
+                    </svg>
+                  </span>
+                )}
                 <a
                   href={`#${l.id}`}
                   onMouseEnter={() => setHovered(l.id)}
-                  className={`font-kufi relative z-10 block rounded-full px-4 py-2 text-[12px] font-semibold transition-colors ${
-                    active === l.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  className={`font-display relative z-10 block rounded-full px-4 py-2 text-[15px] font-bold tracking-tight transition-colors ${
+                    active === l.id ? "text-primary" : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   {l.label}
@@ -68,7 +76,7 @@ export function Navbar() {
                 {hovered === l.id && (
                   <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 rounded-full bg-accent/14 ring-1 ring-accent/25"
+                    className="absolute inset-y-0 left-1 right-1 rounded-full bg-accent/14 ring-1 ring-accent/25"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
