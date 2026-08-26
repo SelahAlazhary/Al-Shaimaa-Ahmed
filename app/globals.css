@@ -671,6 +671,19 @@ body {
 .plq-foil .plq-top { background: hsl(0 0% 100% / 0.45); }
 .plq-foil .plq-sheen { background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.55), transparent); }
 
+/* نسخة مذهّبة — للزرّ الثالث (واتساب): تُميّزه عن زرّ الحبر وزرّ الورق
+   وتبقى داخل لوحة ألوان المنصّة بلا لون دخيل. */
+.plq-gold .plq-face,
+.plq-gold .plq-inner {
+  background: linear-gradient(140deg, hsl(var(--gold-deep)) 0%, hsl(var(--gold)) 55%, hsl(var(--gold-light)) 100%);
+}
+.plq-gold .plq-plate {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--glow)) 60%, hsl(var(--primary)));
+}
+.plq-gold .plq-rule { background: hsl(var(--primary) / 0.35); }
+.plq-gold .plq-top { background: hsl(0 0% 100% / 0.3); }
+.plq-gold .plq-sheen { background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.6), transparent); }
+
 /* منمنمات الأركان والنقطتان — بوحدة em فتكبر مع النصّ */
 .plq-knot {
   position: absolute;

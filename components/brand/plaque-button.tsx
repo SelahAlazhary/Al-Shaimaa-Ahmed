@@ -21,7 +21,7 @@
  */
 import type { ReactNode } from "react";
 
-type Variant = "ink" | "foil";
+type Variant = "ink" | "foil" | "gold";
 
 /** منمنمة ركن: ضلعان قصيران داخل الركن. */
 function Knot({ className }: { className: string }) {
@@ -50,6 +50,8 @@ export function PlaqueButton({
   className = "",
   style,
   type = "button",
+  target,
+  rel,
 }: {
   children: ReactNode;
   href?: string;
@@ -62,8 +64,12 @@ export function PlaqueButton({
   className?: string;
   style?: React.CSSProperties;
   type?: "button" | "submit";
+  /** للروابط الخارجية — يُمرَّر إلى <a> فقط. */
+  target?: string;
+  rel?: string;
 }) {
   const ink = variant === "ink";
+  const gold = variant === "gold";
 
   const body = (
     <>
@@ -89,7 +95,7 @@ export function PlaqueButton({
       {/* ارتفاع سطر حقيقي: يتّسع لنزول الحروف العربية ونقاطها */}
       <span
         className={`relative z-10 inline-flex items-center gap-2.5 font-display leading-[1.4] ${
-          ink ? "text-white" : "text-primary"
+          ink ? "text-white" : gold ? "text-[hsl(var(--primary))]" : "text-primary"
         }`}
       >
         {children}
@@ -98,7 +104,7 @@ export function PlaqueButton({
   );
 
   const cls =
-    `plq ${ink ? "plq-ink" : "plq-foil"} group relative inline-flex select-none items-center justify-center ` +
+    `plq ${ink ? "plq-ink" : gold ? "plq-gold" : "plq-foil"} group relative inline-flex select-none items-center justify-center ` +
     `transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ` +
     `focus-visible:ring-offset-2 focus-visible:ring-offset-background ` +
     `${disabled ? "pointer-events-none opacity-60" : ""} ${className}`;
@@ -113,7 +119,7 @@ export function PlaqueButton({
 
   if (href) {
     return (
-      <a href={href} aria-disabled={disabled || undefined} className={cls} style={sized}>
+      <a href={href} target={target} rel={rel} aria-disabled={disabled || undefined} className={cls} style={sized}>
         {body}
       </a>
     );

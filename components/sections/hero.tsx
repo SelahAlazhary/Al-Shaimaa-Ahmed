@@ -150,20 +150,22 @@ export function Hero() {
             )}
           </motion.div>
 
-          {/* زر واتساب — بهويّة واتساب اللونية لا بألوان المنصّة، فيُعرف فوراً.
-              رابطه ونصّه وإظهاره كلّها من لوحة الأدمن. */}
+          {/* زرّ واتساب — بلوح المنصّة نفسه بنسخته المذهّبة، فيتناسق مع
+              بقية الأزرار بدل لون دخيل. الأيقونة داخل ميدالية مثمّنة
+              مرسومة SVG بلون الحبر، فتبقى الهويّة البصرية واحدة. */}
           {!isHidden(content, "hero.whatsapp") && waHref && (
             <div className="mt-3 flex sm:justify-center lg:justify-start">
-              <a
+              <PlaqueButton
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                variant="gold"
                 style={btnStyle(el(content, "hero.whatsapp"))}
-                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-[#25D366] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_26px_-14px_#25D366] ring-1 ring-inset ring-white/25 transition hover:bg-[#1fb855] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto"
+                className="w-full sm:w-auto"
               >
-                <IconWhatsapp className="size-5 shrink-0" />
+                <WhatsappMedal />
                 {content.cta?.whatsappLabel || "تواصل معنا على واتساب"}
-              </a>
+              </PlaqueButton>
             </div>
           )}
 
@@ -244,5 +246,30 @@ export function Hero() {
 
       <VideoModal open={videoOpen} onClose={() => setVideoOpen(false)} src={freeSrc} />
     </section>
+  );
+}
+
+/**
+ * ميدالية أيقونة واتساب — مثمّن بلون الحبر داخل اللوح المذهّب.
+ * مرسومة هنا لا في مجموعة الأيقونات لأنها خاصّة بهذا الزرّ وحده.
+ */
+function WhatsappMedal() {
+  return (
+    <span className="relative grid size-7 shrink-0 place-items-center">
+      <svg viewBox="0 0 28 28" className="absolute inset-0 size-full" fill="none" aria-hidden="true">
+        <path
+          d="M14 1.2 19.4 3.4 23.6 7.6 25.8 13 23.6 18.4 19.4 22.6 14 24.8 8.6 22.6 4.4 18.4 2.2 13 4.4 7.6 8.6 3.4Z"
+          fill="hsl(var(--primary))"
+        />
+        <path
+          d="M14 1.2 19.4 3.4 23.6 7.6 25.8 13 23.6 18.4 19.4 22.6 14 24.8 8.6 22.6 4.4 18.4 2.2 13 4.4 7.6 8.6 3.4Z"
+          stroke="hsl(var(--gold-light))"
+          strokeOpacity="0.55"
+          strokeWidth="0.9"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <IconWhatsapp className="relative size-4 text-[hsl(var(--gold-light))]" />
+    </span>
   );
 }
