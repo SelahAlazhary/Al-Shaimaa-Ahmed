@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/sections/navbar";
 import { Hero } from "@/components/sections/hero";
 import { FreeLive } from "@/components/sections/free-live";
+import { Stages } from "@/components/sections/stages";
 import { Features } from "@/components/sections/features";
 import { Plans } from "@/components/sections/plans";
 import { Testimonials } from "@/components/sections/testimonials";
@@ -14,6 +15,8 @@ export default function Home() {
       <Hero />
       {/* بث مجاني مفتوح للجميع — يظهر فقط عند وجود جلسة مجانية */}
       <FreeLive />
+      {/* المراحل والفروع — إعدادي وثانوي */}
+      <Stages />
       <Features />
       {/* الخطط بدل قائمة المواد — المواد لا تظهر للزائر على الصفحة الرئيسية */}
       <Plans />

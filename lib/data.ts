@@ -12,6 +12,7 @@ export const TRACKS = ["علمي", "أدبي"] as const;
 /** روابط تنقّل الصفحة الرئيسية (ثابتة — أقسام الصفحة). */
 export const navLinks = [
   { id: "hero", label: "الرئيسية" },
+  { id: "stages", label: "المراحل" },
   { id: "features", label: "لماذا نحن" },
   { id: "plans", label: "الخطط" },
   { id: "faq", label: "أسئلة شائعة" },
