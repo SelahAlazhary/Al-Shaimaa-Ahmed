@@ -91,10 +91,15 @@ export function Hero() {
             </Pill>
           )}
 
+          {/* العنوان الرئيسي = اسم المعلّمة، والمادة سطر تحته */}
           <h1 className="mt-7 font-display text-[2.6rem] font-bold leading-[1.42] [text-wrap:balance] sm:text-[3.2rem] sm:leading-[1.38] md:text-[3.9rem] md:leading-[1.34]">
-            {t.headline}{" "}
-            <span className="text-gradient">{t.subject}</span>
+            <span className="text-gradient">{t.name}</span>
           </h1>
+          {t.subject && (
+            <p className="font-kufi mt-2 text-sm tracking-[0.12em] text-accent sm:text-base">
+              {t.subject}
+            </p>
+          )}
 
           {/* سطر يُخطّ حياً تحت العنوان — كأن القلم يكتبه الآن */}
           <div className="mt-2 flex justify-center lg:justify-start">

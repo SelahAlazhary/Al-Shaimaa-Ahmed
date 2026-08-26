@@ -10,7 +10,7 @@ import type {
 
 export const defaultContent: SiteContent = {
   brand: "الشيماء أحمد",
-  platformSubtitle: "لُغَةُ الضَّاد",
+  platformSubtitle: "Al-Shaimaa Ahmed",
   teacher: {
     name: "الأستاذة الشيماء أحمد",
     subject: "اللغة العربية",
