@@ -266,6 +266,61 @@ export function RuleOrnament({ width = 148, className = "" }: { width?: number; 
   );
 }
 
+/**
+ * فاصل مذهّب أنيق — خطّان متلاشيان وفي وسطهما شمسة صغيرة وخرزتان.
+ * يُستخدم تحت العناوين بدل أي زخرفة نصّية.
+ */
+export function ElegantRule({
+  width = 260,
+  className = "",
+}: {
+  width?: number;
+  className?: string;
+}) {
+  const uid = useUid("erule");
+  const w = width;
+  const c = w / 2;
+  const arm = Math.max(28, c - 30);
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width={w}
+      height={18}
+      viewBox={`0 0 ${w} 18`}
+      fill="none"
+      className={className}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        {/* الخطّ يتلاشى نحو الطرفين فلا ينتهي نهاية حادّة */}
+        <linearGradient id={`${uid}-r`} x1="0" y1="0" x2={c - 22} y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0.85" />
+        </linearGradient>
+        <linearGradient id={`${uid}-l`} x1={w} y1="0" x2={c + 22} y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0.85" />
+        </linearGradient>
+      </defs>
+
+      <path d={`M${c - 22 - arm} 9h${arm}`} stroke={`url(#${uid}-r)`} strokeWidth="1.2" strokeLinecap="round" />
+      <path d={`M${c + 22 + arm} 9h-${arm}`} stroke={`url(#${uid}-l)`} strokeWidth="1.2" strokeLinecap="round" />
+
+      {/* خرزتان */}
+      <circle cx={c - 20} cy="9" r="1.7" fill="currentColor" opacity="0.85" />
+      <circle cx={c + 20} cy="9" r="1.7" fill="currentColor" opacity="0.85" />
+
+      {/* شمسة المنتصف: معيّن ومربّع متشابكان */}
+      <g stroke="currentColor" fill="none" strokeLinejoin="round">
+        <path d={`M${c} 1 L${c + 8} 9 L${c} 17 L${c - 8} 9Z`} strokeWidth="1.2" />
+        <path d={`M${c - 5.2} 3.8 h10.4 v10.4 h-10.4Z`} strokeWidth="0.9" opacity="0.5" />
+      </g>
+      <circle cx={c} cy="9" r="1.9" fill="currentColor" />
+    </svg>
+  );
+}
+
 /** منمنمة زاوية — تُوضع مطلقة داخل بطاقة نسبية. */
 export function CornerKnot({ size = 56, className = "", ...rest }: SVGProps<SVGSVGElement> & { size?: number }) {
   return (

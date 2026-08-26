@@ -11,8 +11,7 @@
  */
 import { motion } from "framer-motion";
 import { SectionHeading, Reveal } from "@/components/ui/primitives";
-import { KuficBackdrop, ArchTile, CornerKnot } from "@/components/brand/pattern";
-import { WritingLine } from "@/components/brand/calligraphy";
+import { KuficBackdrop, ArchTile, CornerKnot, ElegantRule } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { useContent } from "@/components/content/content-provider";
 
@@ -85,13 +84,7 @@ export function Stages() {
                   </span>
                 </div>
 
-                <WritingLine
-                  width={220}
-                  seed={41 + i * 7}
-                  strokeWidth={2.4}
-                  delay={0.15 + i * 0.1}
-                  className="mt-3 text-accent/45"
-                />
+                <ElegantRule width={200} className="mt-4 text-accent" />
 
                 {/* الفروع */}
                 <ul className="mt-5 space-y-2.5">

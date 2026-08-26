@@ -17,8 +17,8 @@ import { motion } from "framer-motion";
 import { Button, Pill } from "@/components/ui/primitives";
 import { CountUp, Stars, SpringArrow } from "@/components/ui/animated-icons";
 import { IconPlay, IconTrophy } from "@/components/brand/icons";
-import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament } from "@/components/brand/pattern";
-import { WritingLine, DaadGlyph } from "@/components/brand/calligraphy";
+import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament, ElegantRule } from "@/components/brand/pattern";
+import { DaadGlyph } from "@/components/brand/calligraphy";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { VideoModal } from "@/components/ui/video-modal";
 import { HeroFrame } from "@/components/sections/hero-frames";
@@ -98,16 +98,9 @@ export function Hero() {
             {t.subject}
           </h1>
 
-          {/* سطر يُخطّ حياً تحت العنوان — كأن القلم يكتبه الآن */}
-          <div className="mt-2 flex justify-center lg:justify-start">
-            <WritingLine
-              width={330}
-              seed={19}
-              strokeWidth={3}
-              duration={2.8}
-              delay={0.35}
-              className="max-w-full text-accent/70"
-            />
+          {/* فاصل مذهّب تحت العنوان */}
+          <div className="mt-4 flex justify-center lg:justify-start">
+            <ElegantRule width={300} className="max-w-full text-accent" />
           </div>
 
           <p className="mx-auto mt-5 max-w-xl text-base leading-loose text-muted-foreground sm:text-lg lg:mx-0">

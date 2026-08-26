@@ -16,8 +16,7 @@ import {
   IconPlay, IconClipboardCheck, IconRadio, IconArrowLeft, IconClock,
   IconCalendar, IconLayers, IconBook,
 } from "@/components/brand/icons";
-import { KuficBackdrop, CornerKnot, Shamsa } from "@/components/brand/pattern";
-import { WritingLine } from "@/components/brand/calligraphy";
+import { KuficBackdrop, CornerKnot, Shamsa, ElegantRule } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { CourseArt } from "@/components/brand/course-art";
 import { ProgressRing } from "@/components/brand/progress-ring";
@@ -74,13 +73,7 @@ export default function StudentHome() {
             <h1 className="font-display mt-1.5 truncate text-2xl font-bold sm:text-3xl">
               {session?.name}
             </h1>
-            <WritingLine
-              width={210}
-              seed={23}
-              strokeWidth={2.4}
-              delay={0.2}
-              className="mt-1 text-white/40"
-            />
+            <ElegantRule width={200} className="mt-2 text-white/60" />
             {me?.grade && (
               <p className="font-kufi mt-1 text-[11px] text-white/70">{me.grade}</p>
             )}

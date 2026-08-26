@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/primitives";
 import { SpringArrow } from "@/components/ui/animated-icons";
 import { IconWhatsapp, IconFacebook, IconYoutube, IconTelegram } from "@/components/brand/icons";
 import { BrandLockup } from "@/components/brand/logo";
-import { KuficBackdrop, RuleOrnament, Shamsa } from "@/components/brand/pattern";
-import { WritingLine } from "@/components/brand/calligraphy";
+import { KuficBackdrop, RuleOrnament, Shamsa, ElegantRule } from "@/components/brand/pattern";
 import { useContent } from "@/components/content/content-provider";
 import { el, isHidden, btnStyle } from "@/lib/ui-style";
 
@@ -30,8 +29,8 @@ export function CtaFooter() {
               <h2 className="mx-auto max-w-2xl font-display text-3xl font-bold leading-[1.5] [text-wrap:balance] sm:text-4xl">
                 جاهز تبدأ رحلتك مع {content.teacher.subject}؟
               </h2>
-              <div className="mt-3 flex justify-center">
-                <WritingLine width={260} seed={31} strokeWidth={2.6} delay={0.2} className="text-white/45" />
+              <div className="mt-4 flex justify-center">
+                <ElegantRule width={280} className="text-white/60" />
               </div>
               <p className="mx-auto mt-4 max-w-xl text-white/85">أنشئ حسابك في أقل من دقيقة، فعّل باقتك، وابدأ من الدرس الأول.</p>
               <motion.div initial="rest" whileHover="hover" className="mt-8 flex flex-wrap justify-center gap-3">
