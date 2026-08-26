@@ -198,6 +198,101 @@ export default function CustomizePage() {
             onUpload={async (f) => { const url = await uploadImage(f); if (url) { setTeacher({ avatar: url }); await saveContent({ teacher: { ...form.teacher, avatar: url } }); } }} tall />
           <ImageUploader label="شعار المنصّة / الأيقونة (favicon)" hint="مربّع، PNG/SVG" value={form.teacher.logo}
             onUpload={async (f) => { const url = await uploadImage(f); if (url) { setTeacher({ logo: url }); await saveContent({ teacher: { ...form.teacher, logo: url } }); } }} />
+        
+          {/* ---------- خلفية الصفحة الرئيسية ---------- */}
+          <Card className="lg:col-span-2">
+            <h3 className="mb-1 font-display font-extrabold">خلفية الصفحة الرئيسية</h3>
+            <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+              صورة تُرسم خلف كل أقسام الصفحة. اجعلها ثابتة لتبقى في مكانها وتمرّ العناصر فوقها،
+              واضبط شدّتها وضبابها حتى تبقى النصوص مقروءة.
+            </p>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              <ImageUploader
+                label="صورة الخلفية"
+                hint="عريضة، JPG/PNG — يُفضّل ١٩٢٠×١٠٨٠"
+                value={form.background?.image ?? ""}
+                onUpload={async (f) => {
+                  const url = await uploadImage(f);
+                  if (!url) return;
+                  const next = { ...(form.background ?? {}), image: url };
+                  set({ background: next });
+                  await saveContent({ background: next });
+                }}
+                tall
+              />
+
+              <div className="grid content-start gap-4">
+                {/* ثابتة أم تتحرّك مع الصفحة */}
+                <div>
+                  <span className="lbl">سلوك الخلفية</span>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {([
+                      { fixed: true, title: "ثابتة", desc: "تبقى مكانها والعناصر تتحرّك فوقها" },
+                      { fixed: false, title: "تتحرّك مع الصفحة", desc: "تمرّ مع المحتوى كالمعتاد" },
+                    ] as const).map((o) => {
+                      const active = Boolean(form.background?.fixed) === o.fixed;
+                      return (
+                        <button
+                          key={String(o.fixed)}
+                          type="button"
+                          onClick={() => {
+                            const next = { ...(form.background ?? {}), fixed: o.fixed };
+                            set({ background: next });
+                            void saveContent({ background: next });
+                          }}
+                          className={`rounded-2xl border p-3 text-right transition ${
+                            active ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                          }`}
+                        >
+                          <span className="block text-sm font-bold">{o.title}</span>
+                          <span className="mt-0.5 block text-[11px] text-muted-foreground">{o.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <BgSlider
+                  label="شدّة الظهور"
+                  value={form.background?.opacity ?? 35}
+                  min={5} max={100} step={1}
+                  display={`${(form.background?.opacity ?? 35).toLocaleString("ar-EG")}٪`}
+                  onChange={(v) => {
+                    const next = { ...(form.background ?? {}), opacity: v };
+                    set({ background: next });
+                    void saveContent({ background: next });
+                  }}
+                />
+
+                <BgSlider
+                  label="الضباب (يحمي قراءة النصّ)"
+                  value={form.background?.blur ?? 0}
+                  min={0} max={20} step={1}
+                  display={`${(form.background?.blur ?? 0).toLocaleString("ar-EG")}px`}
+                  onChange={(v) => {
+                    const next = { ...(form.background ?? {}), blur: v };
+                    set({ background: next });
+                    void saveContent({ background: next });
+                  }}
+                />
+
+                {form.background?.image && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = { ...(form.background ?? {}), image: "" };
+                      set({ background: next });
+                      void saveContent({ background: next });
+                    }}
+                    className="w-fit rounded-full border border-border px-4 py-2 text-xs font-bold text-rose-500 transition hover:border-rose-500"
+                  >
+                    إزالة الخلفية
+                  </button>
+                )}
+              </div>
+            </div>
+          </Card>
         </div>
       )}
 
@@ -412,5 +507,29 @@ function ImageUploader({ label, hint, value, onUpload, tall }: { label: string; 
         <Upload className="size-4" /> {busy ? "جارٍ الرفع…" : "رفع صورة"}
       </Button>
     </Card>
+  );
+}
+
+/** منزلق إعدادات الخلفية. */
+function BgSlider({ label, value, min, max, step, display, onChange }: {
+  label: string; value: number; min: number; max: number; step: number; display: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+        <span>{label}</span>
+        <span className="font-bold text-foreground">{display}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-[hsl(var(--primary))]"
+      />
+    </label>
   );
 }

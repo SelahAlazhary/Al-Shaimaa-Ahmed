@@ -53,6 +53,7 @@ export async function PUT(req: Request) {
       cta: { ...(current.cta ?? {}), ...(patch.content.cta ?? {}) },
       support: { ...(current.support ?? {}), ...(patch.content.support ?? {}) },
       plansSection: { ...(current.plansSection ?? {}), ...(patch.content.plansSection ?? {}) },
+      background: { ...(current.background ?? {}), ...(patch.content.background ?? {}) },
     };
   }
   const next = patchDB(patch);

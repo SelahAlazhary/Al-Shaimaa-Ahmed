@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/sections/navbar";
+import { SiteBackground } from "@/components/sections/site-background";
 import { Hero } from "@/components/sections/hero";
 import { FreeLive } from "@/components/sections/free-live";
 import { Stages } from "@/components/sections/stages";
@@ -11,6 +12,8 @@ import { CtaFooter } from "@/components/sections/cta-footer";
 export default function Home() {
   return (
     <main className="relative min-h-screen overflow-x-hidden">
+      {/* خلفية الصفحة — تُضبط من «تخصيص الموقع ← الصور» */}
+      <SiteBackground />
       <Navbar />
       <Hero />
       {/* بث مجاني مفتوح للجميع — يظهر فقط عند وجود جلسة مجانية */}
