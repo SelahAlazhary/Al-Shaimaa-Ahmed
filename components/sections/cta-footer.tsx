@@ -61,6 +61,8 @@ export function CtaFooter() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               {navLinks.map((l) => (<li key={l.id}><a href={`#${l.id}`} className="transition hover:text-primary">{l.label}</a></li>))}
               <li><Link href="/login" className="transition hover:text-primary">تسجيل الدخول</Link></li>
+              <li><Link href="/legal/privacy" className="transition hover:text-primary">سياسة الخصوصية</Link></li>
+              <li><Link href="/legal/terms" className="transition hover:text-primary">شروط الاستخدام</Link></li>
             </ul>
           </div>
 
