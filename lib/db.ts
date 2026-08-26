@@ -3,8 +3,9 @@ import crypto from "crypto";
 import type { DB, PublicDB, PublicIntegrations, User, PublicUser, Role, Subject, Lesson, QuizResult, Live, Exam, ExamAttempt } from "./types";
 import {
   defaultContent, defaultPlans, defaultStudents, defaultSubjects, defaultGrades,
-  defaultCodes, defaultExams, defaultLive, defaultTickets, defaultNotifications, seedUsers,
+  defaultCodes, defaultExams, defaultLive, defaultTickets, defaultNotifications,
 } from "./defaults";
+import { seedUsers } from "./seed-admin";
 import { courseActive, lessonActive, planExpiry, planSubjectId, eligibleFor, liveVisible, publicLives } from "./access";
 import { firebaseConfigured } from "./firebase";
 import { ensureStore, peek, commit, flushStore, storeState, invalidate, readLocal } from "./store";

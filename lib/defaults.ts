@@ -7,7 +7,6 @@
 import type {
   SiteContent, SitePlan, Student, Subject, GradeRow, Code, Exam, Live, Ticket,
 } from "./types";
-import { ADMIN_EMAIL, ADMIN_PASSWORD } from "./secrets";
 
 export const defaultContent: SiteContent = {
   brand: "الشيماء أحمد",
@@ -75,16 +74,3 @@ export const defaultLive: Live[] = [];
 export const defaultTickets: Ticket[] = [];
 export const defaultNotifications: import("./types").Notification[] = [];
 
-/**
- * حساب المالك (الأدمن) فقط — الدخول بالبريد الإلكتروني وكلمة المرور.
- * القيم الافتراضية قابلة للتغيير عبر متغيّري البيئة ADMIN_EMAIL و ADMIN_PASSWORD.
- */
-export const seedUsers = [
-  {
-    name: "الأستاذة الشيماء أحمد",
-    role: "admin" as const,
-    username: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD,
-    active: true,
-  },
-];
