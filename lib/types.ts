@@ -6,6 +6,12 @@ export type Preset =
   | "midad" | "nile" | "andalus" | "rumman" | "custom"
   | "violet" | "emerald" | "ocean" | "crimson";
 
+/**
+ * زخرفة لوحة الغلاف (المربّعات خلف الصورة).
+ * "auto" = تُشتقّ من معرّف الكورس · "none" = بلا زخرفة · وباقي القيم تختار نمطاً بعينه.
+ */
+export type CoverPattern = "auto" | "none" | "knot" | "squares" | "arches" | "weave";
+
 /** شكل حواف الإطار. */
 export type FrameShape = "arch" | "rounded" | "square";
 
@@ -235,6 +241,7 @@ export type Subject = {
   coverFit?: ImageFit;// ضبط الغلاف داخل بطاقة الكورس (محاذاة/تكبير/حواف)
   coverRatio?: number;// نسبة أبعاد الغلاف الأصلية (عرض ÷ ارتفاع) — تُقاس تلقائياً
   coverColor?: string;// لون خلفية اللوحة (HEX). فارغ = ألوان الثيم
+  coverPattern?: CoverPattern; // زخرفة اللوحة. فارغ = تُختار تلقائياً من معرّف الكورس
   videos: Lesson[];   // دروس الكورس
   materials?: Material[]; // مواد وملفات الكورس (PDF…)
   status: "منشورة" | "مسودّة";

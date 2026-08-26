@@ -239,13 +239,61 @@ export function setUserProgress(userId: string, subjectId: string, value: number
   return u.progress[subjectId];
 }
 
+/**
+ * حذف حساب طالب — ومعه كل ما هو مربوط به.
+ *
+ * ما يُحذف مع سجلّ المستخدم نفسه (لأنه مخزّن داخله):
+ *   التقدّم · الاشتراكات · محاولات الاختبارات · أجهزة الإشعارات ·
+ *   الجهاز المربوط · الإشعارات المقروءة · كلمة المرور وملحها.
+ *
+ * وما يُنظَّف خارجه:
+ *   • الأكواد التي فعّلها: تُفكّ من الحساب وتُعلَّم «منتهي» — لا تعود
+ *     «متاح» عمداً، حتى لا يصير الحذف باباً لإحياء كود مدفوع.
+ *   • محادثات الدعم الخاصة به.
+ *   • الإشعارات الموجّهة إليه وحده (إشعارات الصفّ/الشعبة تبقى للبقية).
+ *   • سجلّ الحماية: يُجرَّد من هويّته (لا يُحذف) — فالسجلّ أثر أمني
+ *     يوثّق المحاولات المشبوهة، ومحوه يُضعف الحماية.
+ *
+ * لا تُمسّ شهادات الطلاب في الصفحة الرئيسية: محتوى تسويقي يكتبه الأدمن
+ * ولا يرتبط بمعرّف حساب، فمطابقتها بالاسم قد تحذف شهادة شخص آخر.
+ */
 export function deleteUser(id: string) {
   const db = getDB();
   const u = db.users.find((x) => x.id === id);
   if (!u || u.role === "admin") return false; // لا يُحذف الأدمن
+
   db.users = db.users.filter((x) => x.id !== id);
+
+  db.codes = db.codes.map((c) =>
+    c.studentId === id
+      ? { ...c, status: "منتهي" as const, studentId: undefined, student: undefined }
+      : c
+  );
+
+  // القديمة بلا userId تُطابَق بالاسم — لم يكن يُحفظ المعرّف وقت إنشائها
+  db.tickets = db.tickets.filter((t) => (t.userId ? t.userId !== id : t.student !== u.name));
+
+  db.notifications = db.notifications.filter((n) => n.userId !== id);
+
+  if (db.security?.events) {
+    db.security.events = db.security.events.map((e) =>
+      e.userId === id ? { ...e, userId: undefined, username: undefined } : e
+    );
+  }
+
   saveDB(db);
   return true;
+}
+
+/**
+ * صاحب الجلسة كما هو في القاعدة الآن — لا كما كان وقت إصدار الكوكي.
+ * الجلسة رمز موقّع لا يُلغى بحذف الحساب، فكل بوابة تتحقّق من الحساب
+ * نفسه: المحذوف أو الموقوف يُعامَل كزائر ويُخرَج فوراً.
+ */
+export function sessionUser(session: { uid: string } | null | undefined): User | null {
+  if (!session?.uid) return null;
+  const u = getDB().users.find((x) => x.id === session.uid);
+  return u && u.active ? u : null;
 }
 
 /* ---------- الخطط والاشتراكات ---------- */
@@ -413,6 +461,8 @@ export function getScopedDB(session: Scope): PublicDB {
 
   if (session?.role === "student") {
     const me = db.users.find((u) => u.id === session.uid);
+    // حساب محذوف أو موقوف: لا حمولة طالب إطلاقاً — يسقط لحمولة الزائر
+    if (!me || !me.active) return getScopedDB(null);
     const subjects = db.subjects
       .filter((s) => s.status === "منشورة" && eligibleFor(s, me))
       .map((s) => scopeSubjectForStudent(s, me));

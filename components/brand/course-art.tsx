@@ -11,7 +11,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useUid } from "./use-uid";
 import { mediaSrc } from "@/lib/media";
-import type { FrameShape, ImageFit } from "@/lib/types";
+import type { CoverPattern, FrameShape, ImageFit } from "@/lib/types";
 
 const W = 400;
 const H = 225;
@@ -90,6 +90,14 @@ function platePath(w: number, h: number, r = 22): string {
   ].join(" ");
 }
 
+/** ترتيب الأنماط — يربط اسم الزخرفة برقمها في tileMotif. */
+export const COVER_PATTERNS: { id: Exclude<CoverPattern, "auto" | "none">; label: string; kind: number }[] = [
+  { id: "knot", label: "خاتم ثماني", kind: 0 },
+  { id: "squares", label: "تعشيق مربّعات", kind: 1 },
+  { id: "arches", label: "أقواس", kind: 2 },
+  { id: "weave", label: "نسيج سداسي", kind: 3 },
+];
+
 /* ---------- زخارف البلاطات (٤ أنماط) ---------- */
 function tileMotif(kind: number, t: number) {
   const m = t / 2;
@@ -135,6 +143,7 @@ export function CourseArt({
   coverFit,
   coverRatio,
   coverColor,
+  coverPattern,
   progress,
   locked = false,
   className = "",
@@ -146,6 +155,8 @@ export function CourseArt({
   coverRatio?: number;
   /** لون خلفية اللوحة (HEX). فارغ = ألوان الثيم. */
   coverColor?: string;
+  /** زخرفة اللوحة — "none" تزيلها، و"auto"/فارغ تختارها من المعرّف. */
+  coverPattern?: CoverPattern;
   progress?: number;
   locked?: boolean;
   className?: string;
@@ -154,7 +165,10 @@ export function CourseArt({
   const reduce = useReducedMotion();
   const bg = gradientFrom(coverColor);
   const h = hash(seed || title);
-  const motif = h % 4;
+  /* الزخرفة: اختيار الأدمن يسبق الاشتقاق التلقائي، و"none" تلغيها تماماً */
+  const chosen = COVER_PATTERNS.find((p) => p.id === coverPattern);
+  const showTiles = coverPattern !== "none";
+  const motif = chosen ? chosen.kind : h % 4;
   const angle = [0, 15, 30, 45, 60, 75][h % 6];
   const tile = 52 + (h % 3) * 10;
   /* ---------- الإطار ----------
@@ -240,7 +254,7 @@ export function CourseArt({
           <>
             {/* أرضية مزخرفة خلف الصورة: تظهر في الهوامش حين تُعرض الصورة كاملة بلا قصّ */}
             <rect width={W} height={artH} fill={`url(#${uid}-bg)`} />
-            <rect width={W} height={artH} fill={`url(#${uid}-tile)`} mask={`url(#${uid}-fademask)`} />
+            {showTiles && <rect width={W} height={artH} fill={`url(#${uid}-tile)`} mask={`url(#${uid}-fademask)`} />}
             <g transform={coverTransform}>
               <image
                 href={mediaSrc(cover)}
@@ -257,7 +271,7 @@ export function CourseArt({
         ) : (
           <>
             <rect width={W} height={artH} fill={`url(#${uid}-bg)`} />
-            <rect width={W} height={artH} fill={`url(#${uid}-tile)`} mask={`url(#${uid}-fademask)`} />
+            {showTiles && <rect width={W} height={artH} fill={`url(#${uid}-tile)`} mask={`url(#${uid}-fademask)`} />}
             {/* خاتم كبير في القلب */}
             <g
               fill="none"

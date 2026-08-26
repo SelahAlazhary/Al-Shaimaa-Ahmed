@@ -10,8 +10,8 @@ import {
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
-import { CourseArt } from "@/components/brand/course-art";
-import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit } from "@/lib/types";
+import { CourseArt, COVER_PATTERNS } from "@/components/brand/course-art";
+import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit, CoverPattern } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 
 /** ألوان خلفية جاهزة للوحة الغلاف — من عائلة هوية المخطوط. */
@@ -111,6 +111,10 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
       ),
     });
 
+  /** زخرفة اللوحة (المربّعات) — "auto" اشتقاق تلقائي و"none" بلا زخرفة. */
+  const setCoverPattern = (pattern: CoverPattern) =>
+    save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, coverPattern: pattern } : s)) });
+
   /** لون خلفية اللوحة — فارغ يعيدها لألوان الثيم. */
   const setCoverColor = (hex: string) =>
     save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, coverColor: hex } : s)) });
@@ -146,7 +150,7 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
         </p>
         <div className="flex flex-wrap items-start gap-5">
           <div className="w-full max-w-xs">
-            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} coverColor={subject.coverColor} progress={42} />
+            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} coverColor={subject.coverColor} coverPattern={subject.coverPattern} progress={42} />
           </div>
           <div className="flex flex-col gap-2">
             <label className="w-64"><span className="mb-1 block text-xs font-semibold text-muted-foreground">رابط صورة الغلاف</span>
@@ -209,6 +213,44 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
                 يظهر خلف الزخرفة الهندسية، وفي الهوامش حول الصورة — والمعاينة على اليمين تتغيّر فوراً.
               </p>
             </div>
+          </div>
+
+          {/* زخرفة اللوحة — المربّعات خلف الصورة */}
+          <div className="w-full">
+            <span className="lbl">زخرفة الغلاف</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {([{ id: "auto", label: "تلقائي" }, { id: "none", label: "بلا زخرفة" }] as const).map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setCoverPattern(o.id)}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                    (subject.coverPattern ?? "auto") === o.id
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+              {COVER_PATTERNS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setCoverPattern(o.id)}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                    subject.coverPattern === o.id
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              «تلقائي» يختار نمطاً ثابتاً من معرّف الكورس فيبقى لكل كورس هويّة مميّزة، و«بلا زخرفة» تترك الخلفية سادة.
+            </p>
           </div>
 
           {/* محاذاة الغلاف وضبطه */}
