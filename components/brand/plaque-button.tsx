@@ -7,10 +7,16 @@
  * القصّ، ومنمنمة في كل ركن، ونقطتين عند منتصف الضلعين، ولمعة تمرّ
  * عند التمرير.
  *
- * لماذا نقيس العرض بـResizeObserver بدل preserveAspectRatio="none"؟
- * لأن التمديد يشوّه زوايا الطرفين المدبّبين ويجعل الحدّ غير متساوي
- * السُمك. بقياس العرض الفعلي نرسم الهندسة بالبكسل الحقيقي فتبقى
- * الزوايا كما صُمّمت مهما طال النصّ أو تغيّر الخطّ.
+ * المقاس يتبع النصّ — ثلاث قواعد:
+ *   ١) لا عرض ولا ارتفاع مفروضان. الحشو وحده يحدّد المقاس.
+ *   ٢) الحشو بوحدة `em`، فيكبر ويصغر مع حجم الخطّ تلقائياً — لو غيّرت
+ *      حجم النصّ تغيّر الزرّ معه بنفس النسبة.
+ *   ٣) ارتفاع السطر حقيقي (لا `leading-none`) حتى يتّسع الصندوق
+ *      لنزول الحروف العربية ونقاطها بدل أن تلامس الحدّ.
+ *
+ * ثم يُقاس **الصندوق الخارجي** (border-box) بـResizeObserver وتُرسم
+ * الهندسة بالبكسل الحقيقي — لا تمديد viewBox، فلا تشوّه في الزوايا ولا
+ * تفاوت في سُمك الحدّ.
  *
  * النصّ يبقى HTML فوق الرسم — حفاظاً على قارئات الشاشة والاتجاه RTL.
  */
@@ -25,7 +31,12 @@ export function PlaqueButton({
   onClick,
   disabled,
   variant = "ink",
-  height = 112,
+  /** الحشو الأفقي بوحدة em — يتبع حجم الخطّ. */
+  padX = 1.75,
+  /** الحشو الرأسي بوحدة em — يتبع حجم الخطّ. */
+  padY = 0.72,
+  /** حجم نصّ الزرّ. غيّره ليكبر الزرّ كلّه بنفس النسبة. */
+  fontSize = "1.05rem",
   className = "",
   style,
   type = "button",
@@ -35,31 +46,53 @@ export function PlaqueButton({
   onClick?: () => void;
   disabled?: boolean;
   variant?: Variant;
-  height?: number;
+  padX?: number;
+  padY?: number;
+  fontSize?: string;
   className?: string;
   style?: React.CSSProperties;
   type?: "button" | "submit";
 }) {
   const uid = useUid("plq");
   const ref = useRef<HTMLElement | null>(null);
-  const [w, setW] = useState(0);
+  const [box, setBox] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)));
+
+    /**
+     * نقيس الصندوق الخارجي دائماً — هو ما يشغله الزرّ فعلاً على الصفحة.
+     * (contentRect يستبعد الحشو، فلو استُخدم لرُسم اللوح أصغر من الزرّ
+     *  بمقدار الحشو كلّه وخرج النصّ خارج الإطار.)
+     */
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      setBox((prev) => {
+        const w = Math.round(r.width);
+        const h = Math.round(r.height);
+        return prev.w === w && prev.h === h ? prev : { w, h };
+      });
+    };
+
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
-    setW(Math.round(el.getBoundingClientRect().width));
+    measure();
+
+    // الخطوط العربية تُحمّل بعد أول رسم، فيتغيّر عرض النصّ — نعيد القياس
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+    fonts?.ready.then(measure).catch(() => {});
+
     return () => ro.disconnect();
   }, []);
 
-  const h = height;
-  const mid = h / 2;
-  const cut = 14;   // طول القصّ عند كل ركن
+  const { w, h } = box;
   const ink = variant === "ink";
+  const ready = w > 0 && h > 0;
 
-  // الهندسة لا تُرسم قبل معرفة العرض الحقيقي (تفادي وميض شكل خاطئ)
-  const ready = w > cut * 4;
+  // القصّ يتناسب مع الارتفاع والعرض معاً — يبقى متناسقاً في أي مقاس
+  const cut = Math.max(5, Math.round(Math.min(h * 0.28, w * 0.14)));
+  const mid = h / 2;
 
   /** مستطيل بأركان أربعة مقصوصة (لوح المخطوط). */
   const plaque = (inset: number) => {
@@ -67,7 +100,7 @@ export function PlaqueButton({
     const y0 = inset;
     const x1 = w - inset;
     const y1 = h - inset;
-    const c = cut - inset * 0.6;
+    const c = Math.max(3, cut - inset * 0.6);
     return [
       `M${x0 + c} ${y0}`,
       `H${x1 - c}`,
@@ -82,15 +115,20 @@ export function PlaqueButton({
   };
 
   const outer = ready ? plaque(0) : "";
-  const rule = ready ? plaque(5) : "";
+  const rule = ready ? plaque(4.5) : "";
 
-  /** منمنمة ركن: ضلعان قصيران ونقطة. */
-  const knot = (x: number, y: number, sx: number, sy: number) =>
-    `M${x + 11 * sx} ${y + 4 * sy} h${5 * sx} M${x + 4 * sx} ${y + 11 * sy} v${5 * sy}`;
+  /** منمنمة ركن: ضلعان قصيران داخل الركن — بنِسَب القصّ نفسه. */
+  const knot = (x: number, y: number, sx: number, sy: number) => {
+    const a = cut * 0.56; // بُعد البداية عن الركن
+    const b = cut * 0.22; // إزاحة الضلع الموازي
+    const l = cut * 0.28; // طول الضلع
+    return `M${x + a * sx} ${y + b * sy} h${l * sx} M${x + b * sx} ${y + a * sy} v${l * sy}`;
+  };
+
+  const dotR = Math.max(1.4, Math.round(h * 0.045 * 10) / 10);
 
   const body = (
     <>
-      {/* الرسم */}
       {ready && (
         <svg
           aria-hidden="true"
@@ -98,14 +136,14 @@ export function PlaqueButton({
           height={h}
           viewBox={`0 0 ${w} ${h}`}
           fill="none"
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute left-0 top-0"
         >
           <defs>
             <linearGradient id={`${uid}-fill`} x1="0" y1="0" x2={w} y2={h} gradientUnits="userSpaceOnUse">
               {ink ? (
                 <>
                   <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="62%" stopColor="hsl(var(--primary))" />
+                  <stop offset="65%" stopColor="hsl(var(--primary))" />
                   <stop offset="100%" stopColor="hsl(var(--glow))" />
                 </>
               ) : (
@@ -122,10 +160,9 @@ export function PlaqueButton({
               <stop offset="100%" stopColor="hsl(var(--gold))" />
             </linearGradient>
 
-            {/* لمعة تمرّ داخل حدود اللوح عند التمرير */}
             <linearGradient id={`${uid}-sheen`} x1="0" y1="0" x2={h * 2} y2={h} gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-              <stop offset="50%" stopColor="#fff" stopOpacity={ink ? 0.3 : 0.55} />
+              <stop offset="50%" stopColor="#fff" stopOpacity={ink ? 0.28 : 0.5} />
               <stop offset="100%" stopColor="#fff" stopOpacity="0" />
             </linearGradient>
 
@@ -134,59 +171,49 @@ export function PlaqueButton({
             </clipPath>
           </defs>
 
-          {/* الجسم */}
           <path d={outer} fill={`url(#${uid}-fill)`} />
 
-          {/* لمعة علوية خفيفة تعطي بروزاً */}
           <g clipPath={`url(#${uid}-clip)`}>
-            <path d={`M0 0 H${w} V${mid * 0.72} H0 Z`} fill="#fff" fillOpacity={ink ? 0.1 : 0.5} />
-            <rect
-              className="plq-sheen"
-              x={-h * 2}
-              y="0"
-              width={h * 2}
-              height={h}
-              fill={`url(#${uid}-sheen)`}
-            />
+            <path d={`M0 0 H${w} V${mid * 0.7} H0 Z`} fill="#fff" fillOpacity={ink ? 0.09 : 0.45} />
+            <rect className="plq-sheen" x={-h * 2} y="0" width={h * 2} height={h} fill={`url(#${uid}-sheen)`} />
           </g>
 
-          {/* حدّ ذهبي خارجي */}
-          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2 : 1.7} strokeLinejoin="round" />
+          {/* حدّ ذهبي خارجي — مرسوم داخل الحدّ حتى لا يُقصّ نصفه */}
+          <path
+            d={plaque(ink ? 0.9 : 0.75)}
+            stroke={`url(#${uid}-gold)`}
+            strokeWidth={ink ? 1.8 : 1.5}
+            strokeLinejoin="round"
+          />
 
-          {/* خيط داخلي رفيع — يتبع القصّ فيبدو إطاراً مخطوطاً لا شكلاً ثانياً */}
+          {/* خيط داخلي يتبع القصّ */}
           <path
             d={rule}
             stroke={ink ? "hsl(var(--gold-light))" : `url(#${uid}-gold)`}
-            strokeWidth="0.9"
-            strokeOpacity={ink ? 0.42 : 0.3}
+            strokeWidth="0.85"
+            strokeOpacity={ink ? 0.4 : 0.28}
             strokeLinejoin="round"
           />
 
           {/* منمنمات الأركان الأربعة */}
-          <g
-            stroke={`url(#${uid}-gold)`}
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeOpacity="0.8"
-            fill="none"
-          >
+          <g stroke={`url(#${uid}-gold)`} strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.8" fill="none">
             <path d={knot(cut, 0, 1, 1)} />
             <path d={knot(w - cut, 0, -1, 1)} />
             <path d={knot(cut, h, 1, -1)} />
             <path d={knot(w - cut, h, -1, -1)} />
           </g>
 
-          {/* نقطتان مذهّبتان عند منتصف الضلعين القصيرين */}
+          {/* نقطتان عند منتصف الضلعين القصيرين */}
           <g fill={`url(#${uid}-gold)`} opacity="0.9">
-            <circle cx={cut * 0.62} cy={mid} r="2.2" />
-            <circle cx={w - cut * 0.62} cy={mid} r="2.2" />
+            <circle cx={Math.max(4, cut * 0.5)} cy={mid} r={dotR} />
+            <circle cx={w - Math.max(4, cut * 0.5)} cy={mid} r={dotR} />
           </g>
         </svg>
       )}
 
-      {/* النصّ فوق الرسم */}
+      {/* ارتفاع سطر حقيقي: يتّسع لنزول الحروف العربية ونقاطها */}
       <span
-        className={`relative z-10 inline-flex items-center gap-2.5 font-display text-[1.05rem] ${
+        className={`relative z-10 inline-flex items-center gap-2.5 font-display leading-[1.4] ${
           ink ? "text-white" : "text-primary"
         }`}
       >
@@ -200,12 +227,14 @@ export function PlaqueButton({
     `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ` +
     `focus-visible:ring-offset-background ${disabled ? "pointer-events-none opacity-60" : ""} ${className}`;
 
+  /**
+   * لا عرض ولا ارتفاع مفروضان — الحشو بوحدة em حول النصّ هو كل شيء،
+   * فيصير المقاس مشتقّاً من النصّ نفسه ومن حجم خطّه.
+   */
   const sized: React.CSSProperties = {
-    height: h,
-    // مسافة تضمن ابتعاد النصّ عن الطرف المدبّب مهما طال
-    // ثابت لا يتبع الارتفاع: زيادة الطول يجب ألا تزيد العرض
-    paddingInline: 40,
-    // مسافة عبور اللمعة = العرض + عرض اللمعة نفسها
+    fontSize,
+    paddingInline: `${padX}em`,
+    paddingBlock: `${padY}em`,
     ["--sweep" as string]: `${w + h * 2}px`,
     ...style,
   };
@@ -215,6 +244,7 @@ export function PlaqueButton({
       <a
         ref={ref as React.Ref<HTMLAnchorElement>}
         href={href}
+        aria-disabled={disabled || undefined}
         className={cls}
         style={sized}
       >

@@ -111,7 +111,9 @@ export function Hero() {
           <motion.div
             initial="rest"
             whileHover="hover"
-            className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start"
+            /* items-stretch: الزرّان يتساويان في الارتفاع رغم اختلاف
+               ارتفاع محتواهما (الأيقونة أطول من سطر النصّ) */
+            className="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start"
           >
             {!isHidden(content, "hero.primary") && (
               <PlaqueButton
