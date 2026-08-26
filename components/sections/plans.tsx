@@ -3,7 +3,7 @@
 /**
  * قسم الخطط — بطاقات تسعير احترافية مبنية على SVG.
  * • لكل خطة لون خاص (من اللوحة) يلوّن ترويستها وزخرفتها وزرّها.
- * • الخصم يظهر كشريط رأسي على الحافّة اليسرى + السعر القديم مشطوباً + نسبة التوفير + عدّاد انتهاء العرض.
+ * • الخصم أو الشارة يظهر كشريط قُطري في ركن البطاقة + السعر القديم مشطوباً + عدّاد انتهاء العرض.
  * • الخطة المميّزة ترتفع وتُوسَم، والترتيب من اللوحة.
  */
 import { useEffect, useState } from "react";
@@ -39,81 +39,50 @@ export function planScopeLabel(p: SitePlan, subjectName?: string): string {
   return subjectName || "كورس محدّد";
 }
 
-/** ترويسة SVG للبطاقة: قوس وزخرفة هندسية. */
-function PlanCrest({ tone, featured }: { tone: string; featured?: boolean }) {
-  const uid = useUid("crest");
-  const W = 400;
-  const H = 96;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-x-0 top-0 h-24 w-full" aria-hidden="true" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`${uid}-g`} x1="0" y1="0" x2={W} y2={H} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={tone} stopOpacity={featured ? 0.28 : 0.18} />
-          <stop offset="100%" stopColor={tone} stopOpacity={0.04} />
-        </linearGradient>
-        <pattern id={`${uid}-t`} width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
-          <g fill="none" stroke={tone} strokeWidth="1" strokeOpacity="0.45">
-            <rect x="8.5" y="8.5" width="17" height="17" />
-            <path d="M17 0 34 17 17 34 0 17Z" />
-          </g>
-        </pattern>
-        <linearGradient id={`${uid}-fade`} x1="0" y1="0" x2="0" y2={H} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-        <mask id={`${uid}-m`}>
-          <rect width={W} height={H} fill={`url(#${uid}-fade)`} />
-        </mask>
-      </defs>
-      <rect width={W} height={H} fill={`url(#${uid}-g)`} />
-      <rect width={W} height={H} fill={`url(#${uid}-t)`} mask={`url(#${uid}-m)`} opacity="0.5" />
-      <path d={`M0 ${H} Q${W / 2} ${H - 28} ${W} ${H}`} fill="none" stroke={tone} strokeOpacity="0.35" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
 /**
- * شريط الخصم — لوح رأسي على الحافّة اليسرى للبطاقة.
- * النصّ مكتوب بزاوية ٩٠ درجة داخل SVG، والشريط ينتهي بذيل مشقوق
- * (شكل الشارة التقليدي) وحافّة مذهّبة دقيقة.
+ * شريط الزاوية — لوح قُطري في الركن العلوي (الأيمن في RTL).
+ * يحمل شارة الخطة أو نسبة الخصم، ومرسوم بـSVG بحدّ مذهّب وطيّة ظلّ
+ * صغيرة عند طرفيه كالشرائط الحقيقية.
  */
-function DiscountRibbon({ percent, tone }: { percent: number; tone: string }) {
-  const uid = useUid("ribbon");
-  const W = 38;
-  const H = 172;
+function CornerRibbon({ text, tone }: { text: string; tone: string }) {
+  const uid = useUid("cr");
+  const S = 132;            // ضلع المربّع الحاوي
+  const band = 30;          // عرض الشريط
+  const d = S * 0.62;       // بُعد الشريط عن الركن
   return (
-    <div className="pointer-events-none absolute left-0 top-8 z-20" aria-hidden="true">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} fill="none">
+    <div className="pointer-events-none absolute right-0 top-0 z-20 overflow-hidden" style={{ width: S, height: S }}>
+      <svg width={S} height={S} viewBox={`0 0 ${S} ${S}`} fill="none" aria-hidden="true">
         <defs>
-          <linearGradient id={`${uid}-g`} x1="0" y1="0" x2={W} y2={H} gradientUnits="userSpaceOnUse">
+          <linearGradient id={`${uid}-g`} x1={S} y1="0" x2="0" y2={S} gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor={tone} />
-            <stop offset="100%" stopColor={tone} stopOpacity="0.82" />
+            <stop offset="100%" stopColor={tone} stopOpacity="0.86" />
           </linearGradient>
         </defs>
-        {/* جسم الشريط + الذيل المشقوق أسفله */}
+        {/* طيّتا الشريط (ظلّ خفيف عند الطرفين) */}
+        <path d={`M${S - d} 0 L${S} 0 L${S} 6 Z`} fill={tone} opacity="0.55" />
+        <path d={`M0 ${S - d} L0 ${S} L6 ${S} Z`} fill={tone} opacity="0.55" />
+        {/* جسم الشريط القُطري */}
         <path
-          d={`M0 0 H${W} V${H - 18} L${W / 2} ${H} L0 ${H - 18} Z`}
+          d={`M${S - d} 0 L${S} 0 L0 ${S} L0 ${S - d} Z`}
           fill={`url(#${uid}-g)`}
         />
-        {/* خيط مذهّب على الحافّة الداخلية */}
         <path
-          d={`M${W - 1.5} 0 V${H - 19}`}
+          d={`M${S - d + 5} 0 L${S - d + 5.5} 0 M0 ${S - d + 5} L0 ${S - d + 5}`}
           stroke="hsl(var(--gold-light))"
-          strokeWidth="1.5"
-          strokeOpacity="0.65"
+          strokeOpacity="0.6"
         />
         <text
-          x={W / 2}
-          y={H / 2 - 8}
+          x={S / 2 - 2}
+          y={S / 2 - 2}
           fill="#fff"
-          fontSize="15"
+          fontSize="13"
           fontWeight="700"
           textAnchor="middle"
           dominantBaseline="middle"
           style={{ fontFamily: "var(--font-display)" }}
-          transform={`rotate(-90 ${W / 2} ${H / 2 - 8})`}
+          transform={`rotate(-45 ${S / 2 - 2} ${S / 2 - 2})`}
         >
-          {`خصم ${percent.toLocaleString("ar-EG")}٪`}
+          {text}
         </text>
       </svg>
     </div>
@@ -146,89 +115,89 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
   const countdown = useCountdown(priced.active ? priced.until : null);
   const featured = Boolean(plan.highlight);
 
+  const scopeIcon = plan.scope === "subject" ? <IconBook className="size-6" /> : <IconLayers className="size-6" />;
+  const ribbon = priced.active && priced.percent
+    ? `خصم ${priced.percent.toLocaleString("ar-EG")}٪`
+    : plan.badge || (featured ? "الأفضل قيمة" : "");
+
   return (
     <Reveal delay={index * 0.07} className="h-full">
       <motion.div
-        whileHover={{ y: -8 }}
+        whileHover={{ y: -6 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-        className={`glass relative flex h-full flex-col overflow-hidden rounded-4xl pt-10 shadow-bento ${featured ? "md:-mt-4 md:pb-4" : ""}`}
-        style={featured ? { boxShadow: `0 0 0 2px ${tone}55, 0 24px 60px -32px ${tone}` } : undefined}
+        className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-card p-7 shadow-bento"
+        style={{
+          border: `2px solid ${featured ? tone : "hsl(var(--border))"}`,
+          boxShadow: featured ? `0 22px 50px -30px ${tone}` : undefined,
+        }}
       >
-        <PlanCrest tone={tone} featured={featured} />
-        {priced.active && priced.percent ? (
-          <DiscountRibbon percent={priced.percent} tone={tone} />
-        ) : null}
+        {ribbon && <CornerRibbon text={ribbon} tone={tone} />}
 
-        <div className="relative flex h-full flex-col p-6 pt-2">
-          {/* الاسم والنطاق */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="font-display text-xl font-extrabold leading-snug">{plan.name}</h3>
-              <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                {plan.scope === "subject" ? <IconBook className="size-3.5" /> : <IconLayers className="size-3.5" />}
-                {planScopeLabel(plan, subjectName)}
-              </p>
-            </div>
-            {plan.badge && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-[11px] font-extrabold text-white"
-                style={{ background: tone }}>
-                <IconSparkle anim="pulse" className="size-3" /> {plan.badge}
-              </span>
-            )}
-          </div>
+        {/* أيقونة النطاق في الركن المقابل */}
+        <span
+          className="grid size-14 place-items-center rounded-2xl"
+          style={{ background: `${tone}1a`, color: tone }}
+        >
+          {scopeIcon}
+        </span>
 
-          {/* السعر */}
-          <div className="mt-6">
-            <div className="flex flex-wrap items-end gap-2">
-              <span className="font-display text-[2.75rem] font-extrabold leading-none" style={{ color: tone }}>
-                {priced.price.toLocaleString("ar-EG")}
-              </span>
-              <span className="pb-1.5 text-sm font-bold text-muted-foreground">ج.م</span>
-              {priced.active && (
-                <span className="pb-1.5 text-sm font-bold text-muted-foreground line-through decoration-2">
-                  {priced.original.toLocaleString("ar-EG")}
-                </span>
-              )}
-            </div>
-            {priced.active && (
-              <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-2.5 py-1 text-[11px] font-extrabold text-emerald-600">
-                {priced.label || "عرض خاص"} · وفّرت {priced.off.toLocaleString("ar-EG")} ج.م
-              </p>
-            )}
-            <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <IconCalendar className="size-3.5" /> {planDuration(plan, termEnd)}
-            </p>
-            {countdown && (
-              <p className="mt-1 text-[11px] font-bold text-rose-500">{countdown}</p>
-            )}
-          </div>
+        {/* الاسم والوصف */}
+        <h3 className="font-display mt-6 text-[1.35rem] font-bold leading-snug">{plan.name}</h3>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {plan.desc || planScopeLabel(plan, subjectName)}
+        </p>
 
-          {plan.desc && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{plan.desc}</p>}
-
-          {(plan.perks?.length ?? 0) > 0 && (
-            <ul className="mt-5 space-y-2.5 border-t border-border pt-5 text-sm">
-              {plan.perks!.map((perk, k) => (
-                <li key={k} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full" style={{ background: `${tone}22`, color: tone }}>
-                    <IconCheck className="size-3.5" />
-                  </span>
-                  <span className="text-muted-foreground">{perk}</span>
-                </li>
-              ))}
-            </ul>
+        {/* السعر */}
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="font-display text-[2.6rem] font-bold leading-none" style={{ color: tone }}>
+            {priced.price.toLocaleString("ar-EG")}
+          </span>
+          <span className="font-display text-[1.6rem] font-bold leading-none" style={{ color: tone }}>
+            ج.م
+          </span>
+          {priced.active && (
+            <span className="text-base font-bold text-muted-foreground line-through decoration-2">
+              {priced.original.toLocaleString("ar-EG")}
+            </span>
           )}
-
-          <Link
-            href={href}
-            className={`group mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 pt-3.5 text-sm font-extrabold transition ${
-              featured ? "text-white" : "border-2"
-            }`}
-            style={featured ? { background: tone } : { borderColor: `${tone}66`, color: tone }}
-          >
-            {plan.cta || (loggedIn ? "اشترك الآن" : "سجّل الدخول للاشتراك")}
-            <IconArrowLeft className="ico-slide size-4" />
-          </Link>
+          <span className="text-sm text-muted-foreground">/ {planDuration(plan, termEnd)}</span>
         </div>
+
+        {priced.active && (
+          <p className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-500/12 px-3 py-1 text-xs font-bold text-emerald-600">
+            <IconSparkle anim="pulse" className="size-3.5" />
+            {priced.label || "عرض خاص"} · وفّرت {priced.off.toLocaleString("ar-EG")} ج.م
+          </p>
+        )}
+        {countdown && <p className="mt-2 text-xs font-bold text-rose-500">{countdown}</p>}
+
+        {/* المزايا */}
+        {(plan.perks?.length ?? 0) > 0 && (
+          <ul className="mt-6 space-y-3 text-sm">
+            {plan.perks!.map((perk, k) => (
+              <li key={k} className="flex items-start gap-2.5">
+                <span className="mt-0.5 shrink-0" style={{ color: tone }}>
+                  <IconCheck className="size-4" />
+                </span>
+                <span className="text-muted-foreground">{perk}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* الزرّ */}
+        <Link
+          href={href}
+          className="group mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full px-5 pb-4 pt-4 text-[0.95rem] font-bold transition"
+          style={
+            featured
+              ? { background: tone, color: "#fff", marginTop: "1.75rem" }
+              : { border: `2px solid ${tone}`, color: tone, marginTop: "1.75rem" }
+          }
+        >
+          {plan.cta || (loggedIn ? "اشترك الآن" : "سجّل الدخول للاشتراك")}
+          <IconArrowLeft className="ico-slide size-4" />
+        </Link>
       </motion.div>
     </Reveal>
   );
@@ -249,7 +218,7 @@ export function Plans() {
 
   return (
     <section id="plans" className="relative py-24">
-      <GeoBackdrop density={96} opacity={0.42} fade="center" />
+      <GeoBackdrop density={46} opacity={0.18} fade="center" tone="text-primary/10" />
       <div className="container">
         <SectionHeading
           eyebrow={sec.eyebrow || "الخطط"}
