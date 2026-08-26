@@ -1,4 +1,3 @@
-import { PageBackdrop } from "@/components/brand/page-backdrop";
 import { Navbar } from "@/components/sections/navbar";
 import { Hero } from "@/components/sections/hero";
 import { FreeLive } from "@/components/sections/free-live";
@@ -12,8 +11,6 @@ import { CtaFooter } from "@/components/sections/cta-footer";
 export default function Home() {
   return (
     <main className="relative min-h-screen overflow-x-hidden">
-      {/* خلفية ثابتة لكل الصفحة — المحتوى يمرّ فوقها */}
-      <PageBackdrop />
       <Navbar />
       <Hero />
       {/* بث مجاني مفتوح للجميع — يظهر فقط عند وجود جلسة مجانية */}
