@@ -24,7 +24,7 @@ export function PlaqueButton({
   onClick,
   disabled,
   variant = "ink",
-  height = 56,
+  height = 78,
   className = "",
   style,
   type = "button",
@@ -127,19 +127,19 @@ export function PlaqueButton({
           </g>
 
           {/* حدّ ذهبي واحد نظيف */}
-          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2 : 1.6} strokeLinejoin="round" />
+          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2.4 : 2} strokeLinejoin="round" />
 
           {/* وردتان عند الطرفين المدبّبين */}
           <g fill={`url(#${uid}-gold)`}>
-            <path d={`M${notch * 0.5} ${mid} l3.2 -3.2 3.2 3.2 -3.2 3.2Z`} />
-            <path d={`M${w - notch * 0.5 - 6.4} ${mid} l3.2 -3.2 3.2 3.2 -3.2 3.2Z`} />
+            <path d={`M${notch * 0.5} ${mid} l4.2 -4.2 4.2 4.2 -4.2 4.2Z`} />
+            <path d={`M${w - notch * 0.5 - 8.4} ${mid} l4.2 -4.2 4.2 4.2 -4.2 4.2Z`} />
           </g>
         </svg>
       )}
 
       {/* النصّ فوق الرسم */}
       <span
-        className={`relative z-10 inline-flex items-center gap-2 font-display text-[0.95rem] ${
+        className={`relative z-10 inline-flex items-center gap-2.5 font-display text-[1.15rem] ${
           ink ? "text-white" : "text-primary"
         }`}
       >
@@ -156,7 +156,7 @@ export function PlaqueButton({
   const sized: React.CSSProperties = {
     height: h,
     // مسافة تضمن ابتعاد النصّ عن الطرف المدبّب مهما طال
-    paddingInline: notch + 24,
+    paddingInline: notch + 34,
     // مسافة عبور اللمعة = العرض + عرض اللمعة نفسها
     ["--sweep" as string]: `${w + h * 2}px`,
     ...style,
