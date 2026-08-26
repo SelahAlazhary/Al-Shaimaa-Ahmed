@@ -203,6 +203,9 @@ export type SiteContent = {
     heroPrimaryLabel?: string;// نص زر الهيرو الأساسي
     secondaryLabel?: string;  // نص زر الفيديو الثانوي
     videoUrl?: string;        // رابط الدرس المجاني (اختياري)
+    whatsappLabel?: string;   // نص زر واتساب في الهيرو
+    whatsappUrl?: string;     // وجهته — فارغ = رابط wa.me لرقم المنصّة
+    whatsappText?: string;    // نصّ الرسالة الجاهزة عند فتح واتساب
   };
   /** تحكّم بالعناصر: إظهار/إخفاء وألوان الأزرار والنصوص. المفتاح = اسم العنصر. */
   ui?: Record<string, ElementStyle>;

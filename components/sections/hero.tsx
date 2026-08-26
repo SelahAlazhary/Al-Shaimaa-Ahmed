@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 import { Pill } from "@/components/ui/primitives";
 import { PlaqueButton } from "@/components/brand/plaque-button";
 import { CountUp, Stars, SpringArrow } from "@/components/ui/animated-icons";
-import { IconPlay, IconTrophy } from "@/components/brand/icons";
+import { IconPlay, IconTrophy, IconWhatsapp } from "@/components/brand/icons";
 import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament, ElegantRule } from "@/components/brand/pattern";
 import { DaadGlyph } from "@/components/brand/calligraphy";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
@@ -42,6 +42,17 @@ export function Hero() {
   const [freeSrc, setFreeSrc] = useState<string | undefined>(undefined);
   const [freeErr, setFreeErr] = useState<string | null>(null);
   const [freeBusy, setFreeBusy] = useState(false);
+
+  /* رابط واتساب: الرابط المخصّص من اللوحة إن وُجد، وإلا يُبنى من رقم
+     المنصّة. لو لا رقم ولا رابط فالزرّ لا يظهر — زرّ بلا وجهة عيب لا ميزة. */
+  const waNum = String(content.whatsapp ?? "").replace(/\D/g, "");
+  const waHref =
+    content.cta?.whatsappUrl?.trim() ||
+    (waNum
+      ? `https://wa.me/${waNum}?text=${encodeURIComponent(
+          content.cta?.whatsappText?.trim() || "السلام عليكم، أود الاستفسار عن الاشتراك"
+        )}`
+      : "");
 
   /** الدرس المجاني لا يعمل إلا بعد تسجيل الدخول — الرابط نفسه يأتي من السيرفر
    *  ولا يوجد في حمولة الزائر إطلاقاً (لا يمكن استخراجه من الصفحة). */
@@ -138,6 +149,23 @@ export function Hero() {
               </PlaqueButton>
             )}
           </motion.div>
+
+          {/* زر واتساب — بهويّة واتساب اللونية لا بألوان المنصّة، فيُعرف فوراً.
+              رابطه ونصّه وإظهاره كلّها من لوحة الأدمن. */}
+          {!isHidden(content, "hero.whatsapp") && waHref && (
+            <div className="mt-3 flex sm:justify-center lg:justify-start">
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={btnStyle(el(content, "hero.whatsapp"))}
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-[#25D366] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_26px_-14px_#25D366] ring-1 ring-inset ring-white/25 transition hover:bg-[#1fb855] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto"
+              >
+                <IconWhatsapp className="size-5 shrink-0" />
+                {content.cta?.whatsappLabel || "تواصل معنا على واتساب"}
+              </a>
+            </div>
+          )}
 
           {freeErr && (
             <p className="mt-3 inline-block rounded-2xl bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-500">

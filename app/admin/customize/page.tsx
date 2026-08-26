@@ -21,6 +21,7 @@ const ELEMENTS: { key: string; label: string; fill?: boolean; text?: boolean }[]
   { key: "nav.register", label: "زر التسجيل (الشريط العلوي)", fill: true, text: true },
   { key: "hero.primary", label: "زر «أنشئ حساب» (الهيرو)", fill: true, text: true },
   { key: "hero.secondary", label: "زر «شاهد درساً» (الهيرو)", text: true },
+  { key: "hero.whatsapp", label: "زر واتساب (الهيرو)", text: true },
   { key: "hero.statusPill", label: "شارة الحالة (الهيرو)", text: true },
   { key: "cta.primary", label: "زر قسم الدعوة", fill: true, text: true },
 ];
@@ -403,6 +404,17 @@ export default function CustomizePage() {
               <Field label="نص زر إنشاء حساب (الهيرو)"><input className="inp" value={form.cta?.heroPrimaryLabel ?? "أنشئ حساب طالب"} onChange={(e) => setCta({ heroPrimaryLabel: e.target.value })} /></Field>
               <Field label="نص الزر الثانوي (الفيديو)"><input className="inp" value={form.cta?.secondaryLabel ?? "شاهد درساً مجانياً"} onChange={(e) => setCta({ secondaryLabel: e.target.value })} /></Field>
               <Field label="رابط الدرس المجاني (اختياري)"><input dir="ltr" className="inp text-right" value={form.cta?.videoUrl ?? ""} onChange={(e) => setCta({ videoUrl: e.target.value })} placeholder="رابط يوتيوب لدرس تجريبي" /></Field>
+            </div>
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="mb-1 text-sm font-bold">زر واتساب (الهيرو)</p>
+              <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+                يظهر أسفل زر «أنشئ حساب طالب». لإخفائه: تبويب «إظهار/إخفاء وألوان» ← «زر واتساب (الهيرو)».
+              </p>
+              <div className="grid gap-3">
+                <Field label="نص الزر"><input className="inp" value={form.cta?.whatsappLabel ?? "تواصل معنا على واتساب"} onChange={(e) => setCta({ whatsappLabel: e.target.value })} /></Field>
+                <Field label="رابط مخصّص (اختياري)"><input dir="ltr" className="inp text-right" value={form.cta?.whatsappUrl ?? ""} onChange={(e) => setCta({ whatsappUrl: e.target.value })} placeholder="اتركه فارغاً ليُبنى من رقم واتساب أعلاه" /></Field>
+                <Field label="نص الرسالة الجاهزة"><input className="inp" value={form.cta?.whatsappText ?? ""} onChange={(e) => setCta({ whatsappText: e.target.value })} placeholder="السلام عليكم، أود الاستفسار عن الاشتراك" /></Field>
+              </div>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">اضغط «حفظ النصوص» بالأعلى لحفظ التغييرات.</p>
           </Card>
