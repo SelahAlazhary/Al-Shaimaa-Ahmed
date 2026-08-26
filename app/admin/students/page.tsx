@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { UserPlus, Search, X, Trash2, BookOpen, Smartphone, ShieldOff, Check, Loader2 } from "lucide-react";
+import { UserPlus, Search, X, Trash2, BookOpen, Smartphone, ShieldOff, Check, Loader2, KeyRound } from "lucide-react";
 import { PageHeader, DataTable, StatusBadge } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
@@ -15,6 +15,8 @@ export default function StudentsPage() {
   const [openAdd, setOpenAdd] = useState(false);
   const [resetting, setResetting] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  /** الطالب المفتوح عليه محرّر بيانات الدخول. */
+  const [creds, setCreds] = useState<PublicUser | null>(null);
 
   /** السماح للطالب بالدخول من جهاز جديد (يفكّ ارتباط الجهاز الحالي). */
   const allowNewDevice = async (id: string) => {
@@ -89,6 +91,13 @@ export default function StudentsPage() {
                         : <Smartphone className="size-3.5" />}
                     {done === s.id ? "تم" : "جهاز جديد"}
                   </button>
+                  <button
+                    onClick={() => setCreds(s)}
+                    title="تغيير البريد أو كلمة المرور"
+                    className="grid size-8 place-items-center rounded-full border border-border text-primary transition hover:border-primary"
+                  >
+                    <KeyRound className="size-4" />
+                  </button>
                   <button onClick={() => del(s.id)} title="حذف" className="grid size-8 place-items-center rounded-full border border-border text-rose-500 transition hover:border-rose-500"><Trash2 className="size-4" /></button>
                 </div>
               </td>
@@ -101,6 +110,11 @@ export default function StudentsPage() {
       <AnimatePresence>
         {openAdd && <AddStudent grades={(db?.grades ?? []).map((g) => g.name)} onClose={() => setOpenAdd(false)} onDone={refresh} />}
       </AnimatePresence>
+      {/* ---------- تغيير بيانات دخول طالب ---------- */}
+      <AnimatePresence>
+        {creds && <CredsModal user={creds} onClose={() => setCreds(null)} onSaved={refresh} />}
+      </AnimatePresence>
+
     </>
   );
 }
@@ -155,4 +169,103 @@ function AddStudent({ grades, onClose, onDone }: { grades: string[]; onClose: ()
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (<label className="block"><span className="mb-1 block text-xs font-semibold text-muted-foreground">{label}</span>{children}</label>);
+}
+
+/**
+ * تغيير بريد الطالب أو كلمة مروره — من الأدمن وحده.
+ * الطالب لا يملك تغييرهما من بوابته، فتبقى بيانات الدخول تحت يد الإدارة.
+ * الحقلان اختياريان: يُرسَل ما مُلئ منهما فقط.
+ */
+function CredsModal({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: PublicUser;
+  onClose: () => void;
+  onSaved: () => Promise<void> | void;
+}) {
+  const [username, setUsername] = useState(user.username);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
+
+  const changedMail = username.trim() && username.trim() !== user.username;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    if (!changedMail && !password) { setErr("غيّر البريد أو اكتب كلمة مرور جديدة"); return; }
+    setBusy(true);
+    const res = await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: user.id,
+        action: "credentials",
+        ...(changedMail ? { username: username.trim() } : {}),
+        ...(password ? { password } : {}),
+      }),
+    });
+    const data = await res.json();
+    setBusy(false);
+    if (!res.ok) { setErr(data.error || "تعذّر الحفظ"); return; }
+    setOk(true);
+    await onSaved();
+    setTimeout(onClose, 1200);
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,26rem)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border bg-card p-5 shadow-bento"
+      >
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="font-display font-bold">بيانات دخول الطالب</h3>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.name}</p>
+          </div>
+          <button onClick={onClose} aria-label="إغلاق" className="grid size-8 shrink-0 place-items-center rounded-full border border-border">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <form onSubmit={submit} className="grid gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-muted-foreground">البريد الإلكتروني</span>
+            <input
+              type="email" dir="ltr"
+              value={username} onChange={(e) => setUsername(e.target.value)}
+              className="w-full rounded-2xl border border-border bg-card/60 px-3 py-2 text-right text-sm outline-none focus:border-primary/50"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-muted-foreground">كلمة مرور جديدة</span>
+            <input
+              type="text" dir="ltr" autoComplete="new-password"
+              value={password} onChange={(e) => setPassword(e.target.value)}
+              placeholder="اتركها فارغة لإبقاء الحالية"
+              className="w-full rounded-2xl border border-border bg-card/60 px-3 py-2 text-right text-sm outline-none focus:border-primary/50"
+            />
+          </label>
+
+          {err && <p className="rounded-2xl bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-500">{err}</p>}
+          {ok && <p className="rounded-2xl bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-600">تم الحفظ — أبلغ الطالب ببياناته الجديدة.</p>}
+
+          <Button type="submit" disabled={busy} className="mt-1 w-full py-2.5">
+            {busy ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />} حفظ
+          </Button>
+        </form>
+      </motion.div>
+    </>
+  );
 }

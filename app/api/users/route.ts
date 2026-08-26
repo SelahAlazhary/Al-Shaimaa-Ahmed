@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createUser, setUserActive, deleteUser, bindDevice, resetDevice, loadDB, flushDB, getDB } from "@/lib/db";
+import { createUser, setUserActive, setUserCredentials, deleteUser, bindDevice, resetDevice, loadDB, flushDB, getDB } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, sameOrigin, passwordProblem, invalidUsername } from "@/lib/guard";
@@ -88,8 +88,8 @@ export async function POST(req: Request) {
   }
 }
 
-/** PATCH: تفعيل/إيقاف حساب أو السماح بجهاز جديد — للأدمن فقط.
- *  { id, active }  أو  { id, action: "resetDevice" }
+/** PATCH: تفعيل/إيقاف حساب · السماح بجهاز جديد · تغيير بيانات الدخول — للأدمن فقط.
+ *  { id, active } · { id, action: "resetDevice" } · { id, action: "credentials", username?, password? }
  */
 export async function PATCH(req: Request) {
   await loadDB();
@@ -98,7 +98,30 @@ export async function PATCH(req: Request) {
     await recordEvent("unauthorized_admin", "PATCH /api/users");
     return NextResponse.json({ error: "غير مصرّح" }, { status: 401 });
   }
-  const { id, active, action } = await req.json();
+  const body = await req.json();
+  const { id, active, action } = body;
+
+  if (action === "credentials") {
+    const { username, password } = await Promise.resolve(body);
+    // نفس قواعد التسجيل: بريد صحيح وكلمة مرور قوية
+    if (username) {
+      const bad = invalidUsername(String(username));
+      if (bad) return NextResponse.json({ error: bad }, { status: 400 });
+    }
+    if (password) {
+      const bad = passwordProblem(String(password));
+      if (bad) return NextResponse.json({ error: bad }, { status: 400 });
+    }
+    if (!username && !password) {
+      return NextResponse.json({ error: "لا يوجد ما يُغيَّر" }, { status: 400 });
+    }
+    const res = setUserCredentials(String(id), { username, password });
+    if (!res.ok) return NextResponse.json({ error: res.error }, { status: 400 });
+    await flushDB();
+    await recordEvent("signup", "الأدمن غيّر بيانات دخول طالب", { userId: String(id) });
+    await flushDB();
+    return NextResponse.json({ ok: true, user: res.user });
+  }
 
   if (action === "resetDevice") {
     const user = resetDevice(String(id));

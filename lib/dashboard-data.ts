@@ -29,6 +29,7 @@ export const studentNav: NavItem[] = [
   { href: "/student/exams", label: "الاختبارات", icon: "FileCheck2" },
   { href: "/student/live", label: "البث المباشر", icon: "Radio" },
   { href: "/student/notifications", label: "الإشعارات", icon: "Bell" },
+  { href: "/student/account", label: "حسابي", icon: "Users" },
   { href: "/student/help", label: "المساعدة", icon: "LifeBuoy" },
 ];
 

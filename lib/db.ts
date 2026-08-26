@@ -224,6 +224,39 @@ export function createUser(input: {
   return toPublicUser(user);
 }
 
+/**
+ * تغيير بريد الطالب أو كلمة مروره — من الأدمن وحده.
+ * الطالب لا يملك تغييرهما من بوابته: بيانات الدخول تُدار مركزياً حتى
+ * لا يفقد صاحب المنصّة القدرة على الوصول لحساب طالب أو استعادته.
+ * حسابات المشرفين تُدار من /api/admins لا من هنا.
+ */
+export function setUserCredentials(
+  id: string,
+  input: { username?: string; password?: string }
+): { ok: true; user: PublicUser } | { ok: false; error: string } {
+  const db = getDB();
+  const u = db.users.find((x) => x.id === id);
+  if (!u) return { ok: false, error: "الحساب غير موجود" };
+  if (u.role !== "student") return { ok: false, error: "حسابات المشرفين تُدار من قسم المشرفين" };
+
+  const username = input.username?.trim();
+  if (username && username.toLowerCase() !== u.username.toLowerCase()) {
+    if (db.users.some((x) => x.id !== id && x.username.toLowerCase() === username.toLowerCase())) {
+      return { ok: false, error: "هذا البريد مستخدم بحساب آخر" };
+    }
+    u.username = username;
+  }
+
+  if (input.password) {
+    const { salt, passwordHash } = hashPassword(input.password);
+    u.salt = salt;
+    u.passwordHash = passwordHash;
+  }
+
+  saveDB(db);
+  return { ok: true, user: toPublicUser(u) };
+}
+
 export function setUserActive(id: string, active: boolean) {
   const db = getDB();
   const u = db.users.find((x) => x.id === id);
