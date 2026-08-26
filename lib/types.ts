@@ -234,6 +234,7 @@ export type Subject = {
   cover?: string;     // صورة غلاف الكورس (اختياري)
   coverFit?: ImageFit;// ضبط الغلاف داخل بطاقة الكورس (محاذاة/تكبير/حواف)
   coverRatio?: number;// نسبة أبعاد الغلاف الأصلية (عرض ÷ ارتفاع) — تُقاس تلقائياً
+  coverColor?: string;// لون خلفية اللوحة (HEX). فارغ = ألوان الثيم
   videos: Lesson[];   // دروس الكورس
   materials?: Material[]; // مواد وملفات الكورس (PDF…)
   status: "منشورة" | "مسودّة";

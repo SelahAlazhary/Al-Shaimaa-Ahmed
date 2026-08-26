@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight, Plus, Trash2, PlayCircle, Gift, FileText, Upload, ImageIcon,
-  ListChecks, ChevronDown, Check, Link2, X, Loader2, Video,
+  ListChecks, ChevronDown, Check, Link2, X, Loader2, Video, Palette,
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
@@ -13,6 +13,18 @@ import { useContent } from "@/components/content/content-provider";
 import { CourseArt } from "@/components/brand/course-art";
 import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
+
+/** ألوان خلفية جاهزة للوحة الغلاف — من عائلة هوية المخطوط. */
+const COVER_COLORS: { hex: string; label: string }[] = [
+  { hex: "#233b8b", label: "مِداد" },
+  { hex: "#095e86", label: "نِيلي" },
+  { hex: "#245c4b", label: "أندلسي" },
+  { hex: "#87263a", label: "رُمّاني" },
+  { hex: "#8a6212", label: "ذهب عتيق" },
+  { hex: "#4a3570", label: "بنفسج" },
+  { hex: "#1f5a5e", label: "فيروزي" },
+  { hex: "#6b3a1e", label: "بُنّي" },
+];
 
 export default function CourseManage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -99,6 +111,10 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
       ),
     });
 
+  /** لون خلفية اللوحة — فارغ يعيدها لألوان الثيم. */
+  const setCoverColor = (hex: string) =>
+    save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, coverColor: hex } : s)) });
+
   const uploadCover = async (file: File) => {
     setCoverUploading(true);
     const url = await uploadImage(file);
@@ -130,7 +146,7 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
         </p>
         <div className="flex flex-wrap items-start gap-5">
           <div className="w-full max-w-xs">
-            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} progress={42} />
+            <CourseArt seed={subject.id} title={subject.name} cover={subject.cover} coverFit={subject.coverFit} coverRatio={subject.coverRatio} coverColor={subject.coverColor} progress={42} />
           </div>
           <div className="flex flex-col gap-2">
             <label className="w-64"><span className="mb-1 block text-xs font-semibold text-muted-foreground">رابط صورة الغلاف</span>
@@ -146,6 +162,53 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
               <button onClick={() => save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, cover: "" } : s)) })}
                 className="rounded-full border border-border px-4 py-2 text-xs font-bold text-rose-500 transition hover:border-rose-500">إزالة الغلاف</button>
             )}
+
+            {/* لون خلفية اللوحة — يظهر خلف الزخرفة، وكاملاً إن لم يكن هناك غلاف */}
+            <div className="mt-2 w-64">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">لون خلفية الغلاف</span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCoverColor("")}
+                  title="ألوان الثيم"
+                  className={`grid size-8 place-items-center rounded-xl border text-[9px] font-bold transition ${
+                    !subject.coverColor ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+                  }`}
+                  style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))", color: "#fff" }}
+                >
+                  ثيم
+                </button>
+                {COVER_COLORS.map((c) => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setCoverColor(c.hex)}
+                    title={c.label}
+                    aria-label={c.label}
+                    className={`size-8 rounded-xl border transition ${
+                      subject.coverColor?.toLowerCase() === c.hex ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
+                    }`}
+                    style={{ background: c.hex }}
+                  />
+                ))}
+                <label
+                  title="لون مخصّص"
+                  className="grid size-8 cursor-pointer place-items-center rounded-xl border border-dashed border-border transition hover:border-primary/50"
+                  style={{ background: subject.coverColor || "transparent" }}
+                >
+                  <input
+                    type="color"
+                    className="size-0 opacity-0"
+                    value={subject.coverColor || "#233b8b"}
+                    onChange={(e) => setCoverColor(e.target.value)}
+                  />
+                  {!subject.coverColor && <Palette className="size-4 text-muted-foreground" />}
+                </label>
+              </div>
+              <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
+                يظهر خلف الزخرفة الهندسية، وفي الهوامش حول الصورة — والمعاينة على اليمين تتغيّر فوراً.
+              </p>
+            </div>
           </div>
 
           {/* محاذاة الغلاف وضبطه */}

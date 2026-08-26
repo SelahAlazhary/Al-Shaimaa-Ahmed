@@ -30,18 +30,19 @@ export async function POST(req: Request) {
    * «الشعبة» مشروطة بالمرحلة الثانوية وحدها.
    */
   if (!isAdmin) {
+    // الرسالة كاملة لكل حقل — حتى يطابق التذكير والتأنيث في العربية
     const need: [string, string][] = [
-      ["phone", "رقم الموبايل"],
-      ["stage", "المرحلة الدراسية"],
-      ["grade", "الصف الدراسي"],
-      ["governorate", "المحافظة"],
-      ["gender", "النوع"],
-      ["school", "اسم المدرسة"],
+      ["phone", "رقم الموبايل مطلوب"],
+      ["stage", "المرحلة الدراسية مطلوبة"],
+      ["grade", "الصف الدراسي مطلوب"],
+      ["governorate", "المحافظة مطلوبة"],
+      ["gender", "النوع مطلوب"],
+      ["school", "اسم المدرسة مطلوب"],
     ];
-    if (body.stage === TRACK_STAGE) need.push(["track", "الشعبة"]);
+    if (body.stage === TRACK_STAGE) need.push(["track", "الشعبة مطلوبة"]);
     const missing = need.find(([k]) => !String(body[k] ?? "").trim());
     if (missing) {
-      return NextResponse.json({ error: `${missing[1]} مطلوب` }, { status: 400 });
+      return NextResponse.json({ error: missing[1] }, { status: 400 });
     }
   }
 

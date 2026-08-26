@@ -19,7 +19,7 @@ import {
 import { KuficBackdrop, CornerKnot, Shamsa, ElegantRule } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { CourseArt } from "@/components/brand/course-art";
-import { StatPlaque } from "@/components/brand/stat-plaque";
+import { StatTile } from "@/components/brand/stat-tile";
 import { EmptyCourses } from "@/components/brand/illustrations";
 import { InstallApp } from "@/components/pwa/install-app";
 import { EnableNotifications } from "@/components/pwa/enable-notifications";
@@ -47,7 +47,12 @@ export default function StudentHome() {
   // اختبار متاح فعلاً للطالب (الأسئلة تصل فارغة لمن لا يحقّ له)
   const nextExam = exams.find((e) => e.status === "منشور" && e.questions.length > 0);
   const avg = courses.length ? Math.round(courses.reduce((a, c) => a + c.progress, 0) / courses.length) : 0;
-  const done = courses.filter((c) => c.progress >= 100).length;
+  // أقرب اشتراك ينتهي — منه تُشتقّ الأيام المتبقّية المعروضة
+  const expiring = subs
+    .map((sb) => ({ sb, left: daysLeft(sb.expiresAt) }))
+    .filter((x) => x.left !== null)
+    .sort((a, b) => (a.left as number) - (b.left as number))[0];
+  const permanent = subs.some((sb) => daysLeft(sb.expiresAt) === null);
 
   return (
     <>
@@ -82,12 +87,37 @@ export default function StudentHome() {
         </div>
 
         {/* شريط المؤشّرات — ألواح SVG، وأرقام حقيقية فقط */}
-        {/* أقصى عرض للّوح: يمنعه من التمدّد على عرض الصفّ فيبقى بمقاس مقروء */}
-        <div className="relative mt-7 grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-4 sm:gap-4">
-          <StatPlaque index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-4" />} className="w-full max-w-[11rem]" />
-          <StatPlaque index={1} value={ar(courses.length)} label="كورساتك" icon={<IconBook className="size-4" />} className="w-full max-w-[11rem]" />
-          <StatPlaque index={2} value={ar(subs.length)} label="اشتراك سارٍ" icon={<IconLayers className="size-4" />} className="w-full max-w-[11rem]" />
-          <StatPlaque index={3} value={ar(done)} label="كورس مكتمل" icon={<IconClipboardCheck className="size-4" />} className="w-full max-w-[11rem]" />
+        {/* المؤشّرات — ثلاث بطاقات: التقدّم · الكورسات · الاشتراك الساري */}
+        <div className="relative mt-7 grid gap-3 sm:grid-cols-3 sm:gap-4">
+          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} />
+          <StatTile
+            index={1}
+            value={ar(courses.length)}
+            unit={courses.length === 1 ? "كورس" : "كورسات"}
+            label="كورساتك"
+            icon={<IconBook className="size-5" />}
+          />
+          {/* الاشتراك الساري — يعرض ما تبقّى حتى الانتهاء */}
+          <StatTile
+            index={2}
+            icon={<IconLayers className="size-5" />}
+            badge={subs.length > 1 ? `${ar(subs.length)} اشتراكات` : undefined}
+            value={
+              subs.length === 0 ? "—" : permanent && !expiring ? "دائم" : ar(expiring?.left ?? 0)
+            }
+            unit={
+              subs.length === 0 || (permanent && !expiring)
+                ? undefined
+                : (expiring?.left ?? 0) === 1
+                  ? "يوم متبقٍّ"
+                  : "يوماً متبقّياً"
+            }
+            label={subs.length === 0 ? "لا يوجد اشتراك ساري" : "اشتراك ساري"}
+            /* الشريط يقيس ما تبقّى من ٣٠ يوماً — يقصر كلما اقترب الانتهاء */
+            bar={
+              subs.length === 0 ? 0 : permanent && !expiring ? 100 : Math.min(100, ((expiring?.left ?? 0) / 30) * 100)
+            }
+          />
         </div>
       </motion.div>
 
@@ -209,6 +239,7 @@ export default function StudentHome() {
                     cover={c.cover}
                     coverFit={c.coverFit}
                     coverRatio={c.coverRatio}
+                    coverColor={c.coverColor}
                     progress={c.progress}
                     className="h-full transition-opacity duration-300 group-hover:opacity-95"
                   />

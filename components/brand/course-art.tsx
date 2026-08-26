@@ -16,6 +16,40 @@ import type { FrameShape, ImageFit } from "@/lib/types";
 const W = 400;
 const H = 225;
 
+/**
+ * يشتقّ طرفَي تدرّج من لون واحد: اللون كما هو، ودرجة أفتح قليلاً بميل
+ * لوني بسيط — فيبدو التدرّج طبيعياً بدل لونين متطابقين.
+ * يقبل #rgb و#rrggbb؛ وأي قيمة غير صالحة تعيد null فيرجع اللوحة لألوان الثيم.
+ */
+function gradientFrom(hex?: string): { from: string; to: string } | null {
+  if (!hex) return null;
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  let v = m[1];
+  if (v.length === 3) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
+  const r = parseInt(v.slice(0, 2), 16) / 255;
+  const g = parseInt(v.slice(2, 4), 16) / 255;
+  const b = parseInt(v.slice(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const H = Math.round(h), S = Math.round(s * 100), L = Math.round(l * 100);
+  return {
+    from: `hsl(${H} ${S}% ${L}%)`,
+    to: `hsl(${(H + 16) % 360} ${Math.min(100, S + 6)}% ${Math.min(92, L + 13)}%)`,
+  };
+}
+
 /** بصمة ثابتة من نصّ (لاختيار الزخرفة والزاوية) — نفس الكورس ينتج نفس اللوحة دائماً. */
 function hash(seed: string): number {
   let h = 2166136261;
@@ -100,6 +134,7 @@ export function CourseArt({
   cover,
   coverFit,
   coverRatio,
+  coverColor,
   progress,
   locked = false,
   className = "",
@@ -109,12 +144,15 @@ export function CourseArt({
   cover?: string;
   coverFit?: ImageFit;
   coverRatio?: number;
+  /** لون خلفية اللوحة (HEX). فارغ = ألوان الثيم. */
+  coverColor?: string;
   progress?: number;
   locked?: boolean;
   className?: string;
 }) {
   const uid = useUid("art");
   const reduce = useReducedMotion();
+  const bg = gradientFrom(coverColor);
   const h = hash(seed || title);
   const motif = h % 4;
   const angle = [0, 15, 30, 45, 60, 75][h % 6];
@@ -161,10 +199,10 @@ export function CourseArt({
           <path d={plate} />
         </clipPath>
 
-        {/* أرضية متدرّجة من ألوان الثيم */}
+        {/* أرضية متدرّجة — من لون الكورس إن ضُبط، وإلا من ألوان الثيم */}
         <linearGradient id={`${uid}-bg`} x1="0" y1="0" x2={W} y2={artH} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.92} />
-          <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.92} />
+          <stop offset="0%" stopColor={bg ? bg.from : "hsl(var(--primary))"} stopOpacity={0.92} />
+          <stop offset="100%" stopColor={bg ? bg.to : "hsl(var(--accent))"} stopOpacity={0.92} />
         </linearGradient>
 
         {/* حجاب سفلي يضمن قراءة النصوص فوق الصورة */}

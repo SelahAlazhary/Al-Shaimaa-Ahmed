@@ -12,17 +12,17 @@ import { EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE } from "@/lib/data";
  * «الشعبة» وحدها مشروطة: لا تُطلب إلا في المرحلة الثانوية لأنها لا تظهر لغيرها.
  * الخادم يفرض القائمة نفسها — التحقّق في المتصفّح للراحة لا للحماية.
  */
-const REQUIRED: { key: string; label: string; when?: (f: Record<string, string>) => boolean }[] = [
-  { key: "name", label: "الاسم الكامل" },
-  { key: "username", label: "البريد الإلكتروني" },
-  { key: "password", label: "كلمة المرور" },
-  { key: "phone", label: "رقم الموبايل" },
-  { key: "stage", label: "المرحلة الدراسية" },
-  { key: "grade", label: "الصف الدراسي" },
-  { key: "track", label: "الشعبة", when: (f) => f.stage === TRACK_STAGE },
-  { key: "governorate", label: "المحافظة" },
-  { key: "gender", label: "النوع" },
-  { key: "school", label: "اسم المدرسة" },
+const REQUIRED: { key: string; msg: string; when?: (f: Record<string, string>) => boolean }[] = [
+  { key: "name", msg: "الاسم الكامل مطلوب" },
+  { key: "username", msg: "البريد الإلكتروني مطلوب" },
+  { key: "password", msg: "كلمة المرور مطلوبة" },
+  { key: "phone", msg: "رقم الموبايل مطلوب" },
+  { key: "stage", msg: "المرحلة الدراسية مطلوبة" },
+  { key: "grade", msg: "الصف الدراسي مطلوب" },
+  { key: "track", msg: "الشعبة مطلوبة", when: (f) => f.stage === TRACK_STAGE },
+  { key: "governorate", msg: "المحافظة مطلوبة" },
+  { key: "gender", msg: "النوع مطلوب" },
+  { key: "school", msg: "اسم المدرسة مطلوب" },
 ];
 
 export default function RegisterPage() {
@@ -46,7 +46,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setErr(null);
     const missing = REQUIRED.find(({ key, when }) => (when ? when(form) : true) && !String(form[key as keyof typeof form] ?? "").trim());
-    if (missing) { setErr(`${missing.label} مطلوب`); return; }
+    if (missing) { setErr(missing.msg); return; }
     setBusy(true);
     const res = await fetch("/api/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
