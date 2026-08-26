@@ -572,6 +572,125 @@ body {
 }
 
 /* ============================================================
+   زرّ «اللوح» — مستطيل بأركان أربعة مقصوصة
+   ------------------------------------------------------------
+   الشكل مرسوم بـclip-path لا بـSVG ممدود، فلا يحتاج قياساً
+   بالجافاسكربت إطلاقاً: مقاس الزرّ يخرج من نصّه وحشوه (بوحدة em)،
+   وكل الطبقات تتبعه تلقائياً مهما تغيّر النصّ أو حجم الخطّ.
+   ============================================================ */
+.plq {
+  --cut: 0.8em;   /* قصّ الركن — يتبع حجم الخطّ */
+  --edge: 1.8px;  /* سُمك الحدّ الذهبي */
+  --gap: 4.6px;   /* بُعد الخيط الداخلي عن الحافة */
+  --hair: 0.9px;  /* سُمك الخيط الداخلي */
+  position: relative;
+  isolation: isolate;
+}
+
+/* القصّ المشترك — كل طبقة تضبط ‎--c‎ الخاص بها */
+.plq-cut {
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c)),
+    0 var(--c)
+  );
+}
+
+.plq-layer {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ١) اللوح الذهبي الخارجي = الحدّ */
+.plq-plate {
+  inset: 0;
+  --c: var(--cut);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--gold-deep)),
+    hsl(var(--gold-light)) 45%,
+    hsl(var(--gold))
+  );
+}
+
+/* ٢) وجه الزرّ */
+.plq-face {
+  inset: var(--edge);
+  --c: calc(var(--cut) - var(--edge) * 0.6);
+}
+
+/* ٣) الخيط الذهبي الداخلي */
+.plq-rule {
+  inset: var(--gap);
+  --c: calc(var(--cut) - var(--gap) * 0.6);
+}
+
+/* ٤) الوجه الداخلي — يحمل اللمعة والإضاءة العلوية */
+.plq-inner {
+  inset: calc(var(--gap) + var(--hair));
+  --c: calc(var(--cut) - (var(--gap) + var(--hair)) * 0.6);
+  overflow: hidden;
+}
+
+/* إضاءة النصف العلوي */
+.plq-top {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 38%;
+}
+
+/* لمعة تمرّ عند التمرير */
+.plq-sheen {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 45%;
+  transform: translateX(-170%);
+}
+
+/* ألوان النسختين */
+.plq-ink .plq-face,
+.plq-ink .plq-inner {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 62%, hsl(var(--glow)) 100%);
+}
+.plq-ink .plq-rule { background: hsl(var(--gold-light) / 0.42); }
+.plq-ink .plq-top { background: hsl(0 0% 100% / 0.1); }
+.plq-ink .plq-sheen { background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.3), transparent); }
+
+.plq-foil .plq-face,
+.plq-foil .plq-inner {
+  background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted)));
+}
+.plq-foil .plq-rule { background: hsl(var(--gold) / 0.3); }
+.plq-foil .plq-top { background: hsl(0 0% 100% / 0.45); }
+.plq-foil .plq-sheen { background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.55), transparent); }
+
+/* منمنمات الأركان والنقطتان — بوحدة em فتكبر مع النصّ */
+.plq-knot {
+  position: absolute;
+  width: calc(var(--cut) * 0.72);
+  height: calc(var(--cut) * 0.72);
+  color: hsl(var(--gold));
+  opacity: 0.85;
+}
+.plq-dot {
+  position: absolute;
+  top: 50%;
+  width: 0.26em;
+  height: 0.26em;
+  margin-top: -0.13em;
+  border-radius: 9999px;
+  background: hsl(var(--gold));
+  opacity: 0.9;
+}
+
+/* ============================================================
    حركة الهوية المتّجهة (SVG)
    كل الحركات داخل no-preference — تتوقّف تماماً مع تقليل الحركة.
    ============================================================ */
@@ -594,7 +713,7 @@ body {
 @keyframes letter-float  { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(var(--amp, -1.2px)) rotate(var(--tilt, 2deg)); } }
 @keyframes ink-bleed     { 0% { transform: scale(.86); opacity: 0; } 55% { opacity: .5; } 100% { transform: scale(1); opacity: .28; } }
 /* لمعة تعبر لوح الزرّ عند التمرير */
-@keyframes plq-sweep     { from { transform: translateX(0); } to { transform: translateX(var(--sweep, 420px)); } }
+@keyframes plq-sweep     { from { transform: translateX(-170%); } to { transform: translateX(270%); } }
 
 @media (prefers-reduced-motion: no-preference) {
   .ico-draw > * {
@@ -632,8 +751,7 @@ body {
   .ink-bleed    { animation: ink-bleed 1.6s ease-out forwards; transform-origin: center; transform-box: fill-box; }
 
   /* اللمعة ساكنة خارج اللوح، وتعبره مرّة عند التمرير */
-  .plq .plq-sheen { transform: translateX(0); }
-  .plq:hover .plq-sheen { animation: plq-sweep 0.75s cubic-bezier(0.4, 0, 0.2, 1); }
+  .plq:hover .plq-sheen { animation: plq-sweep 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
   .group:hover .ico-slide { animation: ico-slide 0.55s ease; }
   .group:hover .ico-turn  { animation: ico-spin 1.1s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; transform-box: fill-box; }

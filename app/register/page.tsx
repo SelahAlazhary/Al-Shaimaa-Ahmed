@@ -5,17 +5,24 @@ import Link from "next/link";
 import { UserPlus, Loader2, CheckCircle2 } from "lucide-react";
 import { AuthShell, inputCls } from "@/components/auth/auth-shell";
 import { useContent } from "@/components/content/content-provider";
-import { EGYPT_GOVERNORATES, TRACKS } from "@/lib/data";
+import { EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE } from "@/lib/data";
 
 export default function RegisterPage() {
   const { db } = useContent();
   const grades = db?.grades ?? [];
-  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", grade: "", track: "", gender: "", school: "", governorate: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", stage: "", grade: "", track: "", gender: "", school: "", governorate: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  /** الشعبة (علمي/أدبي) لا معنى لها إلا في المرحلة الثانوية. */
+  const needsTrack = form.stage === TRACK_STAGE;
+
+  /** تغيير المرحلة يمسح الشعبة تلقائياً حتى لا تُرسل شعبة لمرحلة لا شعب فيها. */
+  const setStage = (v: string) =>
+    setForm((f) => ({ ...f, stage: v, track: v === TRACK_STAGE ? f.track : "" }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +31,7 @@ export default function RegisterPage() {
     setBusy(true);
     const res = await fetch("/api/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, grade: form.grade || grades[0]?.name }),
+      body: JSON.stringify({ ...form, grade: form.grade || grades[0]?.name, track: needsTrack ? form.track : "" }),
     });
     const data = await res.json();
     setBusy(false);
@@ -59,28 +66,37 @@ export default function RegisterPage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="رقم الموبايل"><input className={inputCls} value={form.phone} onChange={(e) => set("phone", e.target.value)} /></Field>
+          <Field label="المرحلة الدراسية">
+            <select className={inputCls} value={form.stage} onChange={(e) => setStage(e.target.value)}>
+              <option value="">اختر المرحلة…</option>
+              {STAGES.map((st) => <option key={st} value={st}>{st}</option>)}
+            </select>
+          </Field>
+        </div>
+        {/* الصف — ومعه الشعبة إن كانت المرحلة ثانوية، وإلا يتمدّد الصف وحده */}
+        <div className={`grid gap-3 ${needsTrack ? "grid-cols-2" : ""}`}>
           <Field label="الصف الدراسي">
             <select className={inputCls} value={form.grade} onChange={(e) => set("grade", e.target.value)}>
               <option value="">اختر الصف الدراسي…</option>
               {grades.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
             </select>
           </Field>
+          {needsTrack && (
+            <Field label="الشعبة">
+              <select className={inputCls} value={form.track} onChange={(e) => set("track", e.target.value)}>
+                <option value="">اختر الشعبة…</option>
+                {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </Field>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="الشعبة">
-            <select className={inputCls} value={form.track} onChange={(e) => set("track", e.target.value)}>
-              <option value="">اختر الشعبة…</option>
-              {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </Field>
           <Field label="المحافظة">
             <select className={inputCls} value={form.governorate} onChange={(e) => set("governorate", e.target.value)}>
               <option value="">اختر المحافظة…</option>
               {EGYPT_GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
           </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
           <Field label="النوع">
             <select className={inputCls} value={form.gender} onChange={(e) => set("gender", e.target.value)}>
               <option value="">اختر النوع…</option>
@@ -88,8 +104,8 @@ export default function RegisterPage() {
               <option value="female">أنثى</option>
             </select>
           </Field>
-          <Field label="اسم المدرسة"><input className={inputCls} value={form.school} onChange={(e) => set("school", e.target.value)} /></Field>
         </div>
+        <Field label="اسم المدرسة"><input className={inputCls} value={form.school} onChange={(e) => set("school", e.target.value)} /></Field>
         {err && <p className="rounded-2xl bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-500">{err}</p>}
         <button type="submit" disabled={busy} className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl btn-glow py-3 text-sm font-bold text-white disabled:opacity-60">
           {busy ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} إنشاء الحساب

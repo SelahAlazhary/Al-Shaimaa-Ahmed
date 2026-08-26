@@ -7,6 +7,11 @@ export const EGYPT_GOVERNORATES = [
 ] as const;
 
 /** الشعبة الدراسية (للثانوي). */
+/** المرحلة الدراسية — الشعبة لا تُطلب إلا في الثانوية. */
+export const STAGES = ["ابتدائية", "إعدادية", "ثانوية"] as const;
+/** المرحلة التي تنقسم إلى شعب. */
+export const TRACK_STAGE = "ثانوية";
+
 export const TRACKS = ["علمي", "أدبي"] as const;
 
 /** روابط تنقّل الصفحة الرئيسية (ثابتة — أقسام الصفحة). */

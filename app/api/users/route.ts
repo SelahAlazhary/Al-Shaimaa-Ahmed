@@ -3,6 +3,7 @@ import { createUser, setUserActive, deleteUser, bindDevice, resetDevice, loadDB,
 import { getSession } from "@/lib/session";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, sameOrigin, passwordProblem, invalidUsername } from "@/lib/guard";
+import { TRACK_STAGE } from "@/lib/data";
 import { recordEvent, bannedUntil } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,9 @@ export async function POST(req: Request) {
       role: isAdmin && body.role === "admin" ? "admin" : "student",
       phone: body.phone,
       grade: body.grade,
-      track: body.track,
+      stage: body.stage,
+      // الشعبة لا معنى لها خارج الثانوية — لا تُحفظ إلا معها
+      track: body.stage === TRACK_STAGE ? body.track : undefined,
       gender: body.gender === "female" ? "female" : body.gender === "male" ? "male" : undefined,
       school: body.school,
       governorate: body.governorate,

@@ -190,7 +190,7 @@ export function findUserByUsername(username: string): User | undefined {
 
 export function createUser(input: {
   name: string; username: string; password: string; role: Role;
-  phone?: string; grade?: string; track?: string; gender?: "male" | "female"; school?: string; governorate?: string; active?: boolean;
+  phone?: string; grade?: string; stage?: string; track?: string; gender?: "male" | "female"; school?: string; governorate?: string; active?: boolean;
 }): PublicUser {
   const db = getDB();
   if (db.users.some((u) => u.username.toLowerCase() === input.username.toLowerCase())) {
@@ -207,6 +207,7 @@ export function createUser(input: {
     active: input.active ?? (input.role === "admin"),
     phone: input.phone,
     grade: input.grade,
+    stage: input.stage,
     track: input.track,
     gender: input.gender,
     school: input.school,

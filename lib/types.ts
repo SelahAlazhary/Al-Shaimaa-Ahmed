@@ -365,7 +365,8 @@ export type User = {
   active: boolean;
   phone?: string;
   grade?: string;
-  track?: string;        // الشعبة: علمي/أدبي
+  stage?: string;        // المرحلة: ابتدائية/إعدادية/ثانوية
+  track?: string;        // الشعبة: علمي/أدبي — للمرحلة الثانوية وحدها
   gender?: "male" | "female"; // النوع — لصيغة المخاطبة في النصوص
   school?: string;       // اسم المدرسة
   governorate?: string;  // المحافظة (لتجميع بيانات الأماكن فقط)
