@@ -8,7 +8,7 @@ import crypto from "crypto";
  * • أول تسجيل دخول/تسجيل حساب يربط المعرّف بالطالب؛ وأي جهاز آخر يُرفض.
  * • الأدمن وحده يستطيع فكّ الربط ليسمح بجهاز جديد.
  */
-const SECRET = process.env.AUTH_SECRET || "dev-only-secret-set-AUTH_SECRET";
+import { AUTH_SECRET as SECRET } from "./secrets";
 const COOKIE = "emz_device";
 const MAX_AGE = 60 * 60 * 24 * 365 * 5; // خمس سنوات
 

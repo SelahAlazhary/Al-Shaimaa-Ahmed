@@ -7,14 +7,15 @@
 import type {
   SiteContent, SitePlan, Student, Subject, GradeRow, Code, Exam, Live, Ticket,
 } from "./types";
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from "./secrets";
 
 export const defaultContent: SiteContent = {
   brand: "الشيماء أحمد",
   platformSubtitle: "Al-Shaimaa Ahmed",
   teacher: {
-    name: "الأستاذة الشيماء أحمد",
+    name: "الشيماء أحمد",
     subject: "اللغة العربية",
-    headline: "أتقن",
+    headline: "في",
     tagline: "اللغة العربية للإعدادية · والنحو والصرف والبلاغة والأدب والنصوص للثانوية",
     bio: "معلّمة اللغة العربية — منهج المرحلة الإعدادية كاملاً، وللمرحلة الثانوية: النحو، والصرف، والبلاغة، والأدب والنصوص؛ بشرح يبني القاعدة قبل الحفظ، مع تطبيقات وتدريبات ومتابعة مستمرة حتى الإتقان.",
     experienceYears: 15,
@@ -82,8 +83,8 @@ export const seedUsers = [
   {
     name: "الأستاذة الشيماء أحمد",
     role: "admin" as const,
-    username: process.env.ADMIN_EMAIL || "admin@example.com",
-    password: process.env.ADMIN_PASSWORD || "ChangeMe@2026",
+    username: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD,
     active: true,
   },
 ];

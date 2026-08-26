@@ -7,7 +7,7 @@ import type { Role } from "./types";
  * جلسات موقّعة (HMAC) بدون تخزين على السيرفر — مناسبة للتشغيل المحلي.
  * السرّ من AUTH_SECRET أو قيمة تطوير احتياطية.
  */
-const SECRET = process.env.AUTH_SECRET || "dev-only-secret-set-AUTH_SECRET";
+import { AUTH_SECRET as SECRET } from "./secrets";
 /**
  * علم Secure للكوكي: يُفعَّل يدوياً عند النشر على HTTPS (COOKIE_SECURE=1).
  * لا يُشتق من NODE_ENV لأن التشغيل الإنتاجي على http://localhost شائع،
