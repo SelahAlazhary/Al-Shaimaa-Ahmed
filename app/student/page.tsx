@@ -82,11 +82,12 @@ export default function StudentHome() {
         </div>
 
         {/* شريط المؤشّرات — ألواح SVG، وأرقام حقيقية فقط */}
-        <div className="relative mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatPlaque index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-4" />} />
-          <StatPlaque index={1} value={ar(courses.length)} label="كورساتك" icon={<IconBook className="size-4" />} />
-          <StatPlaque index={2} value={ar(subs.length)} label="اشتراك سارٍ" icon={<IconLayers className="size-4" />} />
-          <StatPlaque index={3} value={ar(done)} label="كورس مكتمل" icon={<IconClipboardCheck className="size-4" />} />
+        {/* أقصى عرض للّوح: يمنعه من التمدّد على عرض الصفّ فيبقى بمقاس مقروء */}
+        <div className="relative mt-7 grid grid-cols-2 justify-items-center gap-3 sm:grid-cols-4 sm:gap-4">
+          <StatPlaque index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-4" />} className="w-full max-w-[11rem]" />
+          <StatPlaque index={1} value={ar(courses.length)} label="كورساتك" icon={<IconBook className="size-4" />} className="w-full max-w-[11rem]" />
+          <StatPlaque index={2} value={ar(subs.length)} label="اشتراك سارٍ" icon={<IconLayers className="size-4" />} className="w-full max-w-[11rem]" />
+          <StatPlaque index={3} value={ar(done)} label="كورس مكتمل" icon={<IconClipboardCheck className="size-4" />} className="w-full max-w-[11rem]" />
         </div>
       </motion.div>
 
