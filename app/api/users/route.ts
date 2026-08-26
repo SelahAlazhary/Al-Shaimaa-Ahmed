@@ -23,6 +23,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "البيانات ناقصة" }, { status: 400 });
   }
 
+  /**
+   * التسجيل الذاتي: كل الحقول إجبارية — والفرض هنا لا في المتصفّح وحده،
+   * لأن تحقّق الواجهة يمكن تخطّيه بطلب مباشر.
+   * الأدمن مستثنى: هو ينشئ حسابات مشرفين أيضاً ولا تلزمها بيانات الطالب.
+   * «الشعبة» مشروطة بالمرحلة الثانوية وحدها.
+   */
+  if (!isAdmin) {
+    const need: [string, string][] = [
+      ["phone", "رقم الموبايل"],
+      ["stage", "المرحلة الدراسية"],
+      ["grade", "الصف الدراسي"],
+      ["governorate", "المحافظة"],
+      ["gender", "النوع"],
+      ["school", "اسم المدرسة"],
+    ];
+    if (body.stage === TRACK_STAGE) need.push(["track", "الشعبة"]);
+    const missing = need.find(([k]) => !String(body[k] ?? "").trim());
+    if (missing) {
+      return NextResponse.json({ error: `${missing[1]} مطلوب` }, { status: 400 });
+    }
+  }
+
   // حماية التسجيل الذاتي: حظر، أصل الطلب، حدّ المحاولات، وقوّة البيانات
   if (!isAdmin) {
     const ip = await clientIp();
