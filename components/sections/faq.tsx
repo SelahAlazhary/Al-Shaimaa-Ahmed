@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { IconPlus } from "@/components/brand/icons";
 import { SectionHeading, Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
-import { KuficBackdrop } from "@/components/brand/pattern";
-import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 
 export function Faq() {
   const { content, wa } = useContent();
@@ -16,8 +14,6 @@ export function Faq() {
 
   return (
     <section id="faq" className="relative py-24">
-      <ArabicTextBackdrop count={18} seed={37} fade="center" opacity={0.34} tone="text-accent/20" />
-      <KuficBackdrop density={46} opacity={0.12} fade="center" tone="text-primary/8" />
       <div className="container max-w-3xl">
         <SectionHeading
           eyebrow="أسئلة شائعة"

@@ -17,9 +17,8 @@ import { motion } from "framer-motion";
 import { Button, Pill } from "@/components/ui/primitives";
 import { CountUp, Stars, SpringArrow } from "@/components/ui/animated-icons";
 import { IconPlay, IconTrophy } from "@/components/brand/icons";
-import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament, ElegantRule } from "@/components/brand/pattern";
+import { Shamsa, RuleOrnament, ElegantRule } from "@/components/brand/pattern";
 import { DaadGlyph } from "@/components/brand/calligraphy";
-import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { VideoModal } from "@/components/ui/video-modal";
 import { HeroFrame } from "@/components/sections/hero-frames";
 import { useContent } from "@/components/content/content-provider";
@@ -63,9 +62,6 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28">
-      <ArabicTextBackdrop count={28} seed={5} fade="top" opacity={0.5} tone="text-primary/22" />
-      <KuficBackdrop density={42} opacity={0.2} fade="top" tone="text-primary/10" />
-      <HarakatField count={14} seed={11} tone="text-accent/30" />
 
       <div className="container grid items-center gap-14 lg:grid-cols-2">
         {/* ---------------- العمود النصّي ---------------- */}

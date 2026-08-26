@@ -9,8 +9,7 @@ import { motion } from "framer-motion";
 import { SectionHeading, Reveal } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
 import { FEATURE_ICONS, IconManuscript } from "@/components/brand/icons";
-import { ArchTile, CornerKnot, KuficBackdrop } from "@/components/brand/pattern";
-import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
+import { ArchTile, CornerKnot } from "@/components/brand/pattern";
 
 /** رقم عربي-هندي (١٢٣) لهوية أدقّ. */
 const ar = (n: number) => n.toLocaleString("ar-EG");
@@ -23,8 +22,6 @@ export function Features() {
 
   return (
     <section id="features" className="relative py-24">
-      <ArabicTextBackdrop count={20} seed={29} fade="center" opacity={0.38} tone="text-primary/18" />
-      <KuficBackdrop density={46} opacity={0.14} fade="center" tone="text-primary/8" />
 
       <div className="container">
         <SectionHeading
