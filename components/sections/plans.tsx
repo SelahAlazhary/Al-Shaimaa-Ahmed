@@ -40,50 +40,54 @@ export function planScopeLabel(p: SitePlan, subjectName?: string): string {
 }
 
 /**
- * شريط الزاوية — لوح قُطري في الركن العلوي (الأيمن في RTL).
- * يحمل شارة الخطة أو نسبة الخصم، ومرسوم بـSVG بحدّ مذهّب وطيّة ظلّ
- * صغيرة عند طرفيه كالشرائط الحقيقية.
+ * شريط الزاوية — لوح قُطري في الركن العلوي الأيسر من البطاقة.
+ * ------------------------------------------------------------------
+ * يوضع في الركن المقابل للأيقونة عمداً: وضعهما في ركن واحد كان يجعل
+ * الشريط يغطّي الأيقونة تماماً.
+ *
+ * الرسم: شريط أفقي يُدار ‎-45°‎ حول مركز مربّع حاوٍ مقصوص الفائض،
+ * وهي أبسط طريقة تعطي حوافّ نظيفة عند تقاطعه مع ضلعي البطاقة.
  */
 function CornerRibbon({ text, tone }: { text: string; tone: string }) {
   const uid = useUid("cr");
-  const S = 132;            // ضلع المربّع الحاوي
-  const band = 30;          // عرض الشريط
-  const d = S * 0.62;       // بُعد الشريط عن الركن
+  const S = 118;          // ضلع المربّع الحاوي
+  const band = 27;        // عرض الشريط
+  const off = S * 0.34;   // بُعد محور الشريط عن الركن
   return (
-    <div className="pointer-events-none absolute right-0 top-0 z-20 overflow-hidden" style={{ width: S, height: S }}>
-      <svg width={S} height={S} viewBox={`0 0 ${S} ${S}`} fill="none" aria-hidden="true">
+    <div
+      className="pointer-events-none absolute left-0 top-0 z-20 overflow-hidden"
+      style={{ width: S, height: S }}
+      aria-hidden="true"
+    >
+      <svg width={S} height={S} viewBox={`0 0 ${S} ${S}`} fill="none">
         <defs>
-          <linearGradient id={`${uid}-g`} x1={S} y1="0" x2="0" y2={S} gradientUnits="userSpaceOnUse">
+          <linearGradient id={`${uid}-g`} x1="0" y1="0" x2={S} y2={S} gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor={tone} />
-            <stop offset="100%" stopColor={tone} stopOpacity="0.86" />
+            <stop offset="100%" stopColor={tone} stopOpacity="0.85" />
           </linearGradient>
         </defs>
-        {/* طيّتا الشريط (ظلّ خفيف عند الطرفين) */}
-        <path d={`M${S - d} 0 L${S} 0 L${S} 6 Z`} fill={tone} opacity="0.55" />
-        <path d={`M0 ${S - d} L0 ${S} L6 ${S} Z`} fill={tone} opacity="0.55" />
-        {/* جسم الشريط القُطري */}
-        <path
-          d={`M${S - d} 0 L${S} 0 L0 ${S} L0 ${S - d} Z`}
-          fill={`url(#${uid}-g)`}
-        />
-        <path
-          d={`M${S - d + 5} 0 L${S - d + 5.5} 0 M0 ${S - d + 5} L0 ${S - d + 5}`}
-          stroke="hsl(var(--gold-light))"
-          strokeOpacity="0.6"
-        />
-        <text
-          x={S / 2 - 2}
-          y={S / 2 - 2}
-          fill="#fff"
-          fontSize="13"
-          fontWeight="700"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          style={{ fontFamily: "var(--font-display)" }}
-          transform={`rotate(-45 ${S / 2 - 2} ${S / 2 - 2})`}
-        >
-          {text}
-        </text>
+        <g transform={`rotate(-45 ${S / 2} ${S / 2})`}>
+          <rect x={-S} y={off - band / 2} width={S * 3} height={band} fill={`url(#${uid}-g)`} />
+          {/* خيطان ذهبيان على حافّتي الشريط */}
+          <path
+            d={`M${-S} ${off - band / 2 + 3} H${S * 2} M${-S} ${off + band / 2 - 3} H${S * 2}`}
+            stroke="hsl(var(--gold-light))"
+            strokeWidth="0.9"
+            strokeOpacity="0.5"
+          />
+          <text
+            x={S / 2}
+            y={off + 1}
+            fill="#fff"
+            fontSize="12.5"
+            fontWeight="700"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {text}
+          </text>
+        </g>
       </svg>
     </div>
   );
@@ -133,9 +137,9 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
       >
         {ribbon && <CornerRibbon text={ribbon} tone={tone} />}
 
-        {/* أيقونة النطاق في الركن المقابل */}
+        {/* أيقونة النطاق — في الركن المقابل للشريط */}
         <span
-          className="grid size-14 place-items-center rounded-2xl"
+          className="grid size-14 place-items-center self-start rounded-2xl"
           style={{ background: `${tone}1a`, color: tone }}
         >
           {scopeIcon}

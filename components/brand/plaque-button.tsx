@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * زرّ «اللوح» — خرطوش مخطوط مرسوم بـSVG.
+ * زرّ «اللوح» — لوح مخطوط مرسوم بـSVG.
  * ------------------------------------------------------------------
- * الشكل سداسي بطرفين مدبّبين (كخرطوش المخطوطات) بحدّ ذهبي مزدوج
- * ووردتين عند الطرفين ولمعة تمرّ عند التمرير.
+ * مستطيل بأركان أربعة مقصوصة، بحدّ ذهبي خارجي وخيط داخلي رفيع يتبع
+ * القصّ، ومنمنمة في كل ركن، ونقطتين عند منتصف الضلعين، ولمعة تمرّ
+ * عند التمرير.
  *
  * لماذا نقيس العرض بـResizeObserver بدل preserveAspectRatio="none"؟
  * لأن التمديد يشوّه زوايا الطرفين المدبّبين ويجعل الحدّ غير متساوي
@@ -54,16 +55,38 @@ export function PlaqueButton({
 
   const h = height;
   const mid = h / 2;
-  // التدبيب ثابت لا يتبع الارتفاع: لو تبعه لالتهم النصّ عند الأزرار الطويلة
-  const notch = 18;
+  const cut = 14;   // طول القصّ عند كل ركن
   const ink = variant === "ink";
 
   // الهندسة لا تُرسم قبل معرفة العرض الحقيقي (تفادي وميض شكل خاطئ)
-  const ready = w > notch * 2 + 8;
-  const outer = ready
-    ? `M${notch} 0 H${w - notch} L${w} ${mid} L${w - notch} ${h} H${notch} L0 ${mid} Z`
-    : "";
-  // لا حدّ ذهبي داخلي: كان يبدو شكلاً سداسياً ثانياً متداخلاً مع الأول.
+  const ready = w > cut * 4;
+
+  /** مستطيل بأركان أربعة مقصوصة (لوح المخطوط). */
+  const plaque = (inset: number) => {
+    const x0 = inset;
+    const y0 = inset;
+    const x1 = w - inset;
+    const y1 = h - inset;
+    const c = cut - inset * 0.6;
+    return [
+      `M${x0 + c} ${y0}`,
+      `H${x1 - c}`,
+      `L${x1} ${y0 + c}`,
+      `V${y1 - c}`,
+      `L${x1 - c} ${y1}`,
+      `H${x0 + c}`,
+      `L${x0} ${y1 - c}`,
+      `V${y0 + c}`,
+      "Z",
+    ].join(" ");
+  };
+
+  const outer = ready ? plaque(0) : "";
+  const rule = ready ? plaque(5) : "";
+
+  /** منمنمة ركن: ضلعان قصيران ونقطة. */
+  const knot = (x: number, y: number, sx: number, sy: number) =>
+    `M${x + 11 * sx} ${y + 4 * sy} h${5 * sx} M${x + 4 * sx} ${y + 11 * sy} v${5 * sy}`;
 
   const body = (
     <>
@@ -127,13 +150,36 @@ export function PlaqueButton({
             />
           </g>
 
-          {/* حدّ ذهبي واحد نظيف */}
-          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2.4 : 2} strokeLinejoin="round" />
+          {/* حدّ ذهبي خارجي */}
+          <path d={outer} stroke={`url(#${uid}-gold)`} strokeWidth={ink ? 2 : 1.7} strokeLinejoin="round" />
 
-          {/* وردتان عند الطرفين المدبّبين */}
-          <g fill={`url(#${uid}-gold)`}>
-            <path d={`M${notch * 0.5} ${mid} l4.2 -4.2 4.2 4.2 -4.2 4.2Z`} />
-            <path d={`M${w - notch * 0.5 - 8.4} ${mid} l4.2 -4.2 4.2 4.2 -4.2 4.2Z`} />
+          {/* خيط داخلي رفيع — يتبع القصّ فيبدو إطاراً مخطوطاً لا شكلاً ثانياً */}
+          <path
+            d={rule}
+            stroke={ink ? "hsl(var(--gold-light))" : `url(#${uid}-gold)`}
+            strokeWidth="0.9"
+            strokeOpacity={ink ? 0.42 : 0.3}
+            strokeLinejoin="round"
+          />
+
+          {/* منمنمات الأركان الأربعة */}
+          <g
+            stroke={`url(#${uid}-gold)`}
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeOpacity="0.8"
+            fill="none"
+          >
+            <path d={knot(cut, 0, 1, 1)} />
+            <path d={knot(w - cut, 0, -1, 1)} />
+            <path d={knot(cut, h, 1, -1)} />
+            <path d={knot(w - cut, h, -1, -1)} />
+          </g>
+
+          {/* نقطتان مذهّبتان عند منتصف الضلعين القصيرين */}
+          <g fill={`url(#${uid}-gold)`} opacity="0.9">
+            <circle cx={cut * 0.62} cy={mid} r="2.2" />
+            <circle cx={w - cut * 0.62} cy={mid} r="2.2" />
           </g>
         </svg>
       )}
@@ -158,7 +204,7 @@ export function PlaqueButton({
     height: h,
     // مسافة تضمن ابتعاد النصّ عن الطرف المدبّب مهما طال
     // ثابت لا يتبع الارتفاع: زيادة الطول يجب ألا تزيد العرض
-    paddingInline: 46,
+    paddingInline: 40,
     // مسافة عبور اللمعة = العرض + عرض اللمعة نفسها
     ["--sweep" as string]: `${w + h * 2}px`,
     ...style,
