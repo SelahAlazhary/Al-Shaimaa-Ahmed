@@ -590,6 +590,8 @@ body {
 @keyframes foil-sheen    { 0% { opacity: .25; } 45% { opacity: .8; } 100% { opacity: .25; } }
 @keyframes harakat-float { 0%, 100% { transform: translateY(0) rotate(0); opacity: .55; } 50% { transform: translateY(-6px) rotate(6deg); opacity: .95; } }
 @keyframes shamsa-turn   { to { transform: rotate(360deg); } }
+/* طفو حروف الخلفية — سعة ومدة مختلفة لكل حرف عبر متغيّرات CSS */
+@keyframes letter-float  { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(var(--amp, -1.2px)) rotate(var(--tilt, 2deg)); } }
 @keyframes ink-bleed     { 0% { transform: scale(.86); opacity: 0; } 55% { opacity: .5; } 100% { transform: scale(1); opacity: .28; } }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -619,6 +621,12 @@ body {
   .foil-sheen   { animation: foil-sheen 4.5s ease-in-out infinite; }
   .harakat      { animation: harakat-float 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
   .shamsa-turn  { animation: shamsa-turn 90s linear infinite; transform-origin: center; transform-box: fill-box; }
+  .letter-float {
+    animation: letter-float var(--dur, 8s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
   .ink-bleed    { animation: ink-bleed 1.6s ease-out forwards; transform-origin: center; transform-box: fill-box; }
 
   .group:hover .ico-slide { animation: ico-slide 0.55s ease; }

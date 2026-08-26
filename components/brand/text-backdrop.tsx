@@ -91,6 +91,10 @@ export function ArabicTextBackdrop({
       size: 5 + rnd() * 7, // الحروف المفردة تحتمل حجماً أكبر من الكلمات
       rot: rnd() * 26 - 13,
       op: 0.35 + rnd() * 0.65,
+      amp: -(0.8 + rnd() * 1.8),      // مدى الطفو بوحدات اللوحة
+      tilt: rnd() * 6 - 3,            // ميل خفيف مع الطفو
+      dur: 6 + rnd() * 6,             // مدة مختلفة لكل حرف فلا تتزامن
+      delay: rnd() * 5,
     };
   });
 
@@ -118,19 +122,30 @@ export function ArabicTextBackdrop({
 
       <g mask={`url(#${uid}-mask)`} fill="currentColor">
         {items.map((it, i) => (
-          <text
-            key={i}
-            x={it.x}
-            y={it.y}
-            fontSize={it.size}
-            fillOpacity={it.op}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            transform={`rotate(${it.rot} ${it.x} ${it.y})`}
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            {it.ch}
-          </text>
+          /* المجموعة تحمل الموضع والميل، والحرف داخلها يطفو بحركة CSS
+             (لو وُضعت الحركة على العنصر نفسه لألغت خاصية transform) */
+          <g key={i} transform={`translate(${it.x} ${it.y}) rotate(${it.rot})`}>
+            <text
+              x={0}
+              y={0}
+              fontSize={it.size}
+              fillOpacity={it.op}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="letter-float"
+              style={
+                {
+                  fontFamily: "var(--font-display)",
+                  "--amp": `${it.amp}px`,
+                  "--tilt": `${it.tilt}deg`,
+                  "--dur": `${it.dur}s`,
+                  "--delay": `${it.delay}s`,
+                } as React.CSSProperties
+              }
+            >
+              {it.ch}
+            </text>
+          </g>
         ))}
       </g>
     </svg>
