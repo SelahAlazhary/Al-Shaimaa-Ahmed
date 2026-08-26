@@ -17,7 +17,7 @@ import {
 import { GeoBackdrop } from "@/components/brand/pattern";
 import { EmptyPlans } from "@/components/brand/illustrations";
 import { useUid } from "@/components/brand/use-uid";
-import { planPrice, planColor } from "@/lib/plans";
+import { planPrice, planColor, planForStudent, planWaLink } from "@/lib/plans";
 import type { SitePlan } from "@/lib/types";
 
 /** وصف مدّة الخطة بلغة الطالب. */
@@ -211,8 +211,10 @@ export function Plans() {
   const { db, content, wa, session } = useContent();
   if (content.ui?.["section.plans"]?.hidden) return null;
 
+  // خطط الشعبة: الزائر يرى الجميع، والطالب يرى ما يخصّ شعبته وما هو للكل
+  const me = db?.users?.find((u) => u.id === session?.uid);
   const plans = (db?.plans ?? [])
-    .filter((p) => p.visible)
+    .filter((p) => p.visible && planForStudent(p, me))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.price - b.price);
   const sec = content.plansSection ?? {};
   const subjectName = (id?: string) => db?.subjects.find((s) => s.id === id)?.name;

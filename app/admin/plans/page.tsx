@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
+import { TRACKS } from "@/lib/data";
 import { useContent } from "@/components/content/content-provider";
 import { planPrice } from "@/lib/plans";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
@@ -23,7 +24,7 @@ type Form = {
   name: string; kind: PlanKind; scope: PlanScope; subjectId: string;
   price: number; durationDays: number; endsAt: string; badge: string;
   highlight: boolean; desc: string; perks: string; visible: boolean; order: number;
-  color: string; cta: string; termNo: 1 | 2;
+  color: string; cta: string; termNo: 1 | 2; whatsapp: string; track: string;
   discountOn: boolean; discountType: "percent" | "amount"; discountValue: number;
   discountLabel: string; discountUntil: string;
 };
@@ -31,7 +32,8 @@ type Form = {
 const EMPTY: Form = {
   name: "", kind: "term", scope: "all", subjectId: "", price: 0, durationDays: 0,
   endsAt: "", badge: "", highlight: false, desc: "", perks: "", visible: true, order: 0,
-  color: "", cta: "", termNo: 1, discountOn: false, discountType: "percent", discountValue: 0,
+  color: "", cta: "", termNo: 1, whatsapp: "", track: "",
+  discountOn: false, discountType: "percent", discountValue: 0,
   discountLabel: "", discountUntil: "",
 };
 
@@ -68,6 +70,7 @@ export default function PlansPage() {
       badge: p.badge ?? "", highlight: Boolean(p.highlight), desc: p.desc ?? "",
       perks: (p.perks ?? []).join("\n"), visible: p.visible, order: p.order ?? 0,
       color: p.color ?? "", cta: p.cta ?? "", termNo: p.termNo ?? 1,
+      whatsapp: p.whatsapp ?? "", track: p.track ?? "",
       discountOn: Boolean(p.discount?.active),
       discountType: p.discount?.type ?? "percent",
       discountValue: p.discount?.value ?? 0,
@@ -98,6 +101,8 @@ export default function PlansPage() {
       order: Number(f.order) || 0,
       color: f.color || undefined,
       cta: f.cta.trim() || undefined,
+      whatsapp: f.whatsapp.trim() || undefined,
+      track: f.track || undefined,
       discount: f.discountOn && Number(f.discountValue) > 0
         ? {
             active: true,
@@ -196,6 +201,26 @@ export default function PlansPage() {
             </label>
             <label><span className="lbl">نص الزر (اختياري)</span>
               <input className="inp" value={f.cta} onChange={(e) => set({ cta: e.target.value })} placeholder="اشترك الآن" />
+            </label>
+            <label><span className="lbl">الشعبة</span>
+              <select className="inp" value={f.track} onChange={(e) => set({ track: e.target.value })}>
+                <option value="">كل الشعب</option>
+                {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <span className="mt-1 block text-[10px] text-muted-foreground">
+                تظهر الخطة لطلاب هذه الشعبة وحدهم. «كل الشعب» تعرضها للجميع.
+              </span>
+            </label>
+            <label><span className="lbl">واتساب التفعيل (اختياري)</span>
+              <input
+                className="inp text-right" dir="ltr" inputMode="numeric"
+                value={f.whatsapp}
+                onChange={(e) => set({ whatsapp: e.target.value })}
+                placeholder="201000000000"
+              />
+              <span className="mt-1 block text-[10px] text-muted-foreground">
+                الرقم الذي يراسله الطلاب لتفعيل هذه الخطة. اتركه فارغاً ليُستخدم رقم المنصّة العام.
+              </span>
             </label>
 
             {/* لون الخطة */}

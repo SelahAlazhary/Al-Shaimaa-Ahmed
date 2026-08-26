@@ -14,6 +14,35 @@ export type PricedPlan = {
   until?: string | null;
 };
 
+/**
+ * هل هذه الخطة معروضة لهذا الطالب؟
+ * الخطة بلا شعبة معروضة للجميع، وبشعبة تظهر لطلاب تلك الشعبة وحدهم.
+ * الزائر (بلا حساب) يرى كل الخطط الظاهرة — لا شعبة تُقارَن بها بعد.
+ */
+export function planForStudent(
+  plan: { track?: string },
+  student: { track?: string } | null | undefined
+): boolean {
+  const want = (plan.track ?? "").trim();
+  if (!want) return true;
+  if (!student) return true;
+  return (student.track ?? "").trim() === want;
+}
+
+/**
+ * رقم واتساب التفعيل لخطة بعينها.
+ * لكل خطة رقم اختياري — تُوجَّه به رسائل تفعيلها إلى المسؤول عنها،
+ * وإن تُرك فارغاً رجعت الخطة إلى رقم المنصّة العام.
+ * يُطبَّع الرقم من الأرقام العربية والمسافات والرموز.
+ */
+export function planWaLink(plan: { whatsapp?: string } | null | undefined, fallback: string, text: string): string {
+  const raw = (plan?.whatsapp ?? "").trim() || fallback;
+  const num = raw
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/[^\d]/g, "");
+  return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+}
+
 export function planPrice(plan: SitePlan, now = Date.now()): PricedPlan {
   const original = Math.max(0, plan.price ?? 0);
   const d = plan.discount;

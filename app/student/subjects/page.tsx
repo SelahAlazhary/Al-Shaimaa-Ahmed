@@ -15,7 +15,7 @@ import { PageHeader, Card, Progress } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import { subjectActive, subscriptionFor, daysLeft, eligibleFor, termLabel } from "@/lib/access";
 import { planDuration, planScopeLabel } from "@/components/sections/plans";
-import { planPrice, planColor } from "@/lib/plans";
+import { planPrice, planColor, planForStudent, planWaLink } from "@/lib/plans";
 import type { Subject, SitePlan } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 
@@ -208,14 +208,16 @@ function PurchasePanel({
 }: {
   subject: Subject; wa: (t?: string) => string; fem: boolean; onClose: () => void;
 }) {
-  const { refresh, content, db, wa: _wa } = useContent();
+  const { refresh, content, db, session } = useContent();
   const y = (v: string) => `${v}${fem ? "ي" : ""}`;
   // خطط هذا الكورس + خطط «كل المواد» — كلها من إدارة الخطط في لوحة الأدمن
+  const me = db?.users?.find((u) => u.id === session?.uid);
   const plans = (db?.plans ?? [])
     .filter((p) =>
-      p.scope === "all" ||
-      (p.scope === "term" && p.termNo === (subject.term ?? 1)) ||
-      p.subjectId === subject.id
+      planForStudent(p, me) &&
+      (p.scope === "all" ||
+        (p.scope === "term" && p.termNo === (subject.term ?? 1)) ||
+        p.subjectId === subject.id)
     )
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.price - b.price);
   const [code, setCode] = useState("");
@@ -270,7 +272,12 @@ function PurchasePanel({
                 <div className="grid gap-3">
                   {plans.map((p) => (
                     <PlanCard key={p.id} plan={p} subjectName={subject.name} termEnd={content.termEnd}
-                      href={wa(`أريد الاشتراك في خطة «${p.name}»${p.scope === "subject" ? ` لكورس «${subject.name}»` : ""}`)} />
+                      /* رقم واتساب الخطة إن ضُبط، وإلا رقم المنصّة العام */
+                      href={planWaLink(
+                        p,
+                        content.whatsapp,
+                        `أريد الاشتراك في خطة «${p.name}»${p.scope === "subject" ? ` لكورس «${subject.name}»` : ""}`
+                      )} />
                   ))}
                 </div>
               </>

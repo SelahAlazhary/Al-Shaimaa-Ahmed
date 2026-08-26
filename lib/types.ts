@@ -73,6 +73,8 @@ export type SitePlan = {
   discount?: PlanDiscount;      // خصم على الخطة
   desc?: string;                // وصف مختصر
   cta?: string;                 // نص زر الخطة
+  whatsapp?: string;            // رقم واتساب التفعيل لهذه الخطة (فارغ = رقم المنصّة العام)
+  track?: string;               // شعبة الخطة: علمي/أدبي (فارغ = كل الشعب)
   perks?: string[];             // مزايا الخطة (نقاط)
   visible: boolean;             // إظهارها على الصفحة الرئيسية
   order?: number;               // ترتيب العرض
