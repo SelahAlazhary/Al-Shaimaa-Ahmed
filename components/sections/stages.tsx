@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { SectionHeading, Reveal } from "@/components/ui/primitives";
 import { KuficBackdrop, ArchTile, CornerKnot } from "@/components/brand/pattern";
 import { WritingLine } from "@/components/brand/calligraphy";
+import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { useContent } from "@/components/content/content-provider";
 
 const ar = (n: number) => n.toLocaleString("ar-EG");
@@ -43,7 +44,8 @@ export function Stages() {
 
   return (
     <section id="stages" className="relative py-24">
-      <KuficBackdrop density={44} opacity={0.2} fade="center" tone="text-primary/10" />
+      <ArabicTextBackdrop count={22} seed={13} fade="center" opacity={0.42} tone="text-accent/22" />
+      <KuficBackdrop density={44} opacity={0.14} fade="center" tone="text-primary/8" />
 
       <div className="container">
         <SectionHeading

@@ -18,6 +18,7 @@ import {
 } from "@/components/brand/icons";
 import { KuficBackdrop, CornerKnot, Shamsa } from "@/components/brand/pattern";
 import { WritingLine } from "@/components/brand/calligraphy";
+import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { CourseArt } from "@/components/brand/course-art";
 import { ProgressRing } from "@/components/brand/progress-ring";
 import { EmptyCourses } from "@/components/brand/illustrations";
@@ -57,7 +58,8 @@ export default function StudentHome() {
         animate={{ opacity: 1, y: 0 }}
         className="btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] p-6 text-white sm:p-8"
       >
-        <KuficBackdrop density={38} opacity={0.4} fade="center" tone="text-white/45" className="!z-0" />
+        <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />
+        <KuficBackdrop density={38} opacity={0.28} fade="center" tone="text-white/30" className="!z-0" />
         <Shamsa
           size={340}
           rays={24}

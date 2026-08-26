@@ -35,8 +35,8 @@
   --gold-light: 44 88% 66%;
 
   --font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --font-display: "Amiri", "IBM Plex Sans Arabic", serif;
-  --font-kufi: "Noto Kufi Arabic", var(--font-sans);
+  --font-display: "Lalezar", "IBM Plex Sans Arabic", sans-serif;
+  --font-kufi: var(--font-display), var(--font-sans);
 }
 
 /* ---------- الطبقة 1: ليل المخطوط (داكن) ---------- */
@@ -152,7 +152,12 @@ body::before {
 
 .font-display {
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  /* Lalezar عريض أصلاً — الوزن الزائد يطمس الحروف */
+  font-weight: 400 !important;
+  letter-spacing: 0.005em;
 }
+
+.font-kufi { font-weight: 400; }
 
 /* ============================================================
    إحساس التطبيق على الهاتف
@@ -406,6 +411,12 @@ body::before {
   }
 
   .font-kufi { font-family: var(--font-kufi); }
+}
+
+/* شريط المصطلحات المتحرّك (RTL: يمشي إلى اليمين) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
 }
 
 @keyframes skeleton-sweep {

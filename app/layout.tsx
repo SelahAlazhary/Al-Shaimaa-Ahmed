@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { Amiri, IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic } from "next/font/google";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
+import localFont from "next/font/local";
 import { ContentProvider } from "@/components/content/content-provider";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { RegisterSW } from "@/components/pwa/register-sw";
@@ -13,27 +14,24 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 /**
- * الخطوط — ثلاثة وجوه عربية أصيلة تخدم هوية المخطوط:
+ * الخطوط.
+ * • Lalezar             : خطّ العناوين والهوية — عربي عريض ذو شخصية قوية
+ *                          (ملف محلّي داخل المستودع، لا يعتمد على شبكة خارجية).
  * • IBM Plex Sans Arabic : متن الواجهة — وضوح عالٍ على الشاشات وأوزان كاملة.
- * • Amiri                : عناوين بخطّ النسخ الكلاسيكي — روح المخطوط العربي.
- * • Noto Kufi Arabic     : الشارات والعناوين الفرعية — كوفي هندسي حازم.
+ * Lalezar وزن واحد (٤٠٠) وهو خطّ عرض لا متن، لذلك يُستعمل في العناوين
+ * والشارات والزخرفة، ويبقى المتن على Plex حفاظاً على قابلية القراءة.
  */
+const lalezar = localFont({
+  src: "./fonts/Lalezar-Regular.ttf",
+  weight: "400",
+  style: "normal",
+  variable: "--font-display",
+  display: "swap",
+});
 const plex = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
-  display: "swap",
-});
-const amiri = Amiri({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
-  variable: "--font-display",
-  display: "swap",
-});
-const kufi = Noto_Kufi_Arabic({
-  subsets: ["arabic"],
-  weight: ["400", "600", "700"],
-  variable: "--font-kufi",
   display: "swap",
 });
 
@@ -120,7 +118,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }} />
         ))}
       </head>
-      <body className={`${plex.variable} ${amiri.variable} ${kufi.variable} font-sans`}>
+      <body className={`${plex.variable} ${lalezar.variable} font-sans`}>
         <ContentProvider initialDB={db} initialSession={session}>
           <RouteTransition>{children}</RouteTransition>
           <RegisterSW />
