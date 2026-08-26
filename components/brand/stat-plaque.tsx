@@ -165,7 +165,7 @@ export function StatPlaque({
       >
         <span
           className={`font-display block font-bold leading-none ${
-            ring !== undefined ? "text-[1.1rem]" : "text-[1.75rem]"
+            ring !== undefined ? "text-[1.4rem]" : "text-[2.15rem]"
           } ${ink ? "text-white" : "text-foreground"}`}
         >
           {ring !== undefined ? `${pct.toLocaleString("ar-EG")}٪` : value}
@@ -174,7 +174,7 @@ export function StatPlaque({
 
       {/* العنوان */}
       <span
-        className={`font-kufi pointer-events-none absolute inset-x-2 bottom-[6%] text-center text-[0.62rem] font-bold leading-tight tracking-[0.03em] ${
+        className={`font-kufi pointer-events-none absolute inset-x-2 bottom-[6%] text-center text-[0.74rem] font-bold leading-tight tracking-[0.02em] ${
           ink ? "text-white/85" : "text-muted-foreground"
         }`}
       >
