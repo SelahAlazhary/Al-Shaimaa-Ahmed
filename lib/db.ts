@@ -9,6 +9,7 @@ import { seedUsers } from "./seed-admin";
 import { courseActive, lessonActive, planExpiry, planSubjectId, eligibleFor, liveVisible, publicLives } from "./access";
 import { resolvePlan } from "./plans";
 import { firebaseConfigured } from "./firebase";
+import { pushConfigured } from "./push";
 import { ensureStore, peek, commit, flushStore, storeState, invalidate, readLocal } from "./store";
 
 /**
@@ -175,6 +176,7 @@ export function publicIntegrations(db: DB): PublicIntegrations {
       connectedAt: g?.connectedAt,
     },
     youtubeApiKey: Boolean(process.env.YOUTUBE_API_KEY || db.integrations?.youtubeApiKey),
+    push: pushConfigured(),
   };
 }
 

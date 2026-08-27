@@ -662,6 +662,8 @@ export type PublicIntegrations = {
   google?: { connected: boolean; email?: string; connectedAt?: string; configured: boolean };
   /** هل مفتاح يوتيوب مضبوط؟ (وجوده فقط — لا قيمته) */
   youtubeApiKey?: boolean;
+  /** هل مفاتيح إشعارات الأجهزة مضبوطة؟ — بلا مفاتيح لا يصل شيء والموقع مغلق. */
+  push?: boolean;
   /** حالة بوت تليجرام — بلا توكن: وجوده ومعرّف المحادثة واسمه فقط. */
   telegram?: { configured: boolean; enabled: boolean; chatId?: string; username?: string; webhookSetAt?: string };
 };

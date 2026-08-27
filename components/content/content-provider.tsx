@@ -132,6 +132,44 @@ export function ContentProvider({
     } catch { /* تجاهل */ }
   }, [initialDB, refresh]);
 
+  /*
+    تحديثٌ حيّ لبوابة الطالب.
+    ------------------------------------------------------------------
+    كودُ التفعيل يصل بعد ضغطة المشرف، والطالبُ قد يكون فاتحاً الصفحةَ
+    منتظراً — فلا يليق أن يُطلب منه تحديثُها ليرى ما وصل. تُسحب البيانات
+    كل عشرين ثانية، وعند عودة التبويب إلى الواجهة فوراً.
+
+    شرطان يمنعان الإسراف: لا سحبَ والتبويبُ مخفيّ (المتصفّح يُبطئه على
+    أي حال ولا فائدة من تحديث لا يُرى)، ولا سحبَ لغير الطالب — لوحةُ
+    الإدارة تُعدّل البيانات بنفسها، والسحبُ تحت يد المحرّر يمحو تعديله.
+  */
+  useEffect(() => {
+    if (session?.role !== "student") return;
+
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const tick = () => { if (!document.hidden) void refresh(); };
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(tick, 20_000);
+    };
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+
+    const onVisible = () => {
+      if (document.hidden) { stop(); return; }
+      void refresh();   // ما فات أثناء الغياب يصل فور العودة
+      start();
+    };
+
+    start();
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [session?.role, refresh]);
+
   // تطبيق الثيم (التخطيط الفعّال = تفضيل الزائر إن وُجد وإلا الإعداد العام)
   useEffect(() => { applyTheme(content.theme, viewLayout); }, [content.theme, viewLayout]);
 

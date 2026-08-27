@@ -192,6 +192,30 @@ export function adminInsights(
     });
   }
 
+  /* ---------- إشعارٌ لا يصل ---------- */
+  const students = (db.users ?? []).filter((u) => u.role === "student");
+  const subscribed = students.filter((u) => (u.pushDevices ?? 0) > 0).length;
+
+  if (db.integrations?.push === false) {
+    out.push({
+      id: "push-off",
+      level: "warn",
+      label: "إشعارات الأجهزة غير مضبوطة",
+      hint: "كود التفعيل لن يصل الطالبَ وهو مغلقٌ للموقع — تحتاج مفاتيح VAPID على الاستضافة",
+      href: "/admin/notifications",
+      perm: "notifications",
+    });
+  } else if (students.length > 0 && subscribed === 0) {
+    out.push({
+      id: "push-none",
+      level: "tip",
+      label: "لا أحد فعّل إشعارات جهازه",
+      hint: "الإشعارات تصل داخل المنصّة فقط حتى يسمح الطالب بها من صفحة الإشعارات",
+      href: "/admin/notifications",
+      perm: "notifications",
+    });
+  }
+
   /* ---------- هويةٌ ناقصة ---------- */
   if (!content.whatsapp?.trim()) {
     out.push({
