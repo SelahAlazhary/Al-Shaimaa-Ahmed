@@ -1682,3 +1682,333 @@ body {
   border-radius: 0;
 }
 
+/* ============================================================
+   هيئات شريط الأدوات
+   ------------------------------------------------------------
+   الهيئة تُرسم على طبقة خلف الشريط (‎::before‎) لا على الشريط نفسه.
+   لو قُصّ الشريطُ مباشرةً لبُترت معه القوائمُ المنسدلة وكلُّ ما يخرج
+   عن حدوده — والطبقة تحلّ ذلك: تحمل الشكل واللون، والمحتوى فوقها حرّ.
+
+   ‎--bar-surface‎ يأتي من صنف السطح، فتبقى الألوان محورَها المستقلّ
+   ولا تُعاد كتابتها في كل هيئة.
+   ============================================================ */
+
+/* لون السطح كمتغيّر — تقرؤه طبقة الهيئة */
+.tb-surface-solid    { --bar-surface: hsl(var(--card)); --bar-ink: hsl(var(--foreground)); }
+.tb-surface-glass    { --bar-surface: hsl(var(--card) / 0.55); --bar-ink: hsl(var(--foreground)); }
+.tb-surface-outline  { --bar-surface: transparent; --bar-ink: hsl(var(--foreground)); }
+.tb-surface-gradient { --bar-surface: linear-gradient(100deg, hsl(var(--card)), hsl(var(--muted))); --bar-ink: hsl(var(--foreground)); }
+.tb-surface-floating { --bar-surface: hsl(var(--card)); --bar-ink: hsl(var(--foreground)); }
+.tb-surface-ink      { --bar-surface: hsl(var(--primary)); --bar-ink: hsl(var(--primary-foreground)); }
+
+/* ---------- الطبقة المشتركة ---------- */
+/* أي هيئة غير «بلا هيئة» تُفرّغ الشريطَ وتنقل مظهره إلى الطبقة */
+[class*="tb-art-"]:not(.tb-art-plain) .site-bar,
+[class*="tb-art-"]:not(.tb-art-plain) .app-body > header {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none !important;
+  border-radius: 0;
+  max-width: none;
+}
+[class*="tb-art-"]:not(.tb-art-plain) .site-bar::before,
+[class*="tb-art-"]:not(.tb-art-plain) .app-body > header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--bar-surface, hsl(var(--card)));
+  pointer-events: none;
+}
+/* الزجاج يُضبَّب على الطبقة لا على الشريط، وإلا ضبّب النصّ فوقه */
+.tb-surface-glass[class*="tb-art-"]:not(.tb-art-plain) .site-bar::before,
+.tb-surface-glass[class*="tb-art-"]:not(.tb-art-plain) .app-body > header::before {
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+/* الحبر يقلب لون النصّ فوقه */
+.tb-surface-ink[class*="tb-art-"]:not(.tb-art-plain) .site-bar,
+.tb-surface-ink[class*="tb-art-"]:not(.tb-art-plain) .app-body > header {
+  color: hsl(var(--primary-foreground));
+}
+
+/* طبقة زخرفة ثانية — تحمل الحليات فوق السطح وتحت المحتوى */
+[class*="tb-art-"]:not(.tb-art-plain) .site-bar::after,
+[class*="tb-art-"]:not(.tb-art-plain) .app-body > header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ---------- ١ · المحراب ---------- */
+/* كوّة مقوّسة تنزل من وسط الحافّة السفلى — أشهر صورة في العمارة الإسلامية */
+.tb-art-mihrab .site-bar::before,
+.tb-art-mihrab .app-body > header::before {
+  --m: 8.5rem;
+  -webkit-mask:
+    linear-gradient(#000 0 0) padding-box,
+    radial-gradient(var(--m) 2.6rem at 50% 100%, transparent 99%, #000 100%);
+  mask:
+    linear-gradient(#000 0 0),
+    radial-gradient(var(--m) 2.6rem at 50% 100%, transparent 99%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.tb-art-mihrab .site-bar::after,
+.tb-art-mihrab .app-body > header::after {
+  background:
+    radial-gradient(8.5rem 2.6rem at 50% 100%, transparent calc(100% - 2px), hsl(var(--gold)) calc(100% - 1px), transparent 100%);
+}
+
+/* ---------- ٢ · العَقد ---------- */
+/* صفّ عقود متتالية — قوسٌ يتكرّر بعرض الشريط */
+.tb-art-arcade .site-bar::before,
+.tb-art-arcade .app-body > header::before {
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.85rem) no-repeat,
+    radial-gradient(0.85rem 0.85rem at 50% 0, #000 99%, transparent 100%) bottom / 1.7rem 0.85rem repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.85rem) no-repeat,
+    radial-gradient(0.85rem 0.85rem at 50% 0, #000 99%, transparent 100%) bottom / 1.7rem 0.85rem repeat-x;
+}
+.tb-art-arcade .site-bar::after,
+.tb-art-arcade .app-body > header::after {
+  background: radial-gradient(0.85rem 0.85rem at 50% 0, transparent 96%, hsl(var(--gold) / 0.55) 97%, transparent 100%) bottom / 1.7rem 0.85rem repeat-x;
+}
+
+/* ---------- ٣ · المسنَّن ---------- */
+.tb-art-serrated .site-bar::before,
+.tb-art-serrated .app-body > header::before {
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.55rem) no-repeat,
+    conic-gradient(from -45deg at 50% 0, #000 0 90deg, transparent 0) bottom / 1.1rem 0.55rem repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.55rem) no-repeat,
+    conic-gradient(from -45deg at 50% 0, #000 0 90deg, transparent 0) bottom / 1.1rem 0.55rem repeat-x;
+}
+
+/* ---------- ٤ · المخطوط الممزّق ---------- */
+/* تمزيق غير منتظم: ثلاث موجات بأطوال مختلفة تتراكب فلا يتكرّر النمط بوضوح */
+.tb-art-torn .site-bar::before,
+.tb-art-torn .app-body > header::before {
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.7rem) no-repeat,
+    radial-gradient(0.7rem 0.7rem at 50% 0, #000 99%, transparent) bottom / 1.4rem 0.45rem repeat-x,
+    radial-gradient(1.1rem 0.5rem at 50% 0, #000 99%, transparent) bottom / 2.3rem 0.7rem repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 0.7rem) no-repeat,
+    radial-gradient(0.7rem 0.7rem at 50% 0, #000 99%, transparent) bottom / 1.4rem 0.45rem repeat-x,
+    radial-gradient(1.1rem 0.5rem at 50% 0, #000 99%, transparent) bottom / 2.3rem 0.7rem repeat-x;
+}
+
+/* ---------- ٥ · اللوح ---------- */
+.tb-art-plaque .site-bar-wrap { top: 0.75rem; }
+.tb-art-plaque .site-bar::before,
+.tb-art-plaque .app-body > header::before {
+  clip-path: polygon(
+    1.1rem 0, calc(100% - 1.1rem) 0, 100% 1.1rem,
+    100% calc(100% - 1.1rem), calc(100% - 1.1rem) 100%,
+    1.1rem 100%, 0 calc(100% - 1.1rem), 0 1.1rem
+  );
+}
+.tb-art-plaque .site-bar::after,
+.tb-art-plaque .app-body > header::after {
+  inset: 0.35rem;
+  border: 1px solid hsl(var(--gold) / 0.55);
+  clip-path: polygon(
+    0.85rem 0, calc(100% - 0.85rem) 0, 100% 0.85rem,
+    100% calc(100% - 0.85rem), calc(100% - 0.85rem) 100%,
+    0.85rem 100%, 0 calc(100% - 0.85rem), 0 0.85rem
+  );
+}
+
+/* ---------- ٦ · الطُغراء ---------- */
+/* حليةٌ تلتفّ على الطرف الأمامي: أقواس مذهّبة متداخلة */
+.tb-art-tughra .site-bar::after,
+.tb-art-tughra .app-body > header::after {
+  background:
+    radial-gradient(2.2rem 2.2rem at calc(100% - 1.6rem) 50%, transparent calc(100% - 2px), hsl(var(--gold) / 0.75) calc(100% - 1px), transparent 100%),
+    radial-gradient(1.5rem 1.5rem at calc(100% - 3.1rem) 45%, transparent calc(100% - 2px), hsl(var(--gold) / 0.55) calc(100% - 1px), transparent 100%),
+    radial-gradient(0.9rem 0.9rem at calc(100% - 4.2rem) 58%, transparent calc(100% - 2px), hsl(var(--gold) / 0.4) calc(100% - 1px), transparent 100%),
+    linear-gradient(to left, hsl(var(--gold) / 0.16), transparent 38%);
+}
+.tb-art-tughra .site-bar::before,
+.tb-art-tughra .app-body > header::before {
+  border-radius: 0 0 0 2rem;
+}
+
+/* ---------- ٧ · الجناحان ---------- */
+/* كتلتان بينهما فُرجة: القصّ يترك فراغاً في الوسط تُرى الصفحةُ خلاله */
+.tb-art-wings .site-bar-wrap { top: 1rem; }
+.tb-art-wings .site-bar::before,
+.tb-art-wings .app-body > header::before {
+  border-radius: 1.15rem;
+  box-shadow: 0 20px 44px -26px hsl(var(--primary) / 0.85);
+  -webkit-mask:
+    linear-gradient(to left, #000 calc(50% - 2.2rem), transparent calc(50% - 2.2rem) calc(50% + 2.2rem), #000 calc(50% + 2.2rem));
+  mask:
+    linear-gradient(to left, #000 calc(50% - 2.2rem), transparent calc(50% - 2.2rem) calc(50% + 2.2rem), #000 calc(50% + 2.2rem));
+}
+
+/* ---------- ٨ · المعلَّق ---------- */
+.tb-art-hang .site-bar-wrap { top: 1.6rem; }
+.tb-art-hang .site-bar::before,
+.tb-art-hang .app-body > header::before {
+  border-radius: 0 0 1.25rem 1.25rem;
+  box-shadow: 0 18px 40px -24px hsl(var(--primary) / 0.8);
+}
+/* الحمّالتان: خيطان يصعدان من الشريط إلى السقف */
+.tb-art-hang .site-bar::after,
+.tb-art-hang .app-body > header::after {
+  inset: -1.6rem 0 0;
+  background:
+    linear-gradient(hsl(var(--gold) / 0.75), hsl(var(--gold) / 0.15)) no-repeat 22% 0 / 2px 1.6rem,
+    linear-gradient(hsl(var(--gold) / 0.75), hsl(var(--gold) / 0.15)) no-repeat 78% 0 / 2px 1.6rem;
+}
+
+/* ---------- ٩ · الكوفي ---------- */
+/* شريط زخرفة هندسية على الحافّة العليا — زوايا قائمة كالخطّ الكوفي */
+.tb-art-kufi .site-bar::after,
+.tb-art-kufi .app-body > header::after {
+  background:
+    repeating-linear-gradient(90deg,
+      hsl(var(--gold) / 0.55) 0 0.35rem,
+      transparent 0.35rem 0.7rem,
+      hsl(var(--gold) / 0.28) 0.7rem 1.05rem,
+      transparent 1.05rem 1.4rem) top / 100% 0.3rem no-repeat,
+    linear-gradient(hsl(var(--gold) / 0.35), transparent) top / 100% 0.75rem no-repeat;
+}
+
+/* ---------- ١٠ · الشمسة ---------- */
+.tb-art-shamsa .site-bar::after,
+.tb-art-shamsa .app-body > header::after {
+  background:
+    radial-gradient(9rem 6rem at 50% 0, hsl(var(--gold) / 0.4), transparent 70%),
+    radial-gradient(2.6rem 2.6rem at 50% 50%, transparent calc(100% - 2px), hsl(var(--gold) / 0.6) calc(100% - 1px), transparent 100%);
+}
+
+/* ---------- ١١ · المائل ---------- */
+.tb-art-slant .site-bar::before,
+.tb-art-slant .app-body > header::before {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 1.4rem));
+}
+.tb-art-slant .site-bar::after,
+.tb-art-slant .app-body > header::after {
+  background: linear-gradient(to left, hsl(var(--gold)), hsl(var(--gold) / 0.2));
+  clip-path: polygon(0 calc(100% - 1.4rem), 100% 100%, 100% calc(100% - 2px), 0 calc(100% - 1.4rem - 2px));
+}
+
+/* ---------- ١٢ · الإطار المزدوج ---------- */
+.tb-art-frame .site-bar-wrap { top: 0.6rem; }
+.tb-art-frame .site-bar::before,
+.tb-art-frame .app-body > header::before {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.85rem;
+}
+.tb-art-frame .site-bar::after,
+.tb-art-frame .app-body > header::after {
+  inset: 0.28rem;
+  border: 1px solid hsl(var(--gold) / 0.5);
+  border-radius: 0.6rem;
+}
+
+/* ---------- ١٣ · قطرة الحبر ---------- */
+.tb-art-inkdrop .site-bar::before,
+.tb-art-inkdrop .app-body > header::before {
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% 100% no-repeat,
+    radial-gradient(1.5rem 1.5rem at 50% 0, #000 99%, transparent 100%) bottom center / 3rem 1.5rem no-repeat;
+  mask:
+    linear-gradient(#000 0 0) top / 100% 100% no-repeat,
+    radial-gradient(1.5rem 1.5rem at 50% 0, #000 99%, transparent 100%) bottom center / 3rem 1.5rem no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+  padding-bottom: 1.5rem;
+  bottom: -1.5rem;
+}
+
+/* ---------- ١٤ · الصفحة ---------- */
+.tb-art-page .site-bar::before,
+.tb-art-page .app-body > header::before {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1.6rem), calc(100% - 1.6rem) 100%, 0 100%);
+}
+/* الركن المطويّ — مثلّث أفتح يوحي بورقة انثنت */
+.tb-art-page .site-bar::after,
+.tb-art-page .app-body > header::after {
+  background: linear-gradient(225deg, hsl(var(--gold) / 0.55), hsl(var(--gold) / 0.12));
+  clip-path: polygon(100% calc(100% - 1.6rem), calc(100% - 1.6rem) 100%, 100% 100%);
+}
+
+/* ---------- ١٥ · الحزام ---------- */
+.tb-art-belt .site-bar::after,
+.tb-art-belt .app-body > header::after {
+  background:
+    linear-gradient(hsl(var(--gold) / 0.9), hsl(var(--gold) / 0.5)) center / 5.5rem 100% no-repeat,
+    linear-gradient(hsl(var(--gold) / 0.35), transparent) top / 100% 2px no-repeat,
+    linear-gradient(transparent, hsl(var(--gold) / 0.35)) bottom / 100% 2px no-repeat;
+  -webkit-mask: linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0);
+  opacity: 0.55;
+}
+
+/* ---------- ١٦ · الظلّ الطويل ---------- */
+.tb-art-longshadow .site-bar::after,
+.tb-art-longshadow .app-body > header::after {
+  inset: 0 0 -3.5rem;
+  background: linear-gradient(168deg, hsl(var(--primary) / 0.3), transparent 55%);
+  -webkit-mask: linear-gradient(#000 0 0) bottom / 100% 3.5rem no-repeat;
+  mask: linear-gradient(#000 0 0) bottom / 100% 3.5rem no-repeat;
+}
+
+/* ---------- ١٧ · الخيط ---------- */
+.tb-art-rule .site-bar::before,
+.tb-art-rule .app-body > header::before { background: transparent; }
+.tb-art-rule .site-bar::after,
+.tb-art-rule .app-body > header::after {
+  background:
+    linear-gradient(to left, transparent, hsl(var(--gold)) 18%, hsl(var(--gold)) 82%, transparent)
+      bottom / 100% 2px no-repeat;
+}
+
+/* ---------- ١٨ · الكبسولة الطافية ---------- */
+.tb-art-float .site-bar-wrap { top: 0.9rem; }
+.tb-art-float .site-bar::before,
+.tb-art-float .app-body > header::before {
+  inset: 0 12% ;
+  border-radius: 9999px;
+  box-shadow: 0 16px 36px -22px hsl(var(--primary) / 0.9);
+}
+.tb-art-float .site-bar::after,
+.tb-art-float .app-body > header::after {
+  inset: auto 0 -0.9rem;
+  height: 1px;
+  background: linear-gradient(to left, transparent, hsl(var(--border)) 12%, hsl(var(--border)) 88%, transparent);
+}
+
+/* ---------- ١٩ · النافذة ---------- */
+.tb-art-window .site-bar::before,
+.tb-art-window .app-body > header::before {
+  border: 1.5px solid hsl(var(--border));
+  border-radius: 1.6rem 1.6rem 0 0;
+}
+/* القوائم الرأسية — تقسّم الشريط كنافذة ذات ضلفتين */
+.tb-art-window .site-bar::after,
+.tb-art-window .app-body > header::after {
+  background:
+    linear-gradient(hsl(var(--border)), hsl(var(--border))) 28% 0 / 1.5px 100% no-repeat,
+    linear-gradient(hsl(var(--border)), hsl(var(--border))) 72% 0 / 1.5px 100% no-repeat,
+    radial-gradient(6rem 1.6rem at 50% 0, hsl(var(--gold) / 0.18), transparent 70%);
+}
+
+/* الهيئات العائمة تحتاج فُسحة من أعلى في لوحة الطالب أيضاً */
+.tb-art-plaque .app-body > header,
+.tb-art-frame .app-body > header,
+.tb-art-wings .app-body > header,
+.tb-art-hang .app-body > header,
+.tb-art-float .app-body > header { margin-top: 0.75rem; }
+

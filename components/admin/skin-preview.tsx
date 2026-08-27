@@ -983,31 +983,85 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
   const v = skin.vars;
   const uid = useUid("tb");
 
-  const H_BAR = bar.height === "compact" ? 14 : bar.height === "tall" ? 24 : 19;
-  const float = bar.surface === "floating";
-  const bx = float ? 5 : 0;
-  const by = float ? 5 : 0;
-  const bw = W - (float ? 10 : 0) - 30; // ٣٠ للشريط الجانبي
   const ink = bar.surface === "ink";
+  const gold = hsl(v.gold);
+  const fg = ink ? "#fff" : hsl(v.foreground);
+
+  const H_BAR = bar.height === "compact" ? 15 : bar.height === "tall" ? 25 : 20;
+  const side = 30;                    // شريط جانبي يوضّح السياق
+  const top = bar.art === "hang" ? 7 : bar.art === "wings" || bar.art === "float" ? 5 : 0;
+  const bx = 0;
+  const bw = W - side;
+  const by = top;
 
   const fill =
-    bar.surface === "outline" ? "none"
+    bar.surface === "outline" || bar.art === "rule" ? "none"
       : bar.surface === "glass" ? hsl(v.card, 0.6)
         : bar.surface === "gradient" ? `url(#${uid}-g)`
           : ink ? hsl(v.primary)
             : hsl(v.card);
 
-  const fg = ink ? "#fff" : hsl(v.foreground);
+  /* ---------------- صورة الشريط لكل هيئة ---------------- */
+  const b = by, r = bx + bw, bot = by + H_BAR, cx = bx + bw / 2;
 
-  /* عرض حقل البحث بحسب نمطه */
-  const searchW =
-    bar.search === "none" ? 0 : bar.search === "icon" ? 12 : bar.search === "pill" ? 30 : 52;
+  function silhouette(): string {
+    switch (bar.art) {
+      case "mihrab":
+        /* كوّة مقوّسة في وسط الحافّة السفلى */
+        return `M${bx} ${b} H${r} V${bot} H${cx + 20} A20 7 0 0 0 ${cx - 20} ${bot} H${bx} Z`;
+      case "arcade": {
+        /* صفّ عقود متتالية */
+        const step = 11;
+        let d = `M${bx} ${b} H${r} V${bot - 5} `;
+        for (let x = r; x > bx; x -= step) {
+          d += `A${step / 2} 5 0 0 1 ${Math.max(bx, x - step)} ${bot - 5} `;
+        }
+        return d + `V${b} Z`;
+      }
+      case "serrated": {
+        const step = 7;
+        let d = `M${bx} ${b} H${r} V${bot - 4} `;
+        let up = true;
+        for (let x = r; x > bx; x -= step / 2) {
+          d += `L${Math.max(bx, x - step / 2)} ${up ? bot : bot - 4} `;
+          up = !up;
+        }
+        return d + `V${b} Z`;
+      }
+      case "torn": {
+        const step = 9;
+        let d = `M${bx} ${b} H${r} V${bot - 5} `;
+        for (let x = r, i = 0; x > bx; x -= step, i++) {
+          const dip = i % 2 ? 5 : 2.5;
+          d += `Q${x - step / 2} ${bot - 5 + dip} ${Math.max(bx, x - step)} ${bot - 5} `;
+        }
+        return d + `V${b} Z`;
+      }
+      case "plaque": {
+        const c = 5;
+        return `M${bx + c} ${b} H${r - c} L${r} ${b + c} V${bot - c} L${r - c} ${bot} H${bx + c} L${bx} ${bot - c} V${b + c} Z`;
+      }
+      case "tughra":
+        return `M${bx} ${b} H${r} V${bot} H${bx + 12} A12 12 0 0 1 ${bx} ${bot - 12} Z`;
+      case "slant":
+        return `M${bx} ${b} H${r} V${bot} L${bx} ${bot - 7} Z`;
+      case "page":
+        return `M${bx} ${b} H${r} V${bot - 8} L${r - 8} ${bot} H${bx} Z`;
+      case "inkdrop":
+        return `M${bx} ${b} H${r} V${bot} H${cx + 11} A11 8 0 0 1 ${cx - 11} ${bot} H${bx} Z`;
+      default:
+        return "";
+    }
+  }
 
-  const actN = 3;
-  const actW = 9;
-  const actGap = bar.grouped ? 1.5 : 3;
-  const actTotal = actN * actW + (actN - 1) * actGap + (bar.grouped ? 4 : 0);
-  const actX = bx + 5;
+  const path = silhouette();
+  const rx =
+    bar.art === "float" ? H_BAR / 2
+      : bar.art === "wings" ? 5
+        : bar.art === "hang" ? 0
+          : bar.art === "frame" ? 4
+            : bar.art === "window" ? 7
+              : bar.surface === "floating" ? 5 : 0;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
@@ -1016,67 +1070,139 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
           <stop offset="0%" stopColor={hsl(v.card)} />
           <stop offset="100%" stopColor={hsl(v.muted)} />
         </linearGradient>
+        <clipPath id={`${uid}-wings`}>
+          <rect x={bx} y={b} width={bw / 2 - 7} height={H_BAR} />
+          <rect x={cx + 7} y={b} width={bw / 2 - 7} height={H_BAR} />
+        </clipPath>
       </defs>
 
       <rect width={W} height={H} fill={hsl(v.background)} />
 
       {/* شريط جانبي — سياق يوضّح موضع التول بار */}
-      <rect x={W - 30} y="0" width="30" height={H} fill={hsl(v.primary)} opacity={0.9} />
-
-      {/* الشريط */}
-      <rect
-        x={bx} y={by} width={bw} height={H_BAR}
-        rx={float ? 5 : 0}
-        fill={fill}
-        stroke={bar.surface === "outline" ? "none" : "none"}
-      />
-
-      {/* الفاصل السفلي */}
-      {bar.edge === "line" && (
-        <path d={`M${bx} ${by + H_BAR} H${bx + bw}`} stroke={hsl(v.border)} strokeWidth="1" />
-      )}
-      {bar.edge === "gold" && (
-        <path d={`M${bx} ${by + H_BAR - 0.8} H${bx + bw}`} stroke={hsl(v.gold, 0.75)} strokeWidth="1.6" />
-      )}
-      {bar.edge === "shadow" && (
-        <rect x={bx} y={by + H_BAR} width={bw} height="3" fill={hsl(v.primary, 0.12)} />
-      )}
-
-      {/* الأزرار */}
-      {bar.grouped && (
-        <rect
-          x={actX - 2} y={by + H_BAR / 2 - actW / 2 - 2}
-          width={actTotal} height={actW + 4} rx={(actW + 4) / 2}
-          fill={ink ? "#fff" : hsl(v.muted)} opacity={ink ? 0.15 : 1}
-        />
-      )}
-      {Array.from({ length: actN }).map((_, i) => (
-        <circle
-          key={i}
-          cx={actX + actW / 2 + i * (actW + actGap)}
-          cy={by + H_BAR / 2}
-          r={actW / 2 - 1}
-          fill={fg}
-          opacity={i === actN - 1 ? 0.9 : 0.45}
-        />
+      <rect x={W - side} y={0} width={side} height={H} fill={hsl(v.card)} />
+      <rect x={W - side + 6} y={9} width={18} height={3} rx={1.5} fill={hsl(v.foreground, 0.35)} />
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x={W - side + 6} y={20 + i * 8} width={18} height={2.5} rx={1.2} fill={hsl(v.foreground, 0.16)} />
       ))}
 
-      {/* حقل البحث */}
-      {bar.search !== "none" && (
+      {/* الظلّ الطويل يُرسم أوّلاً فيقع خلف الشريط */}
+      {bar.art === "longshadow" && (
+        <path d={`M${bx} ${bot} H${r} L${r - 14} ${H} H${bx} Z`} fill={hsl(v.primary, 0.18)} />
+      )}
+      {bar.art === "shamsa" && (
+        <ellipse cx={cx} cy={b} rx={34} ry={20} fill={gold} opacity={0.28} />
+      )}
+
+      {/* الحمّالتان قبل الشريط */}
+      {bar.art === "hang" && (
         <>
-          <rect
-            x={bx + bw - searchW - 5} y={by + H_BAR / 2 - 4}
-            width={searchW} height="8" rx="4"
-            fill={ink ? "#fff" : hsl(v.background)} opacity={ink ? 0.15 : 1}
-            stroke={hsl(v.border)} strokeWidth={ink ? 0 : 0.7}
-          />
-          <circle cx={bx + bw - 9} cy={by + H_BAR / 2} r="1.6" fill={fg} opacity={0.5} />
+          <rect x={bx + bw * 0.22} y={0} width={1.2} height={top} fill={gold} opacity={0.7} />
+          <rect x={bx + bw * 0.78} y={0} width={1.2} height={top} fill={gold} opacity={0.7} />
         </>
       )}
 
-      {/* محتوى الصفحة تحت الشريط */}
-      <rect x={bx + 5} y={by + H_BAR + 7} width={bw - 10} height="20" rx="3" fill={hsl(v.card)} />
-      <rect x={bx + 5} y={by + H_BAR + 31} width={bw - 10} height="26" rx="3" fill={hsl(v.card)} />
+      {/* جسم الشريط */}
+      {path ? (
+        <path d={path} fill={fill} stroke={bar.surface === "outline" ? hsl(v.border) : "none"} strokeWidth={0.8} />
+      ) : (
+        <rect
+          x={bx} y={b} width={bw} height={H_BAR}
+          rx={bar.art === "hang" ? 0 : rx}
+          fill={fill}
+          stroke={bar.surface === "outline" || bar.art === "frame" || bar.art === "window" ? hsl(v.border) : "none"}
+          strokeWidth={bar.art === "frame" || bar.art === "window" ? 1.1 : 0.8}
+          clipPath={bar.art === "wings" ? `url(#${uid}-wings)` : undefined}
+        />
+      )}
+
+      {/* حليات كل هيئة */}
+      {bar.art === "mihrab" && (
+        <path d={`M${cx + 20} ${bot} A20 7 0 0 0 ${cx - 20} ${bot}`} fill="none" stroke={gold} strokeWidth={1} />
+      )}
+      {bar.art === "plaque" && (
+        <rect x={bx + 3} y={b + 3} width={bw - 6} height={H_BAR - 6} rx={3} fill="none" stroke={gold} strokeWidth={0.7} opacity={0.65} />
+      )}
+      {bar.art === "frame" && (
+        <rect x={bx + 2.5} y={b + 2.5} width={bw - 5} height={H_BAR - 5} rx={2.5} fill="none" stroke={gold} strokeWidth={0.7} opacity={0.6} />
+      )}
+      {bar.art === "tughra" && (
+        <g fill="none" stroke={gold} strokeWidth={0.9} opacity={0.8}>
+          <circle cx={bx + 10} cy={b + H_BAR / 2} r={6.5} />
+          <circle cx={bx + 19} cy={b + H_BAR / 2 - 1.5} r={4.5} opacity={0.7} />
+          <circle cx={bx + 26} cy={b + H_BAR / 2 + 1.5} r={3} opacity={0.5} />
+        </g>
+      )}
+      {bar.art === "kufi" && (
+        <g fill={gold} opacity={0.6}>
+          {Array.from({ length: Math.floor(bw / 8) }).map((_, i) => (
+            <rect key={i} x={bx + i * 8} y={b} width={3.5} height={2.2} />
+          ))}
+        </g>
+      )}
+      {bar.art === "shamsa" && (
+        <circle cx={cx} cy={b + H_BAR / 2} r={9} fill="none" stroke={gold} strokeWidth={0.9} opacity={0.7} />
+      )}
+      {bar.art === "slant" && (
+        <path d={`M${bx} ${bot - 7} L${r} ${bot}`} stroke={gold} strokeWidth={1.2} fill="none" />
+      )}
+      {bar.art === "page" && (
+        <path d={`M${r} ${bot - 8} L${r - 8} ${bot} L${r} ${bot} Z`} fill={gold} opacity={0.5} />
+      )}
+      {bar.art === "belt" && (
+        <rect x={cx - 11} y={b} width={22} height={H_BAR} fill={gold} opacity={0.45} />
+      )}
+      {bar.art === "rule" && (
+        <rect x={bx + 6} y={bot - 1.6} width={bw - 12} height={1.6} rx={0.8} fill={gold} />
+      )}
+      {bar.art === "float" && (
+        <rect x={bx} y={bot + 5} width={bw} height={0.8} fill={hsl(v.border)} />
+      )}
+      {bar.art === "window" && (
+        <g stroke={hsl(v.border)} strokeWidth={1}>
+          <line x1={bx + bw * 0.28} y1={b} x2={bx + bw * 0.28} y2={bot} />
+          <line x1={bx + bw * 0.72} y1={b} x2={bx + bw * 0.72} y2={bot} />
+        </g>
+      )}
+
+      {/* الحافّة السفلى (المحور الثانوي) */}
+      {bar.edge === "gold" && !path && bar.art === "plain" && (
+        <rect x={bx} y={bot - 1.2} width={bw} height={1.2} fill={gold} />
+      )}
+      {bar.edge === "line" && bar.art === "plain" && (
+        <rect x={bx} y={bot} width={bw} height={0.8} fill={hsl(v.border)} />
+      )}
+
+      {/* المحتوى: الشعار · البحث · الأدوات */}
+      {(() => {
+        const my = b + H_BAR / 2;
+        const searchW = bar.search === "none" ? 0 : bar.search === "icon" ? 11 : bar.search === "pill" ? 28 : 48;
+        const gapMid = bar.art === "wings" ? 14 : 0;
+        return (
+          <g>
+            {/* الشعار */}
+            <circle cx={bx + (bar.art === "tughra" ? 34 : 9)} cy={my} r={4} fill={ink ? "#fff" : hsl(v.primary)} opacity={ink ? 0.9 : 1} />
+            <rect x={bx + (bar.art === "tughra" ? 40 : 15)} y={my - 1.5} width={20} height={3} rx={1.5} fill={fg} opacity={0.65} />
+
+            {/* البحث */}
+            {searchW > 0 && (
+              <rect
+                x={cx - searchW / 2 + gapMid} y={my - 3.5} width={searchW} height={7}
+                rx={3.5}
+                fill={ink ? "#fff" : hsl(v.muted)}
+                opacity={ink ? 0.18 : 1}
+              />
+            )}
+
+            {/* الأدوات */}
+            {bar.grouped && (
+              <rect x={r - 34} y={my - 5} width={31} height={10} rx={5} fill={ink ? "#fff" : hsl(v.muted)} opacity={ink ? 0.14 : 0.85} />
+            )}
+            {[0, 1, 2].map((i) => (
+              <circle key={i} cx={r - 8 - i * 9.5} cy={my} r={2.6} fill={fg} opacity={0.5} />
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 }

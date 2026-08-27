@@ -19,6 +19,7 @@ import { planPrice, planColor, planForStudent, planWaLink, coursePricePlans } fr
 import type { Subject, SitePlan } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 import { PayGate } from "@/components/student/pay-gate";
+import { cleanPrefix } from "@/lib/payments";
 
 const COLORS = ["#12b981", "#2b8bf6", "#7c3aed", "#e11d48", "#f59e0b", "#0ea5e9"];
 
@@ -212,6 +213,7 @@ function PurchasePanel({
   subject: Subject; wa: (t?: string) => string; fem: boolean; onClose: () => void;
 }) {
   const { refresh, content, db, session } = useContent();
+  const codePrefix = cleanPrefix(content.codePrefix);
   const y = (v: string) => `${v}${fem ? "ي" : ""}`;
   // خطط هذا الكورس + خطط «كل المواد» — كلها من إدارة الخطط في لوحة الأدمن
   const me = db?.users?.find((u) => u.id === session?.uid);
@@ -290,7 +292,7 @@ function PurchasePanel({
               <div className="relative flex-1">
                 <IconKey className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && activate()}
-                  placeholder="EMZ-XXXX-XXXX" className="w-full rounded-2xl border border-border bg-card/60 py-3 pr-10 pl-3 text-center font-mono text-sm tracking-wider outline-none focus:border-primary/60" />
+                  placeholder={`${codePrefix}-XXXX-XXXX`} className="w-full rounded-2xl border border-border bg-card/60 py-3 pr-10 pl-3 text-center font-mono text-sm tracking-wider outline-none focus:border-primary/60" />
               </div>
               <button onClick={activate} disabled={busy}
                 className="inline-flex items-center gap-1.5 rounded-2xl btn-glow px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
@@ -336,7 +338,7 @@ function PurchasePanel({
               <div className="relative flex-1">
                 <IconKey className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && activate()}
-                  placeholder="EMZ-XXXX-XXXX" className="w-full rounded-2xl border border-border bg-card/60 py-3 pr-10 pl-3 text-center font-mono text-sm tracking-wider outline-none focus:border-primary/60" />
+                  placeholder={`${codePrefix}-XXXX-XXXX`} className="w-full rounded-2xl border border-border bg-card/60 py-3 pr-10 pl-3 text-center font-mono text-sm tracking-wider outline-none focus:border-primary/60" />
               </div>
               <button onClick={activate} disabled={busy}
                 className="inline-flex items-center gap-1.5 rounded-2xl btn-glow px-5 py-3 text-sm font-bold text-white disabled:opacity-60">

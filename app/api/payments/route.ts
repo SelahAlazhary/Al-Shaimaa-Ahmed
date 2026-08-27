@@ -206,7 +206,7 @@ export function decide(
     const taken = new Set(db.codes.map((c) => c.code));
     if (manual && taken.has(manual)) return { error: "هذا الكود مستخدم بالفعل" };
 
-    const code = manual || (cfg?.autoCode === false ? "" : newActivationCode(taken));
+    const code = manual || (cfg?.autoCode === false ? "" : newActivationCode(taken, db.content.codePrefix));
     if (!code) return { error: "اكتب كود التفعيل — التوليد التلقائي مطفأ" };
 
     const target = r.subjectId || "*";

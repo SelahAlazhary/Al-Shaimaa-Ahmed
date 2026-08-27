@@ -1,14 +1,19 @@
 /**
  * تصاميم شريط الأدوات العلوي (التول بار).
  * ------------------------------------------------------------------
- * الشريط يظهر في كل صفحة من لوحتَي الطالب والإدارة، فشكله بُعد مستقلّ
- * كالقوائم لا تابع للثيم.
+ * الشريط يظهر في كل صفحة من لوحتَي الطالب والإدارة وفي الواجهة، فشكله
+ * بُعد مستقلّ كالقوائم لا تابع للثيم.
  *
- * بيانات → أصناف على غلاف البوابة، والأنماط معرَّفة مرّة واحدة. مكوّن
- * الهيكل لا يعرف التصميم المختار.
+ * كان السجلّ تركيبَ محاور (سطح × بحث × حافّة × ارتفاع)، فخرجت عشرون
+ * نسخة من شريط واحد لا عشرون شريطاً. أُضيف محورُ **الهيئة**: صورة
+ * صريحة تملك صورة الشريط الظاهرة — محراب، عَقد، طُغراء، جناحان،
+ * مخطوط ممزّق… والمحاور القديمة بقيت ضبطاً ثانوياً داخلها.
+ *
+ * الهيئة تُرسم على طبقة خلفية (‎::before‎) لا على الشريط نفسه، فالقصّ
+ * لا يبتر قائمةً منسدلة ولا زرّاً يخرج عن حدوده.
  */
 
-/** سطح الشريط. */
+/** سطح الشريط — لونه وخامته. */
 export type BarSurface =
   | "solid"     // لون السطح مصمتاً
   | "glass"     // زجاجي شفّاف بضباب
@@ -16,6 +21,32 @@ export type BarSurface =
   | "gradient"  // تدرّج أفقي خفيف
   | "floating"  // بطاقة منفصلة عن الحوافّ
   | "ink";      // بلون الحبر — يقلب النصّ إلى فاتح
+
+/**
+ * هيئة الشريط — صورته الظاهرة.
+ * هذا هو المحور الذي يجعل التصاميم مختلفة حقاً لا متشابهة بفروق لونية.
+ */
+export type BarArt =
+  | "plain"       // بلا هيئة — الشريط كما هو
+  | "mihrab"      // كوّة محراب تنزل من وسط الحافّة السفلى
+  | "arcade"      // صفّ عقود مقوّسة أسفل الشريط
+  | "serrated"    // حافّة سفلى مسنّنة كحرف المخطوط
+  | "torn"        // حافّة ممزّقة كورق قديم
+  | "plaque"      // لوح بأركان مقصوصة
+  | "tughra"      // طُغراء مذهّبة على الطرف
+  | "wings"       // جناحان: كتلتان بينهما فُرجة
+  | "hang"        // معلَّق من السقف بحمّالتين
+  | "kufi"        // شريط كوفي على الحافّة العليا
+  | "shamsa"      // شمسة مضيئة خلف الوسط
+  | "slant"       // حافّة سفلى مائلة
+  | "frame"       // إطار مزدوج بخيطين
+  | "inkdrop"     // قطرة حبر تتدلّى من الوسط
+  | "page"        // ركن صفحة مطويّ
+  | "belt"        // حزام بإبزيم في الوسط
+  | "longshadow"  // ظلّ طويل مائل
+  | "rule"        // شريط شفّاف وخيط مذهّب وحده
+  | "float"       // كبسولة صغيرة تطفو فوق خيط
+  | "window";     // نافذة بقوائم رأسية
 
 /** شكل حقل البحث. */
 export type BarSearch =
@@ -34,6 +65,7 @@ export type ToolbarStyle = {
   id: string;
   name: string;
   hint: string;
+  art: BarArt;
   surface: BarSurface;
   search: BarSearch;
   edge: BarEdge;
@@ -43,33 +75,72 @@ export type ToolbarStyle = {
 };
 
 function tb(
-  id: string, name: string, hint: string,
+  id: string, name: string, hint: string, art: BarArt,
   surface: BarSurface, search: BarSearch, edge: BarEdge, height: BarHeight, grouped: boolean
 ): ToolbarStyle {
-  return { id, name, hint, surface, search, edge, height, grouped };
+  return { id, name, hint, art, surface, search, edge, height, grouped };
 }
 
 export const TOOLBAR_STYLES: ToolbarStyle[] = [
-  tb("classic", "الكلاسيكي", "سطح مصمت وبحث عريض وحدّ سفلي", "solid", "wide", "line", "normal", false),
-  tb("classicGold", "الكلاسيكي المذهّب", "حدّ سفلي ذهبي", "solid", "wide", "gold", "normal", false),
-  tb("glassWide", "الزجاجي", "زجاج مضبّب وبحث عريض", "glass", "wide", "shadow", "normal", false),
-  tb("glassPill", "الزجاجي المضغوط", "زجاج وبحث كبسولة", "glass", "pill", "none", "compact", true),
-  tb("outlineWide", "المفرَّغ", "شفّاف بحدّ سفلي فقط", "outline", "wide", "line", "normal", false),
-  tb("outlineIcon", "المفرَّغ المبسّط", "بحث بأيقونة تتوسّع", "outline", "icon", "line", "compact", false),
-  tb("gradientWide", "المتدرّج", "تدرّج أفقي خفيف", "gradient", "wide", "gold", "normal", false),
-  tb("gradientGroup", "المتدرّج المجمّع", "تدرّج وأزرار في كبسولة", "gradient", "pill", "shadow", "normal", true),
-  tb("floatCard", "البطاقة العائمة", "شريط منفصل عن الحوافّ", "floating", "wide", "shadow", "normal", false),
-  tb("floatPill", "البطاقة المضغوطة", "شريط عائم وبحث كبسولة", "floating", "pill", "none", "compact", true),
-  tb("inkBar", "شريط الحبر", "بلون الحبر ونصّ فاتح", "ink", "wide", "none", "normal", false),
-  tb("inkGold", "الحبر المذهّب", "حبر بحدّ سفلي ذهبي", "ink", "pill", "gold", "normal", true),
-  tb("inkTall", "الحبر العريض", "حبر بارتفاع أكبر", "ink", "wide", "shadow", "tall", false),
-  tb("tallWide", "الفسيح", "ارتفاع أكبر وبحث عريض", "solid", "wide", "line", "tall", false),
-  tb("tallGlass", "الفسيح الزجاجي", "زجاج بارتفاع أكبر", "glass", "wide", "gold", "tall", false),
-  tb("compactIcon", "المضغوط", "أقلّ ارتفاع وبحث بأيقونة", "solid", "icon", "line", "compact", true),
-  tb("noSearch", "بلا بحث", "أزرار فقط — لمن لا يستخدم البحث", "solid", "none", "line", "normal", false),
-  tb("noSearchGlass", "الزجاجي بلا بحث", "زجاج وأزرار مجمّعة", "glass", "none", "shadow", "compact", true),
-  tb("minimal", "المبسّط", "بلا سطح ولا حدّ — أخفّ ما يكون", "outline", "none", "none", "compact", false),
-  tb("royal", "الملكي", "تدرّج وحدّ ذهبي وارتفاع أكبر", "gradient", "wide", "gold", "tall", true),
+  tb("classic", "الكلاسيكي", "سطح مصمت وحدّ سفلي — الأصل الهادئ",
+    "plain", "solid", "wide", "line", "normal", false),
+
+  tb("mihrab", "المحراب", "كوّة مقوّسة تنزل من وسط الحافّة يجلس فيها الشعار",
+    "mihrab", "solid", "wide", "gold", "tall", false),
+
+  tb("arcade", "العَقد", "صفّ عقود أندلسية أسفل الشريط",
+    "arcade", "gradient", "pill", "none", "tall", true),
+
+  tb("serrated", "المسنَّن", "حافّة سفلى مسنّنة كطرف المخطوط",
+    "serrated", "ink", "wide", "none", "normal", false),
+
+  tb("torn", "المخطوط الممزّق", "ورقة قديمة ممزّقة الطرف",
+    "torn", "gradient", "icon", "none", "normal", false),
+
+  tb("plaque", "اللوح", "أركان مقصوصة وخيط ذهبي داخلي",
+    "plaque", "solid", "pill", "gold", "normal", true),
+
+  tb("tughra", "الطُغراء", "زخرفة مذهّبة تلتفّ على طرف الشريط",
+    "tughra", "glass", "wide", "gold", "tall", false),
+
+  tb("wings", "الجناحان", "كتلتان بينهما فُرجة — الشعار في جهة والأدوات في أخرى",
+    "wings", "floating", "pill", "shadow", "normal", true),
+
+  tb("hang", "المعلَّق", "شريط يتدلّى من السقف بحمّالتين",
+    "hang", "floating", "wide", "shadow", "normal", false),
+
+  tb("kufi", "الكوفي", "شريط زخرفة كوفية على الحافّة العليا",
+    "kufi", "solid", "wide", "line", "normal", false),
+
+  tb("shamsa", "الشمسة", "هالة مضيئة خلف الوسط وحلقة ذهبية",
+    "shamsa", "ink", "pill", "none", "tall", true),
+
+  tb("slant", "المائل", "حافّة سفلى مائلة تكسر الأفق",
+    "slant", "gradient", "wide", "none", "normal", false),
+
+  tb("frame", "الإطار المزدوج", "خيطان متوازيان يحيطان بالشريط",
+    "frame", "outline", "wide", "none", "normal", false),
+
+  tb("inkdrop", "قطرة الحبر", "قطرة تتدلّى من وسط الحافّة",
+    "inkdrop", "ink", "icon", "none", "normal", true),
+
+  tb("page", "الصفحة", "ركن مطويّ كصفحة كتاب",
+    "page", "solid", "wide", "shadow", "normal", false),
+
+  tb("belt", "الحزام", "كتلة إبزيم في الوسط يمرّ بها الشريط",
+    "belt", "ink", "none", "none", "compact", true),
+
+  tb("longshadow", "الظلّ الطويل", "ظلّ مائل ممتدّ أسفل الشريط",
+    "longshadow", "solid", "pill", "none", "compact", false),
+
+  tb("rule", "الخيط", "شفّاف تماماً وخيط مذهّب وحده",
+    "rule", "outline", "icon", "gold", "compact", false),
+
+  tb("float", "الكبسولة الطافية", "كبسولة صغيرة تطفو فوق خيط بعرض الصفحة",
+    "float", "floating", "none", "line", "compact", true),
+
+  tb("window", "النافذة", "إطار نافذة بقوائم رأسية تفصل الأقسام",
+    "window", "glass", "wide", "line", "tall", false),
 ];
 
 export const DEFAULT_TOOLBAR = TOOLBAR_STYLES[0].id;
@@ -80,6 +151,7 @@ export function findToolbar(id?: string): ToolbarStyle {
 
 export function toolbarClass(x: ToolbarStyle): string {
   return [
+    `tb-art-${x.art}`,
     `tb-surface-${x.surface}`,
     `tb-search-${x.search}`,
     `tb-edge-${x.edge}`,

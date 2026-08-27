@@ -3,19 +3,21 @@
 /** أكواد التفعيل — تُولَّد من الخطط، وكل كود يُستخدم مرّة واحدة فقط. */
 import { useState } from "react";
 import { Plus, Copy, Check, KeyRound, Trash2 } from "lucide-react";
-import { PageHeader, DataTable, StatusBadge, StatCard } from "@/components/dashboard/ui";
+import { PageHeader, DataTable, StatusBadge, StatCard, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
 import { planSubjectId } from "@/lib/access";
+import { cleanPrefix, DEFAULT_CODE_PREFIX } from "@/lib/payments";
 import type { Code } from "@/lib/types";
 
-function genCode() {
+function genCode(prefix: string) {
   const seg = () => Math.random().toString(36).slice(2).padEnd(4, "0").slice(0, 4).toUpperCase();
-  return `EMZ-${seg()}-${seg()}`;
+  return `${cleanPrefix(prefix)}-${seg()}-${seg()}`;
 }
 
 export default function CodesPage() {
-  const { db, save } = useContent();
+  const { db, save, content, saveContent } = useContent();
+  const prefix = cleanPrefix(content.codePrefix);
   const codes = db?.codes ?? [];
   const plans = db?.plans ?? [];
   const subjects = db?.subjects ?? [];
@@ -34,7 +36,7 @@ export default function CodesPage() {
     const n = Math.max(1, Math.min(count, 50));
     const fresh: Code[] = [];
     while (fresh.length < n) {
-      const code = genCode();
+      const code = genCode(prefix);
       if (existing.has(code)) continue;
       existing.add(code);
       fresh.push({
@@ -61,6 +63,30 @@ export default function CodesPage() {
   return (
     <>
       <PageHeader title="أكواد التفعيل" subtitle="اختر خطة ووَلِّد أكوادها — الكود يفعّل الخطة لحساب طالب واحد فقط" />
+
+      {/* بادئة الأكواد — أوّل حروف كل كود */}
+      <Card className="mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-display font-extrabold">بادئة كود التفعيل</h3>
+            <p className="text-xs text-muted-foreground">
+              أوّل حروف كل كود قبل الشرطة. حروف وأرقام لاتينية فقط (من حرفين إلى ستّة).
+              الأكواد المولَّدة من قبل تبقى بصيغتها القديمة.
+            </p>
+          </div>
+          <label className="flex items-center gap-2">
+            <input
+              defaultValue={prefix}
+              maxLength={6}
+              dir="ltr"
+              onBlur={(e) => void saveContent({ codePrefix: cleanPrefix(e.target.value) })}
+              className="w-28 rounded-2xl border border-border bg-card/60 px-3 py-2 text-center font-mono text-sm uppercase outline-none focus:border-primary/50"
+            />
+            <span className="font-mono text-xs text-muted-foreground">-XXXX-XXXX</span>
+          </label>
+        </div>
+      </Card>
+
 
       <div className="glass mb-6 flex flex-wrap items-end gap-3 rounded-3xl p-4">
         <label className="min-w-64 flex-1">

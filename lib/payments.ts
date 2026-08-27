@@ -85,14 +85,30 @@ export function requestProblem(
   return null;
 }
 
+/** البادئة الافتراضية — حروف المنصّة لا حروف منصّة سابقة. */
+export const DEFAULT_CODE_PREFIX = "SHMA";
+
+/**
+ * تنقية البادئة: حروف وأرقام لاتينية فقط، من حرفين إلى ستّة.
+ * الشرطة فاصلٌ في الكود، فلا تُقبل داخل البادئة وإلا التبس القسمان.
+ */
+export function cleanPrefix(v?: string): string {
+  const out = String(v ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+  return out.length >= 2 ? out : DEFAULT_CODE_PREFIX;
+}
+
 /** كود تفعيل جديد — نفس صيغة شاشة الأكواد فلا يختلف شكلان في المنصّة. */
-export function newActivationCode(taken: Set<string>): string {
+export function newActivationCode(taken: Set<string>, prefix?: string): string {
+  const p = cleanPrefix(prefix);
   const seg = () => Math.random().toString(36).slice(2).padEnd(4, "0").slice(0, 4).toUpperCase();
   for (let i = 0; i < 200; i++) {
-    const code = `EMZ-${seg()}-${seg()}`;
+    const code = `${p}-${seg()}-${seg()}`;
     if (!taken.has(code)) return code;
   }
-  return `EMZ-${Date.now().toString(36).toUpperCase().slice(-8)}`;
+  return `${p}-${Date.now().toString(36).toUpperCase().slice(-8)}`;
 }
 
 export const STATUS_LABEL: Record<PayRequest["status"], string> = {
