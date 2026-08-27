@@ -813,6 +813,183 @@ body {
 }
 
 /* ============================================================
+   تصاميم القوائم
+   ------------------------------------------------------------
+   الأصناف تُوضع على غلاف البوابة وتسري بمحدّدات الأبناء، فلا يحتاج
+   مكوّن الهيكل أن يعرف التصميم المختار.
+   ============================================================ */
+
+/* ---------- القائمة الجانبية: سطح اللوح ---------- */
+.sn-panel-gradient aside {
+  background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--glow) / 0.85) 100%) !important;
+}
+.sn-panel-glass aside {
+  background: hsl(var(--card) / 0.55) !important;
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  color: hsl(var(--foreground)) !important;
+}
+.sn-panel-glass aside a,
+.sn-panel-glass aside p,
+.sn-panel-glass aside span,
+.sn-panel-glass aside button { color: inherit; }
+
+.sn-panel-outline aside {
+  background: transparent !important;
+  box-shadow: inset -1px 0 0 hsl(var(--border));
+  color: hsl(var(--foreground)) !important;
+}
+.sn-panel-outline aside a,
+.sn-panel-outline aside span { color: inherit; }
+
+.sn-panel-floating aside {
+  margin: 0.9rem;
+  border-radius: 1.5rem;
+  height: calc(100% - 1.8rem);
+  box-shadow: 0 18px 40px -24px hsl(var(--primary) / 0.9);
+}
+
+.sn-panel-rail aside { width: 5.5rem !important; }
+.sn-panel-rail aside span:not(.sn-keep) { font-size: 0.6rem; }
+
+/* ---------- مؤشّر العنصر النشط ---------- */
+/* الافتراضي كبسولة — البقية تعيد تشكيله */
+.sn-active-bar aside .sn-mark {
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 999px;
+  background: hsl(var(--gold));
+}
+.sn-active-plaque aside .sn-mark {
+  border-radius: 0;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+}
+.sn-active-notch aside .sn-mark {
+  border-radius: 999px 0 0 999px;
+  inset-inline-end: -1.25rem;
+}
+.sn-active-glow aside .sn-mark {
+  background: radial-gradient(ellipse at center, hsl(var(--gold) / 0.45), transparent 70%);
+  box-shadow: none;
+  filter: blur(2px);
+}
+.sn-active-underline aside .sn-mark {
+  inset: auto 0 0.3rem 0;
+  height: 2px;
+  border-radius: 999px;
+  background: hsl(var(--gold));
+}
+.sn-active-dot aside .sn-mark {
+  inset: 50% auto 50% 0.35rem;
+  width: 6px;
+  height: 6px;
+  margin-block: -3px;
+  border-radius: 999px;
+  background: hsl(var(--gold));
+  box-shadow: none;
+}
+.sn-active-frame aside .sn-mark {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--gold) / 0.7);
+}
+
+/* ---------- حاضنة الأيقونة ---------- */
+.sn-icon-box aside .sn-icon,
+.sn-icon-circle aside .sn-icon,
+.sn-icon-medallion aside .sn-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  background: hsl(var(--gold) / 0.14);
+}
+.sn-icon-box aside .sn-icon { border-radius: 0.6rem; }
+.sn-icon-circle aside .sn-icon { border-radius: 999px; }
+.sn-icon-medallion aside .sn-icon {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0 50%, 15% 15%);
+  box-shadow: inset 0 0 0 1px hsl(var(--gold) / 0.4);
+}
+
+/* ---------- العناوين تحت الأيقونات ---------- */
+.sn-stacked aside nav a {
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-block: 0.6rem;
+  text-align: center;
+}
+
+/* ============================================================
+   القائمة السفلية (الهاتف)
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  /* ---- شكل الشريط ---- */
+  .dk-shape-flat .app-dock { padding-inline: 0; }
+  .dk-shape-flat .app-dock-inner {
+    max-width: none;
+    border-radius: 0;
+    border-inline: 0;
+    border-bottom: 0;
+  }
+
+  .dk-shape-pill .app-dock-inner { max-width: 19rem; padding: 0.25rem; }
+
+  .dk-shape-arc .app-dock-inner {
+    border-radius: 2.25rem 2.25rem 1rem 1rem;
+    padding-top: 0.6rem;
+  }
+
+  .dk-shape-tray .app-dock { padding-inline: 0; }
+  .dk-shape-tray .app-dock-inner {
+    max-width: none;
+    border-radius: 1.5rem 1.5rem 0 0;
+    border-bottom: 0;
+    box-shadow: 0 -14px 34px -18px hsl(var(--primary) / 0.75);
+  }
+
+  .dk-shape-cut .app-dock-inner {
+    border-radius: 0;
+    clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+  }
+
+  /* ---- مؤشّر النشط ---- */
+  .dk-mark-lift .app-tab[aria-current="page"] {
+    transform: translateY(-0.55rem) !important;
+  }
+  .dk-mark-lift .app-tab-pill {
+    border-radius: 999px;
+    box-shadow: 0 8px 18px -8px hsl(var(--primary));
+  }
+
+  .dk-mark-dot .app-tab-pill {
+    inset: auto 50% 0.25rem 50%;
+    width: 5px;
+    height: 5px;
+    margin-inline: -2.5px;
+    border-radius: 999px;
+    background: hsl(var(--accent));
+    box-shadow: none;
+  }
+
+  .dk-mark-glow .app-tab-pill {
+    background: radial-gradient(ellipse at center, hsl(var(--accent) / 0.4), transparent 70%);
+    box-shadow: none;
+  }
+
+  .dk-mark-bar .app-tab-pill {
+    inset: 0 0.35rem auto 0.35rem;
+    height: 3px;
+    border-radius: 999px;
+    background: hsl(var(--accent));
+    box-shadow: none;
+  }
+
+  /* ---- العناوين ---- */
+  .dk-nolabels .app-tab span:last-child { display: none; }
+  .dk-nolabels .app-tab { min-height: 2.9rem; }
+}
+
+/* ============================================================
    حركة الهوية المتّجهة (SVG)
    كل الحركات داخل no-preference — تتوقّف تماماً مع تقليل الحركة.
    ============================================================ */

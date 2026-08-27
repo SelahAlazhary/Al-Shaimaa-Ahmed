@@ -7,6 +7,7 @@ import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
 import { findSkin, findLayout, findMobile, mobileClass, skinCss } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
 import { findDesign } from "@/lib/designs";
+import { findSideNav, sideNavClass, findDock, dockClass } from "@/lib/nav-styles";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "بوابة الطالب", robots: { index: false } };
@@ -29,6 +30,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const layout = findLayout(pub.content?.studentLayout);
   const mobile = findMobile(pub.content?.studentMobile);
   const design = findDesign(pub.content?.studentDesign);
+  const side = findSideNav(pub.content?.sideNav);
+  const dock = findDock(pub.content?.dockStyle);
 
   return (
     <>
@@ -36,12 +39,14 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           كتلة واحدة للثيم المختار فقط، فلا تُحمَّل عشرون كتلة لا تُعرض. */}
       <style dangerouslySetInnerHTML={{ __html: skinCss(skin) }} />
     <div
-      className={`student-skin relative min-h-full ${mobileClass(mobile)}`}
+      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)}`}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}
       data-mobile={mobile.id}
       data-design={design.id}
+      data-sidenav={side.id}
+      data-dock={dock.id}
     >
       <SkinOrnament id={skin.ornament} />
       <DashboardShell

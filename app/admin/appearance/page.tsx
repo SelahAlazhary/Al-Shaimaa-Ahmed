@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -16,11 +16,18 @@ import {
   DEFAULT_SKIN, DEFAULT_LAYOUT, DEFAULT_MOBILE,
   type StudentSkin, type StudentLayout, type MobileLayout,
 } from "@/lib/skins";
-import { SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview } from "@/components/admin/skin-preview";
+import {
+  SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
+  SideNavPreview, DockPreview,
+} from "@/components/admin/skin-preview";
+import {
+  SIDE_NAV_STYLES, DOCK_STYLES, findSideNav, findDock,
+  DEFAULT_SIDE_NAV, DEFAULT_DOCK, type SideNavStyle, type DockStyle,
+} from "@/lib/nav-styles";
 import { STUDENT_DESIGNS, findDesign, DEFAULT_DESIGN, type StudentDesign } from "@/lib/designs";
 import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } from "@/lib/home-layouts";
 
-type Tab = "skin" | "design" | "layout" | "mobile" | "home";
+type Tab = "skin" | "design" | "layout" | "side" | "dock" | "mobile" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -32,6 +39,8 @@ export default function AppearancePage() {
   const home = findHomeLayout(content.homeLayout);
   const mobile = findMobile(content.studentMobile);
   const design = findDesign(content.studentDesign);
+  const side = findSideNav(content.sideNav);
+  const dock = findDock(content.dockStyle);
 
   const pickSkin = async (s: StudentSkin) => {
     setBusy(s.id);
@@ -54,6 +63,8 @@ export default function AppearancePage() {
       studentDesign: DEFAULT_DESIGN,
       studentLayout: DEFAULT_LAYOUT,
       studentMobile: DEFAULT_MOBILE,
+      sideNav: DEFAULT_SIDE_NAV,
+      dockStyle: DEFAULT_DOCK,
       homeLayout: DEFAULT_HOME_LAYOUT,
     });
     setBusy(null);
@@ -65,7 +76,21 @@ export default function AppearancePage() {
     design.id === DEFAULT_DESIGN &&
     layout.id === DEFAULT_LAYOUT &&
     mobile.id === DEFAULT_MOBILE &&
+    side.id === DEFAULT_SIDE_NAV &&
+    dock.id === DEFAULT_DOCK &&
     home.id === DEFAULT_HOME_LAYOUT;
+
+  const pickSide = async (x: SideNavStyle) => {
+    setBusy(x.id);
+    await saveContent({ sideNav: x.id });
+    setBusy(null);
+  };
+
+  const pickDock = async (x: DockStyle) => {
+    setBusy(x.id);
+    await saveContent({ dockStyle: x.id });
+    setBusy(null);
+  };
 
   const pickDesign = async (x: StudentDesign) => {
     setBusy(x.id);
@@ -89,7 +114,7 @@ export default function AppearancePage() {
     <>
       <PageHeader
         title="مظهر المنصّة"
-        subtitle={`الثيم: ${skin.name} · الهيئة: ${design.name} · التخطيط: ${layout.name} · الهاتف: ${mobile.name} · الرئيسية: ${home.name}`}
+        subtitle={`الثيم: ${skin.name} · الهيئة: ${design.name} · القائمة: ${side.name} · السفلية: ${dock.name} · الرئيسية: ${home.name}`}
         action={
           <button
             type="button"
@@ -113,6 +138,12 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "layout"} onClick={() => setTab("layout")} icon={<LayoutGrid className="size-4" />}>
           تخطيط بوابة الطالب ({STUDENT_LAYOUTS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "side"} onClick={() => setTab("side")} icon={<PanelRight className="size-4" />}>
+          القائمة الجانبية ({SIDE_NAV_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "dock"} onClick={() => setTab("dock")} icon={<Menu className="size-4" />}>
+          القائمة السفلية ({DOCK_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "mobile"} onClick={() => setTab("mobile")} icon={<Smartphone className="size-4" />}>
           تنسيق الهاتف ({MOBILE_LAYOUTS.length.toLocaleString("ar-EG")})
@@ -212,6 +243,74 @@ export default function AppearancePage() {
                     <p className="truncate text-[10px] text-muted-foreground">{l.hint}</p>
                   </div>
                   {busy === l.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "side" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {SIDE_NAV_STYLES.map((x) => {
+            const on = x.id === side.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => pickSide(x)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <SideNavPreview nav={x} skin={skin} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{x.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  </div>
+                  {busy === x.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "dock" && (
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {DOCK_STYLES.map((x) => {
+            const on = x.id === dock.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => pickDock(x)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <DockPreview dock={x} skin={skin} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{x.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  </div>
+                  {busy === x.id ? (
                     <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
                   ) : on ? (
                     <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">

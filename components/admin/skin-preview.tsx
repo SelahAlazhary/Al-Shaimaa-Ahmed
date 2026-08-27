@@ -13,6 +13,7 @@ import type { HomeLayout } from "@/lib/home-layouts";
 import type { MobileLayout } from "@/lib/skins";
 import { shapeStyle, type StudentDesign } from "@/lib/designs";
 import { EdgeArtLayer } from "@/components/brand/edge-art";
+import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
 
 const W = 160;
 const H = 108;
@@ -578,5 +579,196 @@ export function DesignPreview({ design, skin }: { design: StudentDesign; skin: S
         ))}
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة القائمة الجانبية                                            */
+/* ------------------------------------------------------------------ */
+
+export function SideNavPreview({ nav, skin }: { nav: SideNavStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const rail = nav.panel === "rail";
+  const float = nav.panel === "floating";
+  const w = rail ? 26 : 46;
+  const x = float ? W - w - 5 : W - w;
+  const y = float ? 5 : 0;
+  const h = float ? H - 10 : H;
+  const rowH = rail || nav.stacked ? 19 : 15;
+  const top = 26;
+
+  const panelFill =
+    nav.panel === "outline" ? "none"
+      : nav.panel === "glass" ? hsl(v.card, 0.6)
+        : nav.panel === "gradient" ? `url(#sn-${nav.id})`
+          : hsl(v.primary);
+
+  const onDark = nav.panel === "solid" || nav.panel === "gradient" || nav.panel === "floating";
+  const label = onDark ? "#fff" : hsl(v.foreground);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={`sn-${nav.id}`} x1="0" y1={y} x2="0" y2={y + h} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={hsl(v.primary)} />
+          <stop offset="100%" stopColor={hsl(v.glow, 0.85)} />
+        </linearGradient>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* محتوى الصفحة — سياق يوضّح موضع القائمة */}
+      <rect x={6} y={10} width={W - w - 14} height={22} rx={4} fill={hsl(v.card)} />
+      <rect x={6} y={38} width={W - w - 14} height={30} rx={4} fill={hsl(v.card)} />
+      <rect x={6} y={74} width={W - w - 14} height={26} rx={4} fill={hsl(v.card)} />
+
+      <rect
+        x={x} y={y} width={w} height={h}
+        rx={float ? 8 : 0}
+        fill={panelFill}
+        stroke={nav.panel === "outline" ? hsl(v.border) : "none"}
+        strokeWidth={nav.panel === "outline" ? 1 : 0}
+      />
+
+      <rect x={x + 6} y={10} width={w - 12} height={4} rx={2} fill={hsl(v.gold, 0.9)} />
+
+      {[0, 1, 2, 3, 4].map((i) => {
+        const iy = top + i * rowH;
+        const on = i === 1;
+        const icx = rail || nav.stacked ? x + w / 2 : x + w - 9;
+        const icy = nav.stacked ? iy + 5 : iy + rowH / 2 - 1;
+
+        return (
+          <g key={i}>
+            {on && nav.active === "pill" && (
+              <rect x={x + 4} y={iy} width={w - 8} height={rowH - 3} rx={5} fill={hsl(v.gold, 0.18)} stroke={hsl(v.gold, 0.4)} strokeWidth={0.8} />
+            )}
+            {on && nav.active === "bar" && (
+              <rect x={x} y={iy} width={2.5} height={rowH - 3} rx={1.2} fill={hsl(v.gold)} />
+            )}
+            {on && nav.active === "plaque" && (
+              <path
+                d={`M${x + 8} ${iy} H${x + w - 8} L${x + w - 4} ${iy + 4} V${iy + rowH - 7} L${x + w - 8} ${iy + rowH - 3} H${x + 8} L${x + 4} ${iy + rowH - 7} V${iy + 4}Z`}
+                fill={hsl(v.gold, 0.18)} stroke={hsl(v.gold, 0.5)} strokeWidth={0.8}
+              />
+            )}
+            {on && nav.active === "notch" && (
+              <path
+                d={`M${x + w} ${iy} H${x + 8} a5 5 0 0 0 -5 5 V${iy + rowH - 8} a5 5 0 0 0 5 5 H${x + w}Z`}
+                fill={hsl(v.gold, 0.2)}
+              />
+            )}
+            {on && nav.active === "glow" && (
+              <ellipse cx={x + w / 2} cy={iy + rowH / 2 - 1} rx={w / 2 - 3} ry={rowH / 2} fill={hsl(v.gold, 0.22)} />
+            )}
+            {on && nav.active === "underline" && (
+              <rect x={x + 6} y={iy + rowH - 5} width={w - 12} height={1.6} rx={0.8} fill={hsl(v.gold)} />
+            )}
+            {on && nav.active === "dot" && (
+              <circle cx={x + 5} cy={iy + rowH / 2 - 1} r={1.8} fill={hsl(v.gold)} />
+            )}
+            {on && nav.active === "frame" && (
+              <rect x={x + 4} y={iy} width={w - 8} height={rowH - 3} rx={5} fill="none" stroke={hsl(v.gold, 0.7)} strokeWidth={1.1} />
+            )}
+
+            {nav.icon === "box" && <rect x={icx - 4} y={icy - 4} width={8} height={8} rx={2} fill={hsl(v.gold, 0.2)} />}
+            {nav.icon === "circle" && <circle cx={icx} cy={icy} r={4.2} fill={hsl(v.gold, 0.2)} />}
+            {nav.icon === "medallion" && (
+              <path
+                d={`M${icx} ${icy - 4.6} L${icx + 3.2} ${icy - 3.2} L${icx + 4.6} ${icy} L${icx + 3.2} ${icy + 3.2} L${icx} ${icy + 4.6} L${icx - 3.2} ${icy + 3.2} L${icx - 4.6} ${icy} L${icx - 3.2} ${icy - 3.2}Z`}
+                fill={hsl(v.gold, 0.2)} stroke={hsl(v.gold, 0.45)} strokeWidth={0.6}
+              />
+            )}
+            <circle cx={icx} cy={icy} r={1.7} fill={on ? hsl(v.gold) : label} opacity={on ? 1 : 0.55} />
+
+            {!rail && !nav.stacked && (
+              <rect x={x + 6} y={icy - 1} width={w - 24} height={2.4} rx={1.2} fill={label} opacity={on ? 0.95 : 0.4} />
+            )}
+            {nav.stacked && (
+              <rect x={x + w / 2 - 7} y={icy + 6} width={14} height={2} rx={1} fill={label} opacity={on ? 0.95 : 0.4} />
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة القائمة السفلية                                             */
+/* ------------------------------------------------------------------ */
+
+export function DockPreview({ dock, skin }: { dock: DockStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const DW = 74;
+  const DH = 132;
+  const tabs = 5;
+
+  const full = dock.shape === "flat" || dock.shape === "tray";
+  const barW = dock.shape === "pill" ? DW * 0.62 : full ? DW : DW - 8;
+  const barX = full ? 0 : (DW - barW) / 2;
+  const barH = dock.labels ? 15 : 11;
+  const barY = DH - barH - (full ? 0 : 4);
+
+  /* القوس والمقصوص شكلان لا يُعبَّر عنهما بمستطيل، فيُرسمان بمسار. */
+  const barPath =
+    dock.shape === "arc"
+      ? `M${barX} ${barY + barH} V${barY + 7} Q${barX + barW / 2} ${barY - 5} ${barX + barW} ${barY + 7} V${barY + barH} Z`
+      : dock.shape === "cut"
+        ? `M${barX + 6} ${barY} H${barX + barW - 6} L${barX + barW} ${barY + 6} V${barY + barH} H${barX} V${barY + 6} Z`
+        : null;
+
+  return (
+    <svg viewBox={`0 0 ${DW} ${DH}`} className="mx-auto block h-auto w-full max-w-[7rem]" style={{ aspectRatio: `${DW} / ${DH}` }}>
+      <rect x="0.6" y="0.6" width={DW - 1.2} height={DH - 1.2} rx="9" fill={hsl(v.background)} stroke={hsl(v.foreground, 0.28)} strokeWidth="1.2" />
+      <rect x={DW / 2 - 9} y="3" width="18" height="3.2" rx="1.6" fill={hsl(v.foreground, 0.3)} />
+
+      <rect x={6} y={12} width={DW - 12} height={22} rx={4} fill={hsl(v.primary)} />
+      <rect x={6} y={38} width={DW - 12} height={16} rx={3} fill={hsl(v.card)} />
+      <rect x={6} y={58} width={DW - 12} height={16} rx={3} fill={hsl(v.card)} />
+      <rect x={6} y={78} width={DW - 12} height={16} rx={3} fill={hsl(v.card)} />
+
+      {barPath ? (
+        <path d={barPath} fill={hsl(v.card)} stroke={hsl(v.gold, 0.5)} strokeWidth="0.7" />
+      ) : (
+        <rect
+          x={barX} y={barY} width={barW} height={barH}
+          rx={dock.shape === "pill" ? barH / 2 : full ? (dock.shape === "tray" ? 5 : 0) : 5}
+          fill={hsl(v.card)} stroke={hsl(v.gold, 0.5)} strokeWidth="0.7"
+        />
+      )}
+      {dock.shape === "tray" && (
+        <rect x={barX} y={barY - 2} width={barW} height={2} fill={hsl(v.primary, 0.18)} />
+      )}
+
+      {Array.from({ length: tabs }).map((_, i) => {
+        const cw = barW / tabs;
+        const cx = barX + cw * i + cw / 2;
+        const on = i === 1;
+        const lift = on && dock.mark === "lift" ? -4 : 0;
+        const cy = barY + (dock.labels ? 5 : barH / 2) + lift;
+
+        return (
+          <g key={i}>
+            {on && dock.mark === "pill" && (
+              <rect x={cx - cw / 2 + 1.5} y={barY + 1.5 + lift} width={cw - 3} height={barH - 3} rx={3} fill={hsl(v.accent, 0.2)} />
+            )}
+            {on && dock.mark === "lift" && <circle cx={cx} cy={cy} r={5.5} fill={hsl(v.primary)} />}
+            {on && dock.mark === "dot" && <circle cx={cx} cy={barY + barH - 2.5} r={1.5} fill={hsl(v.accent)} />}
+            {on && dock.mark === "glow" && (
+              <ellipse cx={cx} cy={cy} rx={cw / 2 - 1} ry={barH / 2 - 1} fill={hsl(v.accent, 0.28)} />
+            )}
+            {on && dock.mark === "bar" && (
+              <rect x={cx - cw / 2 + 2} y={barY + 1} width={cw - 4} height={1.6} rx={0.8} fill={hsl(v.accent)} />
+            )}
+
+            <circle cx={cx} cy={cy} r={1.8} fill={on && dock.mark === "lift" ? "#fff" : hsl(on ? v.primary : v.foreground, on ? 1 : 0.4)} />
+            {dock.labels && (
+              <rect x={cx - 3.2} y={barY + 9.5 + lift} width={6.4} height={1.5} rx={0.75} fill={hsl(v.foreground, on ? 0.75 : 0.32)} />
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }

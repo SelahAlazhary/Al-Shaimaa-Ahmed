@@ -92,12 +92,16 @@ export function DashboardShell({
             {active && (
               <motion.span
                 layoutId={`side-${role}`}
-                className="absolute inset-0 rounded-2xl bg-primary/10 ring-1 ring-primary/20"
+                /* sn-mark: مقبض تُعيد أنماط التصميم تشكيله (شريط · لوح ·
+                   حزّ · توهّج · خطّ · نقطة · إطار) بلا تفريع في الشيفرة. */
+                className="sn-mark absolute inset-0 rounded-2xl bg-[hsl(var(--gold)/0.16)] ring-1 ring-[hsl(var(--gold)/0.3)]"
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
               />
             )}
-            <Icon className="relative z-10 size-5 shrink-0" />
-            <span className="relative z-10">{item.label}</span>
+            <span className="sn-icon relative z-10 shrink-0">
+              <Icon className="size-5" />
+            </span>
+            <span className="sn-keep relative z-10">{item.label}</span>
           </Link>
         );
       })}
