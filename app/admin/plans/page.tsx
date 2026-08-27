@@ -27,7 +27,7 @@ type Form = {
   highlight: boolean; desc: string; perks: string; visible: boolean; order: number;
   color: string; cta: string; termNo: 1 | 2; whatsapp: string; track: string;
   audStage: string; audGrade: string; audSystem: string; audBranch: string;
-  audTerm: string; audGender: string;
+  audGender: string;
   discountOn: boolean; discountType: "percent" | "amount"; discountValue: number;
   discountLabel: string; discountUntil: string;
 };
@@ -36,7 +36,7 @@ const EMPTY: Form = {
   name: "", kind: "term", scope: "all", subjectId: "", price: 0, durationDays: 0,
   endsAt: "", badge: "", highlight: false, desc: "", perks: "", visible: true, order: 0,
   color: "", cta: "", termNo: 1, whatsapp: "", track: "",
-  audStage: "", audGrade: "", audSystem: "", audBranch: "", audTerm: "", audGender: "",
+  audStage: "", audGrade: "", audSystem: "", audBranch: "", audGender: "",
   discountOn: false, discountType: "percent", discountValue: 0,
   discountLabel: "", discountUntil: "",
 };
@@ -79,7 +79,7 @@ export default function PlansPage() {
       whatsapp: p.whatsapp ?? "", track: p.audience?.track ?? p.track ?? "",
       audStage: p.audience?.stage ?? "", audGrade: p.audience?.grade ?? "",
       audSystem: p.audience?.system ?? "", audBranch: p.audience?.branch ?? "",
-      audTerm: p.audience?.term ?? "", audGender: p.audience?.gender ?? "",
+      audGender: p.audience?.gender ?? "",
       discountOn: Boolean(p.discount?.active),
       discountType: p.discount?.type ?? "percent",
       discountValue: p.discount?.value ?? 0,
@@ -120,7 +120,6 @@ export default function PlansPage() {
           system: f.audSystem || undefined,
           track: f.track || undefined,
           branch: f.audBranch || undefined,
-          term: f.audTerm || undefined,
           gender: f.audGender || undefined,
         };
         return Object.values(a).some(Boolean) ? a : undefined;
@@ -183,6 +182,19 @@ export default function PlansPage() {
                 <option value="term">كل مواد فصل دراسي</option>
                 <option value="subject">كورس محدّد</option>
               </select>
+              {/*
+                أين تظهر هذه الخطة؟ سؤالٌ لا يجيب عنه اسمُ النطاق وحده،
+                وخطةٌ لا يُعرف أين تظهر تبدو معطّلة وهي تعمل.
+              */}
+              <span className="mt-1 block text-[10px] leading-relaxed text-muted-foreground">
+                {f.scope === "all"
+                  ? "تظهر في الصفحة الرئيسية وداخل كل كورس."
+                  : f.scope === "term"
+                    ? `تظهر داخل كورسات ${f.termNo === 2 ? "الفصل الثاني" : "الفصل الأول"} وحدها.`
+                    : f.subjectId
+                      ? `تظهر داخل «${subjects.find((x) => x.id === f.subjectId)?.name ?? "الكورس المحدّد"}» وحده — لا في كورس آخر.`
+                      : "اختر الكورس أوّلاً — بلا كورس لن تظهر لأحد."}
+              </span>
             </label>
             {f.scope === "term" && (
               <label><span className="lbl">الفصل الدراسي</span>
@@ -237,7 +249,7 @@ export default function PlansPage() {
                     track: f.track,
                     audience: {
                       stage: f.audStage, grade: f.audGrade, system: f.audSystem,
-                      track: f.track, branch: f.audBranch, term: f.audTerm, gender: f.audGender,
+                      track: f.track, branch: f.audBranch, gender: f.audGender,
                     },
                   })}
                 </span>
@@ -252,7 +264,7 @@ export default function PlansPage() {
                     track: f.track,
                     audience: {
                       stage: f.audStage, grade: f.audGrade, system: f.audSystem,
-                      track: f.track, branch: f.audBranch, term: f.audTerm, gender: f.audGender,
+                      track: f.track, branch: f.audBranch, gender: f.audGender,
                     },
                   };
                   const n = students.filter((u) => planForStudent(draft, u)).length;
@@ -283,10 +295,10 @@ export default function PlansPage() {
                   );
                 })()}
 
-                {[f.audStage, f.audGrade, f.audSystem, f.track, f.audBranch, f.audTerm, f.audGender].some(Boolean) && (
+                {[f.audStage, f.audGrade, f.audSystem, f.track, f.audBranch, f.audGender].some(Boolean) && (
                   <button
                     type="button"
-                    onClick={() => set({ audStage: "", audGrade: "", audSystem: "", track: "", audBranch: "", audTerm: "", audGender: "" })}
+                    onClick={() => set({ audStage: "", audGrade: "", audSystem: "", track: "", audBranch: "", audGender: "" })}
                     className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground"
                   >
                     مسح الفئة
@@ -296,7 +308,7 @@ export default function PlansPage() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <label><span className="lbl">المرحلة</span>
-                  <select className="inp" value={f.audStage} onChange={(e) => set({ audStage: e.target.value, audGrade: "", audTerm: "" })}>
+                  <select className="inp" value={f.audStage} onChange={(e) => set({ audStage: e.target.value, audGrade: "" })}>
                     <option value="">كل المراحل</option>
                     {STAGES.map((x) => <option key={x} value={x}>{x}</option>)}
                   </select>
@@ -335,13 +347,6 @@ export default function PlansPage() {
                     </select>
                   </label>
                 )}
-
-                <label><span className="lbl">الفصل الدراسي</span>
-                  <select className="inp" value={f.audTerm} onChange={(e) => set({ audTerm: e.target.value })}>
-                    <option value="">كل الفصول</option>
-                    {TERMS.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
-                  </select>
-                </label>
 
                 <label><span className="lbl">النوع</span>
                   <select className="inp" value={f.audGender} onChange={(e) => set({ audGender: e.target.value })}>

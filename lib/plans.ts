@@ -21,7 +21,14 @@ export type PricedPlan = {
  */
 export type PlanAudience = {
   stage?: string; grade?: string; system?: string;
-  track?: string; branch?: string; term?: string; gender?: string;
+  track?: string; branch?: string; gender?: string;
+  /**
+   * (توافق قديم) فصلٌ كان يُختار في الفئة.
+   * لم يعد يُطابَق به: الفصل خرج من التسجيل، فلا طالبَ يحمل قيمةً له —
+   * وشرطٌ لا يستطيع أحدٌ تحقيقه ليس تصفيةً بل حجبٌ صامت. والفصلُ صفةُ
+   * الكورس أصلاً، ونطاقُ الخطة يحدّده بـ`scope: "term"`.
+   */
+  term?: string;
 };
 
 /** بيانات الطالب التي تُطابَق بها فئة الخطة — أسماء التسجيل نفسها. */
@@ -45,7 +52,6 @@ export function planForStudent(
     [a.system, student.eduSystem],
     [a.track ?? plan.track, student.track],
     [a.branch, student.branch],
-    [a.term, student.termName],
     [a.gender, student.gender],
   ];
 
@@ -84,7 +90,6 @@ export function audienceBlindSpots(
     [a.system, student.eduSystem, "النظام التعليمي"],
     [a.track ?? plan.track, student.track, "الشعبة"],
     [a.branch, student.branch, "فرع الشعبة"],
-    [a.term, student.termName, "الفصل الدراسي"],
     [a.gender, student.gender, "النوع"],
   ];
   return rows
@@ -95,7 +100,7 @@ export function audienceBlindSpots(
 /** وصف الفئة بالعربية — يُعرض في اللوحة وفي بطاقة الخطة. */
 export function audienceLabel(plan: { track?: string; audience?: PlanAudience }): string {
   const a = plan.audience ?? {};
-  const parts = [a.stage, a.grade, a.system, a.track ?? plan.track, a.branch, a.term, a.gender]
+  const parts = [a.stage, a.grade, a.system, a.track ?? plan.track, a.branch, a.gender]
     .map((v) => (v ?? "").trim())
     .filter(Boolean);
   return parts.length ? parts.join(" · ") : "كل الطلاب";
