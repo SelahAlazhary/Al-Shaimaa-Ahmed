@@ -65,7 +65,8 @@ export function StatTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4 }}
       style={shape}
-      className={`group relative overflow-hidden p-4 backdrop-blur-sm transition-shadow sm:p-5 ${
+      /* الحشو = حشو البطاقة + هامش أمان الشكل، فلا يقصّ القصّ النصّ. */
+      className={`group relative overflow-hidden backdrop-blur-sm transition-shadow [padding-block:calc(1rem+var(--shape-pad-y,0px))] [padding-inline:calc(1rem+var(--shape-pad-x,0px))] sm:[padding-block:calc(1.25rem+var(--shape-pad-y,0px))] sm:[padding-inline:calc(1.25rem+var(--shape-pad-x,0px))] ${
         ink
           ? "bg-white/[0.07] ring-1 ring-white/15 hover:ring-white/30"
           : "bg-card ring-1 ring-[hsl(var(--gold)/0.35)] hover:ring-[hsl(var(--gold)/0.6)]"

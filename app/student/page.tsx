@@ -151,10 +151,13 @@ export default function StudentHome() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        style={shapeStyle(D.panel)}
-        className={`student-header btn-glow relative mb-6 overflow-hidden text-[hsl(var(--primary-foreground))] ${
-          L.header === "compact" ? "p-4 sm:p-5" : L.header === "banner" ? "p-6 sm:p-8" : "p-5 sm:p-6"
-        }`}
+        style={{
+          ...shapeStyle(D.panel),
+          ["--h-pad" as string]:
+            L.header === "compact" ? "1.1rem" : L.header === "banner" ? "1.75rem" : "1.4rem",
+        }}
+        /* الحشو الأساسي من التخطيط، ويُضاف إليه هامش أمان الشكل. */
+        className={`student-header btn-glow relative mb-6 overflow-hidden text-[hsl(var(--primary-foreground))] [padding-block:calc(var(--h-pad)+var(--shape-pad-y,0px))] [padding-inline:calc(var(--h-pad)+var(--shape-pad-x,0px))]`}
       >
         <EdgeArtLayer kind={D.edge} className="z-0 text-white/60" />
         <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />

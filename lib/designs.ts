@@ -24,6 +24,14 @@ export type DesignShape = {
   clip: string | null;
   /** انحناء الحوافّ حين لا يوجد قصّ. */
   radius: string;
+  /**
+   * هامش أمان يُضاف إلى حشو العنصر.
+   * ضروري لأن clip-path يقصّ ولا يحجز مساحة: شكل يأكل ١٫٤rem من كل
+   * طرف سيقصّ النصّ نفسه ما لم يُبعَد عن الحافّة بالقدر ذاته. الهامش
+   * يُضاف إلى الحشو القائم لا يستبدله، فلا يفقد العنصر تنفّسه.
+   */
+  padX?: string;
+  padY?: string;
 };
 
 export type StudentDesign = {
@@ -135,7 +143,8 @@ function torn(points: number, maxDepth: number): string {
 }
 
 const box = (radius: string): DesignShape => ({ clip: null, radius });
-const shape = (clip: string, radius = "0px"): DesignShape => ({ clip, radius });
+const shape = (clip: string, padX?: string, padY?: string): DesignShape =>
+  ({ clip, radius: "0px", padX, padY });
 
 /* ------------------------------------------------------------------ */
 /*  عشرون هيئة                                                         */
@@ -150,29 +159,29 @@ function d(
 
 export const STUDENT_DESIGNS: StudentDesign[] = [
   d("soft", "الناعم", "حوافّ دائرية بلا زخرفة — الأبسط", box("1.75rem"), box("1.4rem"), "none", "single"),
-  d("plaque", "اللوح", "أركان أربعة مقصوصة كلوح المخطوط", shape(cut("1.1rem")), shape(cut("0.8rem")), "none", "double"),
-  d("plaqueGold", "اللوح المذهّب", "لوح بحدّ مزدوج وخرز ذهبي", shape(cut("1.2rem")), shape(cut("0.85rem")), "beads", "beaded"),
+  d("plaque", "اللوح", "أركان أربعة مقصوصة كلوح المخطوط", shape(cut("1.1rem"), "0.6rem"), shape(cut("0.8rem"), "0.45rem"), "none", "double"),
+  d("plaqueGold", "اللوح المذهّب", "لوح بحدّ مزدوج وخرز ذهبي", shape(cut("1.2rem"), "0.65rem"), shape(cut("0.85rem"), "0.5rem"), "beads", "beaded"),
   d("arch", "المحراب", "قمّة مقوّسة مرسومة فوق اللوح", box("1.5rem"), box("1.2rem"), "arch", "single"),
   d("dome", "القبّة", "قبّة دائرية تعلو اللوح", box("1.5rem"), box("1.2rem"), "dome", "single"),
   d("scallop", "المفصّص", "حافّة عليا بفصوص متتابعة", box("1.4rem"), box("1.1rem"), "scallop", "single"),
   d("wave", "الموج", "حافّة سفلى موجيّة", box("1.4rem"), box("1.1rem"), "wave", "single"),
-  d("zigzag", "المسنّن", "حافّة بأسنان حادّة", shape(cutBottom("1rem")), box("1rem"), "zigzag", "single"),
-  d("teeth", "الشُّرَف", "شُرَف معمارية على الحافّة", shape(cutTop("1rem")), shape(cutTop("0.7rem")), "teeth", "double"),
-  d("fold", "المطويّ", "ركن علويّ مطويّ كأذن الكتاب", shape(fold("1.6rem")), shape(fold("1rem")), "none", "single"),
-  d("tag", "البطاقة", "طرف مدبّب كبطاقة تعريف", shape(tag("1.4rem")), shape(tag("0.9rem")), "none", "single"),
-  d("ribbon", "الشريط", "طرفان مشقوقان كشريط", shape(ribbon("1.2rem")), shape(ribbon("0.8rem")), "none", "double"),
-  d("chevron", "السهم", "طرفان مدبّبان في اتجاه واحد", shape(chevron("1.1rem")), shape(chevron("0.7rem")), "none", "single"),
-  d("hex", "المسدّس", "ضلعان مائلان في الطرفين", shape(hex("1.3rem")), shape(hex("0.8rem")), "none", "double"),
-  d("slant", "المائل", "ضلعان مائلان — إحساس بالحركة", shape(slant("1.2rem")), shape(slant("0.7rem")), "none", "single"),
-  d("step", "المدرّج", "درجات في الركنين العلويين", shape(step("0.9rem")), shape(step("0.6rem")), "none", "single"),
-  d("notch", "المحزّز", "حزّ في منتصف الحافّة العليا", shape(notch("1.1rem")), shape(notch("0.7rem")), "none", "single"),
-  d("diagonal", "القطريّ", "ركنان متقابلان مقصوصان", shape(diagonal("1.4rem")), shape(diagonal("0.9rem")), "none", "single"),
+  d("zigzag", "المسنّن", "حافّة بأسنان حادّة", shape(cutBottom("1rem"), "0.5rem", "0.5rem"), box("1rem"), "zigzag", "single"),
+  d("teeth", "الشُّرَف", "شُرَف معمارية على الحافّة", shape(cutTop("1rem"), "0.5rem", "0.5rem"), shape(cutTop("0.7rem"), "0.4rem", "0.4rem"), "teeth", "double"),
+  d("fold", "المطويّ", "ركن علويّ مطويّ كأذن الكتاب", shape(fold("1.6rem"), "0.5rem"), shape(fold("1rem"), "0.4rem"), "none", "single"),
+  d("tag", "البطاقة", "طرف مدبّب كبطاقة تعريف", shape(tag("1.4rem"), "1.5rem"), shape(tag("0.9rem"), "1rem"), "none", "single"),
+  d("ribbon", "الشريط", "طرفان مشقوقان كشريط", shape(ribbon("1.2rem"), "1.35rem"), shape(ribbon("0.8rem"), "0.9rem"), "none", "double"),
+  d("chevron", "السهم", "طرفان مدبّبان في اتجاه واحد", shape(chevron("1.1rem"), "1.25rem"), shape(chevron("0.7rem"), "0.8rem"), "none", "single"),
+  d("hex", "المسدّس", "ضلعان مائلان في الطرفين", shape(hex("1.3rem"), "1.45rem"), shape(hex("0.8rem"), "0.9rem"), "none", "double"),
+  d("slant", "المائل", "ضلعان مائلان — إحساس بالحركة", shape(slant("1.2rem"), "1.35rem"), shape(slant("0.7rem"), "0.8rem"), "none", "single"),
+  d("step", "المدرّج", "درجات في الركنين العلويين", shape(step("0.9rem"), "0.4rem", "0.5rem"), shape(step("0.6rem"), "0.3rem", "0.35rem"), "none", "single"),
+  d("notch", "المحزّز", "حزّ في منتصف الحافّة العليا", shape(notch("1.1rem"), "0.3rem", "1.25rem"), shape(notch("0.7rem"), "0.2rem", "0.85rem"), "none", "single"),
+  d("diagonal", "القطريّ", "ركنان متقابلان مقصوصان", shape(diagonal("1.4rem"), "0.7rem"), shape(diagonal("0.9rem"), "0.5rem"), "none", "single"),
   d("outline", "المفرَّغ", "حدّ رفيع بلا تعبئة — أخفّ ما يكون", box("1.5rem"), box("1.2rem"), "none", "dashed"),
   d("bare", "المجرَّد", "بلا حدّ ولا زخرفة — المحتوى وحده", box("1.6rem"), box("1.3rem"), "none", "none"),
   d("jagged", "المعرَّج", "حافّتان بأسنان متتابعة كطابع البريد",
-    shape(jagged(28, "10px")), shape(jagged(16, "7px")), "none", "single"),
+    shape(jagged(28, "10px"), "0.25rem", "12px"), shape(jagged(16, "7px"), "0.2rem", "9px"), "none", "single"),
   d("torn", "الممزَّق", "حوافّ غير منتظمة كورقة ممزّقة",
-    shape(torn(22, 12)), shape(torn(14, 8)), "none", "none"),
+    shape(torn(22, 12), "0.25rem", "14px"), shape(torn(14, 8), "0.2rem", "10px"), "none", "none"),
 ];
 
 export const DEFAULT_DESIGN = STUDENT_DESIGNS[0].id;
@@ -190,7 +199,17 @@ export const BORDER_CLASS: Record<BorderStyle, string> = {
   none: "",
 };
 
-/** يبني نمط الشكل لعنصر — قصّ أو انحناء. */
+/**
+ * يبني نمط الشكل لعنصر — قصّ أو انحناء، ومعه هامش الأمان.
+ * الهامش يُخرَج كمتغيّرين لا كحشو مباشر، فيضيفهما العنصر إلى حشوه
+ * القائم بدل أن يستبدله — وإلا فقدت البطاقة تنفّسها الداخلي.
+ */
 export function shapeStyle(s: DesignShape): React.CSSProperties {
-  return s.clip ? { clipPath: s.clip } : { borderRadius: s.radius };
+  const pad = {
+    ["--shape-pad-x" as string]: s.padX ?? "0px",
+    ["--shape-pad-y" as string]: s.padY ?? "0px",
+  };
+  return s.clip
+    ? { clipPath: s.clip, ...pad }
+    : { borderRadius: s.radius, ...pad };
 }
