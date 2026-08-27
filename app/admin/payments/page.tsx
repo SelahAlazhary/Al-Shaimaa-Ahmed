@@ -234,6 +234,13 @@ function Inbox_({
                 <div className="mt-2 grid gap-1 text-xs">
                   <p><span className="text-muted-foreground">الخطة:</span> <b>{r.planName}</b>{r.subjectName ? ` — ${r.subjectName}` : ""}</p>
                   <p><span className="text-muted-foreground">المبلغ:</span> <b>{r.amount.toLocaleString("ar-EG")} ج.م</b> · {r.methodName}</p>
+                  {r.methodNumber && (
+                    <p>
+                      <span className="text-muted-foreground">حُوِّل إلى:</span>{" "}
+                      <b className="font-mono">{r.methodNumber}</b>
+                      {r.methodHolder ? ` — ${r.methodHolder}` : ""}
+                    </p>
+                  )}
                   {r.senderName && <p><span className="text-muted-foreground">المُحوِّل:</span> {r.senderName}</p>}
                   {r.senderAccount && (
                     <p><span className="text-muted-foreground">حوّل من:</span> <b className="font-mono">{r.senderAccount}</b></p>

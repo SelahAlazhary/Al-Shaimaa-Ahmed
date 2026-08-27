@@ -111,6 +111,8 @@ export async function POST(req: Request) {
     amount,
     methodId: method.id,
     methodName: method.name,
+    methodNumber: method.number,
+    methodHolder: method.holder,
     senderName: senderName ? normalizeDigits(senderName) : undefined,
     senderAccount: senderAccount ? normalizeDigits(senderAccount) : undefined,
     senderRef: senderRef ? normalizeDigits(senderRef) : undefined,

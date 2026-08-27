@@ -781,6 +781,13 @@ export type PayRequest = {
   amount: number;
   methodId: string;
   methodName: string;
+  /**
+   * الحساب الذي حُوِّل إليه — رقمه واسم صاحبه وقت الطلب.
+   * صار للمنصّة أكثرُ من حساب تُعرض معاً، فاسمُ الطريقة وحده لا يقول
+   * أيَّ حسابٍ يُراجَع كشفُه.
+   */
+  methodNumber?: string;
+  methodHolder?: string;
   senderName?: string;    // اسم المُحوِّل كما كتبه الطالب
   senderAccount?: string; // الرقم أو الحساب الذي حُوِّل منه
   senderRef?: string;    // رقم العملية
