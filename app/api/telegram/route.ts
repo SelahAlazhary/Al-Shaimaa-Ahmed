@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { recordEvent } from "@/lib/security";
 import { can } from "@/lib/perms";
 import {
-  tgConfig, tgGetMe, tgSetWebhook, tgDeleteWebhook, tgSend, newWebhookSecret, siteUrl, esc,
+  tgConfig, tgGetMe, tgSetWebhook, tgDeleteWebhook, tgSend, newWebhookSecret, siteUrl, esc, cleanTgId,
 } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +41,7 @@ export async function GET() {
     enabled: t?.enabled !== false,
     chatId: c.chatId || "",
     username: t?.username || "",
+    allowedIds: c.allowedIds,
     webhookSetAt: t?.webhookSetAt || "",
     /* التوكن من متغيّر البيئة لا يُعدَّل من اللوحة — مصدره خارجها. */
     fromEnv: Boolean(process.env.TELEGRAM_BOT_TOKEN),
@@ -84,6 +85,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, configured: false });
   }
 
+  /* ---- المعرّفات المسموح لها ---- */
+  if (action === "ids") {
+    const ids = Array.isArray(body.ids) ? body.ids : [];
+    const clean: string[] = Array.from(new Set(ids.map((x: unknown) => cleanTgId(String(x))))).filter(Boolean) as string[];
+    db.integrations.telegram = { ...current, allowedIds: clean };
+    saveDB(db);
+    await flushDB();
+    return NextResponse.json({ ok: true, allowedIds: clean });
+  }
+
   /* ---- تشغيل/إيقاف بلا مساس بالتوكن ---- */
   if (action === "toggle") {
     db.integrations.telegram = { ...current, enabled: Boolean(body.enabled) };
@@ -94,7 +105,7 @@ export async function POST(req: Request) {
 
   /* ---- حفظ التوكن ومعرّف المحادثة ثم تسجيل الويبهوك ---- */
   const token = String(body.token ?? "").trim() || current.token || "";
-  const chatId = String(body.chatId ?? "").trim() || current.chatId || "";
+  const chatId = cleanTgId(String(body.chatId ?? "")) || current.chatId || "";
   if (!token) return NextResponse.json({ error: "الصق توكن البوت من BotFather" }, { status: 400 });
 
   const who = await tgGetMe(token);

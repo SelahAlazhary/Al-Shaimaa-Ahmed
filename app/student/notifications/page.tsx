@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { IconBell } from "@/components/brand/icons";
 import { EmptyBell } from "@/components/brand/illustrations";
@@ -55,6 +55,7 @@ export default function StudentNotifications() {
                         {isNew && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">جديد</span>}
                       </p>
                       <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>
+                      {n.code && <CodeBlock code={n.code} subjectId={n.codeSubjectId} onDone={refresh} />}
                       <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.createdAt).toLocaleString("ar-EG")}</p>
                     </div>
                   </div>
@@ -65,5 +66,73 @@ export default function StudentNotifications() {
         </div>
       )}
     </>
+  );
+}
+
+
+/**
+ * كود التفعيل داخل الإشعار.
+ * ------------------------------------------------------------------
+ * الكود يصل الطالب في إشعار، فأقصر طريق أن يُفعَّل من مكانه: زرّ واحد
+ * ينادي نفس مسار التفعيل الذي تناديه صفحة الكورسات — لا منطق ثانٍ.
+ */
+function CodeBlock({
+  code, subjectId, onDone,
+}: {
+  code: string; subjectId?: string; onDone: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [state, setState] = useState<"idle" | "done" | "used">("idle");
+  const [err, setErr] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const activate = async () => {
+    setErr(null);
+    setBusy(true);
+    const res = await fetch("/api/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, subjectId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      /* الكود المستعمَل ليس خطأً يُنبَّه عليه — الطالب فعّله من مكان آخر. */
+      if (/مستخدم|منته/.test(data.error ?? "")) { setState("used"); return; }
+      setErr(data.error || "تعذّر التفعيل");
+      return;
+    }
+    setState("done");
+    await onDone();
+  };
+
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2.5">
+      <button
+        type="button"
+        onClick={() => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+        className="font-mono text-sm font-extrabold tracking-wider"
+        title="اضغط للنسخ"
+      >
+        {copied ? "تم النسخ ✓" : code}
+      </button>
+
+      {state === "done" ? (
+        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-600">تم التفعيل ✓</span>
+      ) : state === "used" ? (
+        <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-bold text-muted-foreground">مُفعَّل من قبل</span>
+      ) : (
+        <button
+          type="button"
+          onClick={activate}
+          disabled={busy}
+          className="btn-glow mr-auto rounded-xl px-4 py-1.5 text-[11px] font-bold text-white disabled:opacity-60"
+        >
+          {busy ? "جارٍ التفعيل…" : "فعّل الآن"}
+        </button>
+      )}
+
+      {err && <span className="w-full text-[11px] font-bold text-rose-500">{err}</span>}
+    </div>
   );
 }

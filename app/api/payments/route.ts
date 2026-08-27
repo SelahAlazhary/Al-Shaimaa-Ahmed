@@ -220,6 +220,7 @@ export function decide(
       subjectName: r.subjectName ?? targetName(target, db.subjects),
       status: "متاح",
       createdAt: now().slice(0, 10),
+      payId: r.id,
     };
     db.codes = [fresh, ...db.codes];
 
@@ -231,9 +232,11 @@ export function decide(
 
     pushNotification(db, {
       title: "تم قبول تحويلك ✅",
-      body: `كود تفعيل «${r.planName}»: ${code} — أدخله من صفحة الكورسات لتفعيل اشتراكك.`,
+      body: `تم قبول تحويلك لخطة «${r.planName}». هذا كود التفعيل — فعّله بضغطة واحدة.`,
       userId: r.userId,
       link: "/student/subjects",
+      code,
+      codeSubjectId: target === "*" || /^T[12]$/.test(target) ? undefined : target,
     });
     return { ok: true, status: "approved" };
   }

@@ -515,6 +515,7 @@ type BotState = {
   enabled: boolean;
   chatId: string;
   username: string;
+  allowedIds: string[];
   webhookSetAt: string;
   fromEnv: boolean;
 };
@@ -523,6 +524,7 @@ function BotTab() {
   const [state, setState] = useState<BotState | null>(null);
   const [token, setToken] = useState("");
   const [chatId, setChatId] = useState("");
+  const [newId, setNewId] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "warn" | "err"; text: string } | null>(null);
 
@@ -549,7 +551,7 @@ function BotTab() {
     if (!res.ok) { setMsg({ kind: "err", text: data.error || "تعذّر الاتصال بتليجرام" }); return; }
     if (data.warn) setMsg({ kind: "warn", text: data.warn });
     else setMsg({ kind: "ok", text: "تمّ" });
-    setToken("");
+    if (body.action === "save") setToken("");
     await load();
   };
 
@@ -644,6 +646,77 @@ function BotTab() {
           <p className="mt-3 text-[11px] text-muted-foreground">
             التوكن مضبوط من متغيّر بيئة على الاستضافة — لن يُغيّره الحفظ هنا.
           </p>
+        )}
+      </Card>
+
+      {/* المعرّفات المسموح لها */}
+      <Card className="mb-5">
+        <p className="font-display mb-1 font-bold">المعرّفات المسموح لها</p>
+        <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+          البوت عامّ على تليجرام: أيّ أحد يعرف اسمه يستطيع مراسلته. هذه القائمة تحدّد
+          مَن يُجيبه البوت ومَن يبتّ في التحويلات — أضف معرّفك ومعرّف كل مشرف يراجع
+          الطلبات. أرسل <code className="rounded bg-muted px-1">/start</code> للبوت من حسابك
+          ليردّ بمعرّفك.
+        </p>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <input
+            value={newId}
+            onChange={(e) => setNewId(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || !newId.trim()) return;
+              void call({ action: "ids", ids: [...(state?.allowedIds ?? []), newId] }, "ids");
+              setNewId("");
+            }}
+            dir="ltr"
+            inputMode="numeric"
+            placeholder="123456789"
+            className="w-48 rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-right font-mono text-sm outline-none focus:border-primary/50"
+          />
+          <button
+            type="button"
+            disabled={busy !== null || !newId.trim()}
+            onClick={() => {
+              void call({ action: "ids", ids: [...(state?.allowedIds ?? []), newId] }, "ids");
+              setNewId("");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60"
+          >
+            {busy === "ids" ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            إضافة معرّف
+          </button>
+          {state?.chatId && !(state.allowedIds ?? []).includes(state.chatId) && (
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => void call({ action: "ids", ids: [...(state.allowedIds ?? []), state.chatId] }, "ids")}
+              className="rounded-2xl border border-border px-3 py-2.5 text-[11px] font-bold text-muted-foreground"
+            >
+              أضف محادثة التنبيهات ({state.chatId})
+            </button>
+          )}
+        </div>
+
+        {(state?.allowedIds ?? []).length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border p-3 text-center text-[11px] text-muted-foreground">
+            لا معرّفات بعد — البوت سيعمل مع محادثة التنبيهات وحدها ({state?.chatId || "غير مضبوطة"}).
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(state?.allowedIds ?? []).map((x) => (
+              <span key={x} className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 font-mono text-xs font-bold">
+                {x}
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => void call({ action: "ids", ids: (state?.allowedIds ?? []).filter((y) => y !== x) }, "ids")}
+                  className="text-muted-foreground transition hover:text-rose-500"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </span>
+            ))}
+          </div>
         )}
       </Card>
 

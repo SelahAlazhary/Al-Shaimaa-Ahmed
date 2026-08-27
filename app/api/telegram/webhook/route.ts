@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { loadDB, getDB, saveDB, flushDB } from "@/lib/db";
 import {
-  tgConfig, tgAnswer, tgEdit, tgEditCaption, tgSend, payVerdictText, esc,
+  tgConfig, tgAllowed, tgAnswer, tgEdit, tgEditCaption, tgSend, payVerdictText, esc,
 } from "@/lib/telegram";
 import { decide } from "../../payments/route";
 
@@ -59,11 +59,19 @@ export async function POST(req: Request) {
 type Callback = {
   id: string;
   data?: string;
-  from?: { first_name?: string; username?: string };
+  from?: { id?: number; first_name?: string; username?: string };
   message?: { message_id: number; chat: { id: number }; photo?: unknown };
 };
 
 async function onCallback(q: Callback) {
+  /*
+    الضاغط يُفحص لا المحادثة وحدها: رسالة مُعاد توجيهها تحمل أزرارها
+    معها، فمن وصلته يستطيع ضغطها لولا هذا الفحص.
+  */
+  if (!tgAllowed(q.from?.id, q.message?.chat.id)) {
+    await tgAnswer(q.id, "غير مصرّح");
+    return;
+  }
   const data = q.data ?? "";
   const by = q.from?.username ? `@${q.from.username}` : q.from?.first_name || "تليجرام";
   const chatId = q.message?.chat.id;
@@ -136,7 +144,11 @@ async function editKeyboard(
 
 /* ------------------------------------------------------------------ */
 
-type Message = { text: string; chat: { id: number; title?: string; first_name?: string } };
+type Message = {
+  text: string;
+  chat: { id: number; title?: string; first_name?: string };
+  from?: { id?: number };
+};
 
 /**
  * أوامر البوت.
@@ -148,7 +160,13 @@ async function onMessage(m: Message) {
   const chatId = String(m.chat.id);
   const db = getDB();
   const pending = (db.payments ?? []).filter((p) => p.status === "pending");
+  const allowed = tgAllowed(m.from?.id, m.chat.id);
 
+  /*
+    `/start` يردّ بالمعرّف حتى لغير المسموح لهم — وهو ما يلزم لإضافة
+    المعرّف في اللوحة أوّل مرّة، ولا يكشف شيئاً عن المنصّة. وما عداه
+    من الأوامر لا يُجاب إلا لمن في القائمة.
+  */
   if (/^\/(start|id)\b/.test(text)) {
     await tgSend(
       [
@@ -157,10 +175,19 @@ async function onMessage(m: Message) {
         "معرّف هذه المحادثة:",
         `<code>${esc(chatId)}</code>`,
         "",
-        "الصقيه في «بوّابة الدفع ← بوت تليجرام» داخل لوحة الإدارة لتصلك طلبات التحويل هنا.",
+        "الصقيه في «بوّابة الدفع ← بوت تليجرام» داخل لوحة الإدارة لتصلك طلبات التحويل هنا،",
+        "وأضفه في «المعرّفات المسموح لها» ليعمل البوت معك.",
         "",
         "الأوامر: /pending لعرض الطلبات المعلّقة.",
       ].join("\n"),
+      { chatId }
+    );
+    return;
+  }
+
+  if (!allowed) {
+    await tgSend(
+      "هذا البوت خاصّ بإدارة المنصّة. إن كنتَ المشرف فأضف معرّف هذه المحادثة في «بوّابة الدفع ← بوت تليجرام».",
       { chatId }
     );
     return;

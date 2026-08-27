@@ -7,6 +7,7 @@ import {
 } from "./defaults";
 import { seedUsers } from "./seed-admin";
 import { courseActive, lessonActive, planExpiry, planSubjectId, eligibleFor, liveVisible, publicLives } from "./access";
+import { resolvePlan } from "./plans";
 import { firebaseConfigured } from "./firebase";
 import { ensureStore, peek, commit, flushStore, storeState, invalidate, readLocal } from "./store";
 
@@ -312,6 +313,9 @@ export function deleteUser(id: string) {
 
   db.notifications = db.notifications.filter((n) => n.userId !== id);
 
+  /* طلبات الدفع تحمل اسمه وهاتفه وصورة إيصاله — تُحذف معه. */
+  db.payments = (db.payments ?? []).filter((p) => p.userId !== id);
+
   if (db.security?.events) {
     db.security.events = db.security.events.map((e) =>
       e.userId === id ? { ...e, userId: undefined, username: undefined } : e
@@ -348,8 +352,13 @@ export function redeemCode(userId: string, rawCode: string, subjectId?: string):
   if (!code) return { ok: false, error: "كود غير صحيح" };
   if (code.status !== "متاح") return { ok: false, error: "هذا الكود مستخدم أو منتهٍ" };
 
-  // الخطة المصدر (أو خطة ضمنية للأكواد القديمة قبل نظام الخطط)
-  const plan = db.plans.find((p) => p.id === code.planId) ?? {
+  /*
+    الخطة المصدر — من الخطط المحفوظة أو من خيارات أسعار الكورس.
+    البحث في `db.plans` وحده كان يُسقط خيارات الأسعار إلى الخطة
+    الضمنية، فتضيع مدّتها: «حصّة واحدة» تصير شهراً و«مرّة واحدة»
+    تنتهي بعد شهر.
+  */
+  const plan = resolvePlan(code.planId ?? "", db.plans, db.subjects) ?? {
     id: "legacy",
     name: code.subjectId === "*" ? "الترم الكامل" : code.subjectName,
     kind: (code.plan === "ترم" ? "term" : "month") as "term" | "month",
@@ -396,6 +405,13 @@ export function redeemCode(userId: string, rawCode: string, subjectId?: string):
   code.student = user.name;
   code.studentId = user.id;
   code.usedAt = now.toISOString();
+
+  /* الطلب الذي صدر عنه الكود يُعلَّم مفعَّلاً — فتُعرف الأموال التي
+     وصلت ولم يُستعمل كودها بعد. */
+  if (code.payId) {
+    const req = (db.payments ?? []).find((p) => p.id === code.payId);
+    if (req) req.redeemedAt = now.toISOString();
+  }
 
   // تحديث عدّاد طلاب الكورس
   if (target !== "*" && !isTermScope) {

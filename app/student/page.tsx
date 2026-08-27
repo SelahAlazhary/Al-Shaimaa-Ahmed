@@ -10,6 +10,7 @@
  * كل الأرقام مشتقّة من بيانات الطالب الفعلية — لا قيم تجميلية.
  */
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -136,6 +137,9 @@ export default function StudentHome() {
 
   return (
     <>
+      {/* ---------------- حالة تحويلاتك ---------------- */}
+      <PayNotice />
+
       {/* ---------------- لوح الترحيب ---------------- */}
       {!showHeader && (
         <div className="mb-5">
@@ -395,5 +399,75 @@ export default function StudentHome() {
       </div>
       </div>
     </>
+  );
+}
+
+/**
+ * حالة تحويلات الطالب على صفحته الأولى.
+ * ------------------------------------------------------------------
+ * التحويل المقبول الذي لم يُفعَّل كودُه مالٌ دُفع ولم يُستعمل — أسوأ ما
+ * يُترك في شاشة أخرى. والمعلَّق يطمئن الطالب أن طلبه لم يضِع.
+ */
+function PayNotice() {
+  const { db, session, refresh } = useContent();
+  const mine = (db?.payments ?? []).filter((p) => p.userId === session?.uid);
+  const ready = mine.find((p) => p.status === "approved" && p.code && !p.redeemedAt);
+  const waiting = mine.find((p) => p.status === "pending");
+
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  if (!ready && !waiting) return null;
+
+  const activate = async () => {
+    if (!ready?.code) return;
+    setErr(null);
+    setBusy(true);
+    const res = await fetch("/api/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: ready.code,
+        /* الكود العامّ (كل المواد أو فصل) لا يُقيَّد بكورس بعينه. */
+        subjectId: ready.subjectId && !/^(\*|T[12])$/.test(ready.subjectId) ? ready.subjectId : undefined,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { setErr(data.error || "تعذّر التفعيل"); return; }
+    await refresh();
+  };
+
+  if (ready) {
+    return (
+      <div className="mb-5 flex flex-wrap items-center gap-3 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-4">
+        <span className="font-display text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
+          تم قبول تحويلك لخطة «{ready.planName}»
+        </span>
+        <span className="rounded-xl bg-white/70 px-3 py-1 font-mono text-sm font-extrabold tracking-wider dark:bg-black/30">
+          {ready.code}
+        </span>
+        <button
+          type="button"
+          onClick={activate}
+          disabled={busy}
+          className="btn-glow mr-auto rounded-2xl px-5 py-2 text-xs font-bold text-white disabled:opacity-60"
+        >
+          {busy ? "جارٍ التفعيل…" : "فعّل الآن"}
+        </button>
+        {err && <span className="w-full text-[11px] font-bold text-rose-500">{err}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-3 rounded-3xl border border-amber-500/40 bg-amber-500/10 px-5 py-4">
+      <span className="font-display text-sm font-extrabold text-amber-700 dark:text-amber-300">
+        تحويلك لخطة «{waiting!.planName}» قيد المراجعة
+      </span>
+      <span className="text-xs text-muted-foreground">
+        سيصلك كود التفعيل في الإشعارات فور مراجعته.
+      </span>
+    </div>
   );
 }

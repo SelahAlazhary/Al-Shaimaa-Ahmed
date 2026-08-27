@@ -21,6 +21,7 @@ export type TgConfig = {
   chatId: string;
   secret: string;
   enabled: boolean;
+  allowedIds: string[];
 };
 
 export function tgConfig(): TgConfig {
@@ -30,7 +31,32 @@ export function tgConfig(): TgConfig {
     chatId: (process.env.TELEGRAM_CHAT_ID || t?.chatId || "").trim(),
     secret: (t?.webhookSecret || "").trim(),
     enabled: t?.enabled !== false,
+    allowedIds: (t?.allowedIds ?? []).map((x) => String(x).trim()).filter(Boolean),
   };
+}
+
+/**
+ * هل يُسمح لهذا المعرّف بمخاطبة البوت والبتّ في الطلبات؟
+ * ------------------------------------------------------------------
+ * البوت عامّ على تليجرام: أيّ أحد يعرف اسمه يستطيع مراسلته. بدون هذا
+ * الفحص يرى غريبٌ أسماءَ الطلاب ومبالغهم بأمر واحد، بل ويضغط أزرار
+ * القبول لو وصلته رسالة مُعاد توجيهها.
+ *
+ * القائمة الفارغة لا تعني «الكلّ» بل «محادثة التنبيهات وحدها» — الفشل
+ * هنا «مغلق» لا «مفتوح».
+ */
+export function tgAllowed(...ids: (string | number | undefined)[]): boolean {
+  const c = tgConfig();
+  const allow = new Set<string>(c.allowedIds);
+  if (c.chatId) allow.add(c.chatId);
+  if (allow.size === 0) return false;
+  return ids.some((v) => v !== undefined && allow.has(String(v).trim()));
+}
+
+/** تنقية معرّف تليجرام — رقم قد يسبقه سالب للمجموعات. */
+export function cleanTgId(v: string): string {
+  const out = String(v ?? "").trim().replace(/[^\d-]/g, "");
+  return /^-?\d{3,}$/.test(out) ? out : "";
 }
 
 export function tgReady(): boolean {

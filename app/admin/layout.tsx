@@ -6,6 +6,7 @@ import { adminNav } from "@/lib/dashboard-data";
 import { getSession } from "@/lib/session";
 import { loadDB, getDB } from "@/lib/db";
 import { can, isOwner, permForPath } from "@/lib/perms";
+import { findToolbar, toolbarClass } from "@/lib/toolbar-styles";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "لوحة الإدارة", robots: { index: false } };
@@ -32,9 +33,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const needed = path ? permForPath(path) : null;
   if (needed && !can(me, needed)) redirect("/admin?denied=1");
 
+  /*
+    شريط الأدوات: لوحة الإدارة كانت الشاشةَ الوحيدة التي لا تحمل أصنافه،
+    فمن يختار التصميم من هنا لا يرى شريطَه هو يتغيّر أبداً.
+  */
+  const bar = findToolbar(getDB().content.toolbarStyle);
+
   return (
     // admin-skin: هوية بصرية خاصة بلوحة الإدارة (تصميم فقط — لا يمسّ الموقع أو بوابة الطالب)
-    <div className="admin-skin">
+    <div className={`admin-skin ${toolbarClass(bar)}`} data-toolbar={bar.id}>
       <DashboardShell
         nav={nav}
         role="admin"

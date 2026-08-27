@@ -13,18 +13,31 @@ export default function AdminOverview() {
   const codes = db?.codes ?? [];
   const live = db?.live ?? [];
   const tickets = db?.tickets ?? [];
+  const payments = db?.payments ?? [];
+  const pendingPays = payments.filter((p) => p.status === "pending");
 
   const plans = db?.plans ?? [];
   const usedCodes = codes.filter((c) => c.status === "مستخدم");
   // الإيراد = مجموع أسعار الخطط التي فُعّلت أكوادها (وللأكواد القديمة: سعر الكورس)
-  const revenue = usedCodes.reduce(
-    (sum, c) => sum + (plans.find((p) => p.id === c.planId)?.price ?? subjects.find((s) => s.id === c.subjectId)?.price ?? 0),
-    0
-  );
+  /*
+    الإيراد من التحويلات المقبولة حين تكون البوّابة تعمل — وهي مالٌ
+    وصل فعلاً بمبلغه المسجَّل، لا سعرَ خطةٍ قد يكون تغيّر بعد التفعيل.
+    وما قبلها يبقى محسوباً بالأكواد المفعَّلة كما كان.
+  */
+  const approved = payments.filter((p) => p.status === "approved");
+  const paidIds = new Set(approved.map((p) => p.id));
+  const revenue =
+    approved.reduce((sum, p) => sum + (p.amount ?? 0), 0) +
+    usedCodes
+      .filter((c) => !c.payId || !paidIds.has(c.payId))
+      .reduce(
+        (sum, c) => sum + (plans.find((p) => p.id === c.planId)?.price ?? subjects.find((s) => s.id === c.subjectId)?.price ?? 0),
+        0
+      );
   const stats = [
     { label: "إجمالي الطلاب", value: students.length, delta: "", tone: "primary", icon: <Users className="size-5" /> },
     { label: "الكورسات المنشورة", value: subjects.filter((s) => s.status === "منشورة").length, delta: "", tone: "emerald", icon: <BadgeCheck className="size-5" /> },
-    { label: "أكواد مُفعّلة", value: usedCodes.length, delta: "", tone: "amber", icon: <KeyRound className="size-5" /> },
+    { label: "تحويلات تنتظر المراجعة", value: pendingPays.length, delta: "", tone: "amber", icon: <KeyRound className="size-5" /> },
     { label: "إيراد محقّق (ج.م)", value: revenue, delta: "", tone: "violet", icon: <Wallet className="size-5" /> },
   ];
   const max = Math.max(...enrollTrend);
@@ -32,6 +45,23 @@ export default function AdminOverview() {
   return (
     <>
       <PageHeader title="نظرة عامة" subtitle="ملخّص أداء المنصّة" />
+
+      {/* تنبيه التحويلات — المال المنتظر مراجعةً لا يُترك في شاشة أخرى */}
+      {pendingPays.length > 0 && (
+        <Link
+          href="/admin/payments"
+          className="mb-5 flex flex-wrap items-center gap-3 rounded-3xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 transition hover:border-amber-500/70"
+        >
+          <span className="font-display text-sm font-extrabold text-amber-700 dark:text-amber-400">
+            {pendingPays.length.toLocaleString("ar-EG")} تحويل ينتظر المراجعة
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {pendingPays.slice(0, 3).map((p) => p.student).join(" · ")}
+            {pendingPays.length > 3 ? " …" : ""}
+          </span>
+          <span className="mr-auto text-xs font-bold text-amber-700 dark:text-amber-400">راجعها الآن ←</span>
+        </Link>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s, i) => (

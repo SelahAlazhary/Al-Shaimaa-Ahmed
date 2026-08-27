@@ -1707,6 +1707,8 @@ body {
 [class*="tb-art-"]:not(.tb-art-plain) .app-body > header {
   position: relative;
   isolation: isolate;
+  /* حدّ الترويسة الصلب يُلغى، وإلا بقي خيطٌ مستقيم يخالف كل هيئة */
+  border: 0;
   background: transparent !important;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
