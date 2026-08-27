@@ -15,7 +15,7 @@ import { subjectActive, subscriptionFor, daysLeft } from "@/lib/access";
 import type { Lesson } from "@/lib/types";
 
 /** تحويل رابط الفيديو إلى صيغة تضمين (YouTube / Vimeo / Bunny Stream / mp4). */
-function toEmbed(url: string): { kind: "video" | "iframe"; src: string } {
+function toEmbed(url: string): { kind: "video" | "iframe"; src: string; drive?: boolean } {
   const u = url.trim();
   // Bunny Stream (iframe.mediadelivery.net) — نحوّل /play/ إلى /embed/
   if (u.includes("mediadelivery.net")) {
@@ -24,7 +24,9 @@ function toEmbed(url: string): { kind: "video" | "iframe"; src: string } {
   // Google Drive: أي صيغة رابط → صفحة المعاينة القابلة للتضمين
   const drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/) ||
     u.match(/lh3\.googleusercontent\.com\/d\/([\w-]{20,})/);
-  if (drive) return { kind: "iframe", src: `https://drive.google.com/file/d/${drive[1]}/preview` };
+  /* rm=minimal يقلّل عناصر مشغّل درايف، لكنه لا يزيل زرّ «فتح في نافذة
+     جديدة» — ذاك يُحجب بطبقة فوق ركنه (انظر drive في الراسم). */
+  if (drive) return { kind: "iframe", src: `https://drive.google.com/file/d/${drive[1]}/preview?rm=minimal`, drive: true };
   // معرّف Bunny بصيغة "libraryId/videoGuid"
   const bunny = u.match(/^(\d{3,7})\/([0-9a-f-]{20,})$/i);
   if (bunny) return { kind: "iframe", src: `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}` };
@@ -128,8 +130,21 @@ export default function CoursePlayer({ params }: { params: Promise<{ id: string 
               ) : embed?.kind === "video" ? (
                 <video key={current.id} src={embed.src} controls className="size-full" />
               ) : (
-                <iframe key={current.id} src={embed?.src} title={current.title} allowFullScreen
-                  allow="accelerometer; autoplay; encrypted-media; picture-in-picture" className="size-full" />
+                <>
+                  <iframe key={current.id} src={embed?.src} title={current.title} allowFullScreen
+                    allow="accelerometer; autoplay; encrypted-media; picture-in-picture" className="size-full" />
+                  {/* مشغّل درايف يعرض زرّ «فتح في نافذة جديدة» في ركنه، وهو
+                      يكشف رابط الملف مباشرة فيتجاوز اشتراك الطالب. لا يمكن
+                      تنسيق محتوى إطار من نطاق آخر، فتُوضع طبقة فوق ركنه
+                      تبتلع الضغط. الطبقة صغيرة ولا تغطّي أدوات التشغيل. */}
+                  {embed?.drive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute right-0 top-0 z-10 h-14 w-24 cursor-default"
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  )}
+                </>
               )}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

@@ -93,6 +93,46 @@ export function sideNavClass(x: SideNavStyle): string {
 }
 
 /* ------------------------------------------------------------------ */
+/*  ألوان القائمة وأيقوناتها                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * مجموعة الأيقونات.
+ * الأيقونات نفسها من مجموعة الهوية؛ ما يتغيّر هو أسلوب رسمها: خطّية
+ * رفيعة أو سميكة أو ممتلئة أو مزدوجة. أسلوب واحد لكل القائمة، فلا
+ * تختلط الأساليب في شريط واحد — وهو أكثر ما يُفسد اتّساق الواجهات.
+ */
+export type IconSet = "line" | "bold" | "filled" | "duo";
+
+export const ICON_SETS: { id: IconSet; name: string; hint: string }[] = [
+  { id: "line", name: "خطّية", hint: "خطوط رفيعة — الأهدأ" },
+  { id: "bold", name: "سميكة", hint: "خطوط أثقل وأوضح من بعيد" },
+  { id: "filled", name: "ممتلئة", hint: "أشكال مصمتة" },
+  { id: "duo", name: "مزدوجة", hint: "خطّ ومساحة بلونين" },
+];
+
+export const DEFAULT_ICON_SET: IconSet = "line";
+
+/** ألوان القائمة القابلة للضبط — كلّها اختيارية وتسقط للثيم. */
+export type NavColors = {
+  /** خلفية اللوح الجانبي. */
+  panel?: string;
+  /** لون الأيقونات والعناوين. */
+  icon?: string;
+  /** لون العنصر النشط ومؤشّره. */
+  active?: string;
+};
+
+/** يبني متغيّرات لون القائمة — الفارغ لا يُكتب فيرث من الثيم. */
+export function navColorVars(c: NavColors | undefined): React.CSSProperties {
+  const v: Record<string, string> = {};
+  if (c?.panel) v["--nav-panel"] = c.panel;
+  if (c?.icon) v["--nav-icon"] = c.icon;
+  if (c?.active) v["--nav-active"] = c.active;
+  return v as React.CSSProperties;
+}
+
+/* ------------------------------------------------------------------ */
 /*  القائمة السفلية (الهاتف)                                           */
 /* ------------------------------------------------------------------ */
 

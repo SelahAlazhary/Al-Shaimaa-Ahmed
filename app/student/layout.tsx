@@ -7,7 +7,7 @@ import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
 import { findSkin, findLayout, findMobile, mobileClass, skinCss } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
 import { findDesign } from "@/lib/designs";
-import { findSideNav, sideNavClass, findDock, dockClass } from "@/lib/nav-styles";
+import { findSideNav, sideNavClass, findDock, dockClass, navColorVars, DEFAULT_ICON_SET } from "@/lib/nav-styles";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "بوابة الطالب", robots: { index: false } };
@@ -32,6 +32,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const design = findDesign(pub.content?.studentDesign);
   const side = findSideNav(pub.content?.sideNav);
   const dock = findDock(pub.content?.dockStyle);
+  const icons = pub.content?.navIcons ?? DEFAULT_ICON_SET;
 
   return (
     <>
@@ -39,7 +40,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           كتلة واحدة للثيم المختار فقط، فلا تُحمَّل عشرون كتلة لا تُعرض. */}
       <style dangerouslySetInnerHTML={{ __html: skinCss(skin) }} />
     <div
-      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)}`}
+      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons}`}
+      style={navColorVars(pub.content?.navColors)}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}

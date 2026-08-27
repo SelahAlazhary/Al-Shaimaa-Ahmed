@@ -197,6 +197,8 @@ export type SiteContent = {
   studentDesign?: string;
   sideNav?: string;
   dockStyle?: string;
+  navIcons?: string;
+  navColors?: { panel?: string; icon?: string; active?: string };
 
   /**
    * زرّ تبديل الفاتح/الداكن.

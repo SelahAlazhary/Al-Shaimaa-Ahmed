@@ -23,10 +23,14 @@ import {
 import { FRAME_SHAPES, findFrame, DEFAULT_FRAME } from "@/lib/frame-shapes";
 import {
   SIDE_NAV_STYLES, DOCK_STYLES, findSideNav, findDock,
-  DEFAULT_SIDE_NAV, DEFAULT_DOCK, type SideNavStyle, type DockStyle,
+  DEFAULT_SIDE_NAV, DEFAULT_DOCK, ICON_SETS, DEFAULT_ICON_SET,
+  type SideNavStyle, type DockStyle,
 } from "@/lib/nav-styles";
 import { STUDENT_DESIGNS, findDesign, DEFAULT_DESIGN, type StudentDesign } from "@/lib/designs";
 import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } from "@/lib/home-layouts";
+
+/** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
+const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
 type Tab = "skin" | "design" | "layout" | "side" | "dock" | "frame" | "mobile" | "home";
 
@@ -42,6 +46,8 @@ export default function AppearancePage() {
   const design = findDesign(content.studentDesign);
   const side = findSideNav(content.sideNav);
   const dock = findDock(content.dockStyle);
+  const iconSet = content.navIcons ?? DEFAULT_ICON_SET;
+  const navColors = content.navColors ?? {};
   const frameShape = findFrame(content.hero?.frameShape ?? content.hero?.frame ?? 1);
   const frameColor = content.hero?.frameColor ?? "";
   const frameScale = content.hero?.frameScale ?? 100;
@@ -69,6 +75,8 @@ export default function AppearancePage() {
       studentMobile: DEFAULT_MOBILE,
       sideNav: DEFAULT_SIDE_NAV,
       dockStyle: DEFAULT_DOCK,
+      navIcons: DEFAULT_ICON_SET,
+      navColors: {},
       hero: { ...content.hero, frameShape: DEFAULT_FRAME, frameColor: "", frameScale: 100 },
       homeLayout: DEFAULT_HOME_LAYOUT,
     });
@@ -88,6 +96,10 @@ export default function AppearancePage() {
   /** إعدادات الإطار تعيش داخل hero، فتُدمج معه لا تستبدله. */
   const setHero = (patch: Record<string, unknown>) =>
     saveContent({ hero: { ...content.hero, ...patch } });
+
+  /** ألوان القائمة تُدمج فلا يمحو ضبطُ لونٍ لونًا آخر. */
+  const setNavColor = (patch: Record<string, string>) =>
+    saveContent({ navColors: { ...navColors, ...patch } });
 
   const pickSide = async (x: SideNavStyle) => {
     setBusy(x.id);
@@ -265,6 +277,80 @@ export default function AppearancePage() {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {tab === "side" && (
+        <div className="mb-5 grid gap-4 lg:grid-cols-2">
+          <Card>
+            <p className="font-display mb-1 font-bold">أسلوب الأيقونات</p>
+            <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+              أسلوب واحد لكل القائمة — خلط الأساليب في شريط واحد أكثر ما يُفسد اتّساق الواجهة.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {ICON_SETS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => void saveContent({ navIcons: o.id })}
+                  title={o.hint}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                    iconSet === o.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  {o.name}
+                </button>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <p className="font-display mb-3 font-bold">ألوان القائمة</p>
+            <div className="grid gap-3">
+              {([
+                { key: "panel", label: "خلفية اللوح" },
+                { key: "icon", label: "الأيقونات والعناوين" },
+                { key: "active", label: "العنصر النشط" },
+              ] as const).map((row) => (
+                <div key={row.key} className="flex flex-wrap items-center gap-2">
+                  <span className="w-32 shrink-0 text-xs font-semibold text-muted-foreground">{row.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => void setNavColor({ [row.key]: "" })}
+                    className={`rounded-full border px-3 py-1 text-[10px] font-bold transition ${
+                      !navColors[row.key] ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    الثيم
+                  </button>
+                  {SWATCH.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-label={c}
+                      onClick={() => void setNavColor({ [row.key]: c })}
+                      className={`size-7 rounded-lg border transition ${
+                        navColors[row.key]?.toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
+                      }`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                  <label
+                    className="grid size-7 cursor-pointer place-items-center rounded-lg border border-dashed border-border"
+                    style={{ background: navColors[row.key] || "transparent" }}
+                    title="لون مخصّص"
+                  >
+                    <input
+                      type="color"
+                      className="size-0 opacity-0"
+                      value={navColors[row.key] || "#233b8b"}
+                      onChange={(e) => void setNavColor({ [row.key]: e.target.value })}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       )}
 

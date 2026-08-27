@@ -919,6 +919,36 @@ body {
   text-align: center;
 }
 
+/* ---------- ألوان القائمة المضبوطة من اللوحة ---------- */
+/* الفارغ لا يُكتب أصلاً، فتسقط القاعدة ويرث العنصر لون الثيم. */
+.student-skin aside { background-color: var(--nav-panel, hsl(var(--primary))); }
+.sn-panel-glass aside,
+.sn-panel-outline aside { background-color: var(--nav-panel, transparent); }
+
+.student-skin aside .sn-icon svg,
+.student-skin aside nav a { color: var(--nav-icon, inherit); }
+
+.student-skin aside .sn-mark {
+  background-color: var(--nav-active, hsl(var(--gold) / 0.16));
+}
+.sn-active-bar aside .sn-mark,
+.sn-active-underline aside .sn-mark,
+.sn-active-dot aside .sn-mark { background-color: var(--nav-active, hsl(var(--gold))); }
+
+.student-skin aside a.text-primary,
+.student-skin aside a.text-primary span { color: var(--nav-active, hsl(var(--gold))); }
+
+/* ---------- أسلوب الأيقونات ---------- */
+.ic-line aside .sn-icon svg { stroke-width: 1.4; fill: none; }
+.ic-bold aside .sn-icon svg { stroke-width: 2.2; fill: none; }
+.ic-filled aside .sn-icon svg { stroke-width: 0; fill: currentColor; }
+.ic-duo aside .sn-icon svg { stroke-width: 1.6; fill: currentColor; fill-opacity: 0.18; }
+
+.ic-line .app-tab svg { stroke-width: 1.4; }
+.ic-bold .app-tab svg { stroke-width: 2.2; }
+.ic-filled .app-tab svg { stroke-width: 0; fill: currentColor; }
+.ic-duo .app-tab svg { stroke-width: 1.6; fill: currentColor; fill-opacity: 0.18; }
+
 /* ============================================================
    القائمة السفلية (الهاتف)
    ============================================================ */
