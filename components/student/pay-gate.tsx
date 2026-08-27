@@ -40,7 +40,16 @@ export function PayGate({
 
   /* طلبات هذا الطالب — الخادم لا يرسل له غيرها أصلاً. */
   const mine = ((db?.payments ?? []) as PayRequest[]).filter((r) => r.userId === session?.uid);
-  const openOne = mine.find((r) => r.status === "pending");
+  /*
+    ما زال للطالب شأنٌ قائم؟
+    ------------------------------------------------------------------
+    كان يُبحث عن الطلب المعلّق وحده، فبعد القبول تعود شاشةُ اختيار الخطة
+    كأنّ شيئاً لم يكن — والطالبُ دفع فعلاً وكودُه ينتظره. فيُبحث أوّلاً
+    عن مقبولٍ لم يُستعمل كودُه، ثم عن معلّق.
+  */
+  const readyOne = mine.find((r) => r.status === "approved" && r.code && !r.redeemedAt);
+  const pendingOne = mine.find((r) => r.status === "pending");
+  const openOne = readyOne ?? pendingOne;
 
   const [plan, setPlan] = useState<SitePlan | null>(plans.length === 1 ? plans[0] : null);
   const [method, setMethod] = useState<PayMethod | null>(null);
@@ -109,7 +118,7 @@ export function PayGate({
   if (!done && openOne) {
     return (
       <div className="pay-gate" style={payColorVars(cfg.colors)}>
-        <Pending r={openOne} onClose={onDone} />
+        <Pending r={openOne} subject={subject} onClose={onDone} onRefresh={refresh} />
         <RecentList list={mine.filter((r) => r.id !== openOne.id)} />
       </div>
     );
@@ -394,7 +403,7 @@ export function PayGate({
         {/* ---------- ٤ · النتيجة ---------- */}
         {step === 3 && done && (
           <Step key="done">
-            <Pending r={done} onClose={onDone} />
+            <Pending r={done} subject={subject} onClose={onDone} onRefresh={refresh} />
           </Step>
         )}
       </AnimatePresence>
@@ -455,9 +464,43 @@ function Row({
 }
 
 /** حالة الطلب — ما بعد الإرسال. */
-function Pending({ r, onClose }: { r: PayRequest; onClose: () => void }) {
+function Pending({
+  r, subject, onClose, onRefresh,
+}: {
+  r: PayRequest;
+  subject?: Subject;
+  onClose: () => void;
+  onRefresh?: () => Promise<void>;
+}) {
   const ok = r.status === "approved";
   const no = r.status === "rejected";
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [used, setUsed] = useState(Boolean(r.redeemedAt));
+
+  /* التفعيل من مكانه — الكودُ أمامه، فلا يُطلب منه نسخُه ونقلُه. */
+  const activate = async () => {
+    if (!r.code) return;
+    setErr(null);
+    setBusy(true);
+    const res = await fetch("/api/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: r.code,
+        subjectId: subject?.id ?? (r.subjectId && !/^(\*|T[12])$/.test(r.subjectId) ? r.subjectId : undefined),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      if (/مستخدم|منته/.test(data.error ?? "")) { setUsed(true); return; }
+      setErr(data.error || "تعذّر التفعيل");
+      return;
+    }
+    setUsed(true);
+    await onRefresh?.();
+  };
   return (
     <div
       className={`flex flex-col items-center gap-3 rounded-2xl border p-6 text-center ${
@@ -478,9 +521,27 @@ function Pending({ r, onClose }: { r: PayRequest; onClose: () => void }) {
             : "وصل طلبك للمشرفة. سيصلك كود التفعيل في الإشعارات فور مراجعة التحويل."}
       </p>
       {ok && r.code && (
-        <p className="rounded-xl bg-white/70 px-4 py-2 font-mono text-base font-extrabold tracking-wider text-emerald-700 dark:bg-black/30 dark:text-emerald-300">
-          {r.code}
-        </p>
+        <>
+          <p className="rounded-xl bg-white/70 px-4 py-2 font-mono text-base font-extrabold tracking-wider text-emerald-700 dark:bg-black/30 dark:text-emerald-300">
+            {r.code}
+          </p>
+          {used ? (
+            <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+              تم التفعيل ✓
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={activate}
+              disabled={busy}
+              className="btn-glow inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            >
+              {busy ? <IconSpinner className="size-4 animate-spin" /> : <IconCheckCircle className="size-4" />}
+              فعّل الآن
+            </button>
+          )}
+          {err && <span className="text-[11px] font-bold text-rose-500">{err}</span>}
+        </>
       )}
       <p className="text-[11px] text-muted-foreground">
         {r.planName} · {r.amount.toLocaleString("ar-EG")} ج.م · <span className="font-mono">{r.id}</span>

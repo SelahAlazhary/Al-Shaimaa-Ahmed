@@ -23,6 +23,7 @@ import { useContent } from "@/components/content/content-provider";
 import { PayGate } from "@/components/student/pay-gate";
 import { cleanPrefix, gatewayOn } from "@/lib/payments";
 import { plansFor } from "@/lib/plans";
+import { subjectActive } from "@/lib/access";
 
 export default function PayPage() {
   return (
@@ -62,6 +63,30 @@ function PayInner() {
   }, [noSubject, router]);
 
   if (loading || !db) return <StudentHomeSkeleton header statsInHeader cards={2} />;
+
+  /*
+    مشتركٌ بالفعل؟
+    ------------------------------------------------------------------
+    عرضُ شاشة الشراء على من يملك الكورس دعوةٌ لأن يدفع مرّتين — والصوابُ
+    أن يُقال له إنّه مشترك ويُفتح له بابُ الدرس.
+  */
+  if (subject && subjectActive(me, subject)) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-16 text-center">
+        <IconCheckCircle className="size-14 text-emerald-500" />
+        <p className="font-display text-xl font-extrabold">أنت مشترك في «{subject.name}»</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          اشتراكك ساري — لا حاجة للدفع مرّة أخرى.
+        </p>
+        <Link
+          href={`/student/course/${subject.id}`}
+          className="btn-glow mt-2 rounded-2xl px-6 py-2.5 text-sm font-bold text-white"
+        >
+          ادخل الكورس
+        </Link>
+      </Card>
+    );
+  }
 
   if (!subject) {
     return (
