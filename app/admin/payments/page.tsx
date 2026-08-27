@@ -525,6 +525,7 @@ function BotTab() {
   const [token, setToken] = useState("");
   const [chatId, setChatId] = useState("");
   const [newId, setNewId] = useState("");
+  const [checks, setChecks] = useState<{ key: string; ok: boolean; label: string; detail?: string }[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "warn" | "err"; text: string } | null>(null);
 
@@ -537,6 +538,21 @@ function BotTab() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  /* الفحص يعرض قائمةً لا رسالةً — «لا يعمل» ليس تشخيصاً. */
+  const diagnose = async () => {
+    setBusy("diag");
+    setMsg(null);
+    const res = await fetch("/api/telegram", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "diagnose" }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(null);
+    if (!res.ok) { setMsg({ kind: "err", text: data.error || "تعذّر الفحص" }); return; }
+    setChecks(data.checks ?? []);
+  };
 
   const call = async (body: Record<string, unknown>, key: string) => {
     setBusy(key);
@@ -611,6 +627,15 @@ function BotTab() {
           </button>
           <button
             type="button"
+            disabled={busy !== null}
+            onClick={() => void diagnose()}
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-border px-4 py-2.5 text-xs font-bold disabled:opacity-60"
+          >
+            {busy === "diag" ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+            فحص الربط
+          </button>
+          <button
+            type="button"
             disabled={busy !== null || !state?.configured}
             onClick={() => call({ action: "test" }, "test")}
             className="inline-flex items-center gap-1.5 rounded-2xl border border-border px-4 py-2.5 text-xs font-bold disabled:opacity-60"
@@ -648,6 +673,23 @@ function BotTab() {
           }`}>
             {msg.text}
           </p>
+        )}
+
+        {checks && (
+          <ul className="mt-4 grid gap-1.5">
+            {checks.map((c) => (
+              <li
+                key={c.key}
+                className={`flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 text-[11px] ${
+                  c.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600"
+                }`}
+              >
+                {c.ok ? <Check className="size-3.5 shrink-0" /> : <X className="size-3.5 shrink-0" />}
+                <span className="font-bold">{c.label}</span>
+                {c.detail && <span className="min-w-0 break-all opacity-80">— {c.detail}</span>}
+              </li>
+            ))}
+          </ul>
         )}
 
         {state?.fromEnv && (

@@ -167,6 +167,24 @@ export async function tgSetWebhook(url: string, secret: string, token?: string) 
   }, token);
 }
 
+/**
+ * حالة الويبهوك عند تليجرام نفسه.
+ * ------------------------------------------------------------------
+ * `last_error_message` هو الحقل الذي يحوّل «البوت لا يعمل» إلى سبب
+ * محدّد: شهادة مرفوضة، أو مسار يردّ ٤٠٤، أو مهلة انتهت. بدونه يبقى
+ * العطل تخميناً.
+ */
+export async function tgWebhookInfo(token?: string) {
+  return call<{
+    url: string;
+    has_custom_certificate: boolean;
+    pending_update_count: number;
+    last_error_date?: number;
+    last_error_message?: string;
+    ip_address?: string;
+  }>("getWebhookInfo", {}, token);
+}
+
 export async function tgDeleteWebhook(token?: string) {
   return call("deleteWebhook", { drop_pending_updates: true }, token);
 }

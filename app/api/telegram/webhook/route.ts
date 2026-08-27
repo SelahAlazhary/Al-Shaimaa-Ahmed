@@ -3,7 +3,7 @@ import { loadDB, getDB, saveDB, flushDB } from "@/lib/db";
 import {
   tgConfig, tgAllowed, tgAnswer, tgEdit, tgEditCaption, tgSend, payVerdictText, esc,
 } from "@/lib/telegram";
-import { decide } from "../../payments/route";
+import { decide, notifyStudent } from "../../payments/route";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -116,6 +116,13 @@ async function onCallback(q: Callback) {
 
   saveDB(db);
   await flushDB();
+
+  /*
+    إشعار جهاز الطالب كان في مسار اللوحة وحده، فمن يبتّ من تليجرام
+    يُنشئ الكود ولا يصل الطالبَ تنبيهٌ على جهازه — والمساران يُفترض
+    ألّا يفترقا في السلوك.
+  */
+  await notifyStudent(db, r, result.status);
 
   const text = payVerdictText(r, by);
   if (chatId && msgId) {

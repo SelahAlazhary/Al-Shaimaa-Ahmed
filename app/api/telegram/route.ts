@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { recordEvent } from "@/lib/security";
 import { can } from "@/lib/perms";
 import {
-  tgConfig, tgGetMe, tgSetWebhook, tgDeleteWebhook, tgSend, newWebhookSecret, siteUrl, esc, cleanTgId,
+  tgConfig, tgGetMe, tgSetWebhook, tgDeleteWebhook, tgWebhookInfo, tgSend, newWebhookSecret, siteUrl, esc, cleanTgId,
 } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +83,76 @@ export async function POST(req: Request) {
     saveDB(db);
     await flushDB();
     return NextResponse.json({ ok: true, configured: false });
+  }
+
+  /* ---- فحص الربط: يقول ما الناقص بالضبط لا «لا يعمل» ---- */
+  if (action === "diagnose") {
+    const c = tgConfig();
+    const base = siteUrl(req);
+    const want = base ? `${base}/api/telegram/webhook` : "";
+    const checks: { key: string; ok: boolean; label: string; detail?: string }[] = [];
+
+    checks.push({ key: "token", ok: Boolean(c.token), label: "توكن البوت مضبوط" });
+
+    let who: { ok: boolean; result?: { username: string }; error?: string } = { ok: false };
+    if (c.token) {
+      who = await tgGetMe();
+      checks.push({
+        key: "valid", ok: who.ok,
+        label: "التوكن صالح",
+        detail: who.ok ? `@${who.result?.username ?? ""}` : who.error,
+      });
+    }
+
+    checks.push({
+      key: "chat", ok: Boolean(c.chatId),
+      label: "معرّف محادثة التنبيهات مضبوط",
+      detail: c.chatId || "أرسل /start للبوت ليردّ بالمعرّف",
+    });
+
+    checks.push({
+      key: "allow", ok: c.allowedIds.length > 0 || Boolean(c.chatId),
+      label: "معرّف مسموح له واحد على الأقلّ",
+      detail: c.allowedIds.length
+        ? c.allowedIds.join("، ")
+        : c.chatId ? "محادثة التنبيهات وحدها" : "لا معرّفات — البوت لن يردّ على أحد",
+    });
+
+    checks.push({
+      key: "https", ok: /^https:\/\//i.test(base),
+      label: "الموقع يعمل بـHTTPS",
+      detail: base || "تعذّر تحديد عنوان الموقع",
+    });
+
+    if (c.token) {
+      const info = await tgWebhookInfo();
+      const url = info.result?.url ?? "";
+      checks.push({
+        key: "hook", ok: Boolean(url) && (!want || url === want),
+        label: "الويبهوك مسجَّل على هذا الموقع",
+        detail: !url
+          ? "غير مسجَّل — اضغط «حفظ وربط الويبهوك»"
+          : want && url !== want
+            ? `مسجَّل على عنوان آخر: ${url}`
+            : url,
+      });
+      if (info.result?.last_error_message) {
+        checks.push({
+          key: "error", ok: false,
+          label: "آخر خطأ أبلغ عنه تليجرام",
+          detail: info.result.last_error_message,
+        });
+      }
+      if ((info.result?.pending_update_count ?? 0) > 0) {
+        checks.push({
+          key: "queue", ok: false,
+          label: "تحديثات عالقة لم تصل المنصّة",
+          detail: String(info.result?.pending_update_count),
+        });
+      }
+    }
+
+    return NextResponse.json({ ok: checks.every((x) => x.ok), checks });
   }
 
   /* ---- المعرّفات المسموح لها ---- */

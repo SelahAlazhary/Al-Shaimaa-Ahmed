@@ -138,10 +138,18 @@ async function notifyTelegram(r: PayRequest, req: Request): Promise<PayRequest["
     { text: "✅ قبول", callback_data: `pay:ok:${r.id}` },
     { text: "❌ رفض", callback_data: `pay:no:${r.id}` },
   ]];
-  /* الإيصال صورة: تُرسل صورةً ليراها المشرف في تليجرام بلا فتح رابط. */
-  const res = r.receipt && url
-    ? await tgSendPhoto(absolute(r.receipt, url), text, { buttons })
-    : await tgSend(text, { buttons });
+  /*
+    الإيصال صورة: تُرسل صورةً ليراها المشرف بلا فتح رابط. لكن تليجرام
+    يجلب الصورة بنفسه من الرابط، وقد يعجز عنه (استضافة تتطلّب تحويلاً،
+    أو ملفّاً أكبر ممّا يقبله). كان فشلُ الصورة يعني ألّا يصل تنبيهٌ
+    إطلاقاً — والطلبُ ينتظر بلا أن يعلم به أحد. فإن فشلت الصورة تُرسل
+    الرسالة نصّاً ومعها رابط الإيصال.
+  */
+  if (r.receipt && url) {
+    const photo = await tgSendPhoto(absolute(r.receipt, url), text, { buttons });
+    if (photo.ok) return "sent";
+  }
+  const res = await tgSend(text, { buttons });
   return res.ok ? "sent" : "failed";
 }
 
@@ -262,7 +270,7 @@ export function decide(
 }
 
 /** إشعار جهاز الطالب — تنبيه إضافي فوق إشعار المنصّة، وفشله لا يهمّ. */
-async function notifyStudent(db: DB, r: PayRequest, status: PayRequestStatus) {
+export async function notifyStudent(db: DB, r: PayRequest, status: PayRequestStatus) {
   const user = db.users.find((u) => u.id === r.userId);
   if (!user) return;
   await sendToUsers([user], {
