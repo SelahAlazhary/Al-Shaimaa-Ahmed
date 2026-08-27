@@ -1,0 +1,119 @@
+import "server-only";
+import { getDB } from "./db";
+import { sendToUsers } from "./push";
+import { targetName, newActivationCode } from "./payments";
+import type { DB, PayRequest, PayRequestStatus, Code, Notification } from "./types";
+
+/**
+ * البتّ في طلب الدفع — قبولاً أو رفضاً.
+ * ------------------------------------------------------------------
+ * مكتبةٌ لا مسار، لأن مساريْن ينادياها: لوحة الإدارة وويبهوك تليجرام.
+ * وضعُها في ملف `route` كان يجعل أحدهما يستورد من الآخر، فيعتمد على
+ * تفصيل داخلي في تغليف المسارات لا على واجهة معلَنة.
+ *
+ * تُعدّل الطلب في مكانه وتُنشئ الكود والإشعار؛ والحفظ على المستدعي —
+ * فيحفظ مرّة واحدة مهما تعدّدت التعديلات.
+ */
+
+const MAX_NOTE = 400;
+
+function now() {
+  return new Date().toISOString();
+}
+
+function clip(v: unknown, max: number): string {
+  return String(v ?? "").trim().slice(0, max);
+}
+
+export function decide(
+  r: PayRequest,
+  action: string,
+  body: { code?: unknown; reason?: unknown },
+  by: string
+): { ok: true; status: PayRequestStatus } | { error: string } {
+  const db = getDB();
+
+  if (action === "approve") {
+    const cfg = db.content.payments;
+    const manual = clip(body.code, 40).toUpperCase();
+    const taken = new Set(db.codes.map((c) => c.code));
+    if (manual && taken.has(manual)) return { error: "هذا الكود مستخدم بالفعل" };
+
+    const code = manual || (cfg?.autoCode === false ? "" : newActivationCode(taken, db.content.codePrefix));
+    if (!code) return { error: "اكتب كود التفعيل — التوليد التلقائي مطفأ" };
+
+    const target = r.subjectId || "*";
+    const plan = db.plans.find((p) => p.id === r.planId);
+    const fresh: Code = {
+      code,
+      planId: r.planId,
+      planName: r.planName,
+      plan: plan?.kind === "term" ? "ترم" : "شهر",
+      subjectId: target,
+      subjectName: r.subjectName ?? targetName(target, db.subjects),
+      status: "متاح",
+      createdAt: now().slice(0, 10),
+      payId: r.id,
+    };
+    db.codes = [fresh, ...db.codes];
+
+    r.status = "approved";
+    r.code = code;
+    r.handledAt = now();
+    r.handledBy = by;
+    r.readByAdmin = true;
+
+    pushNotification(db, {
+      title: "تم قبول تحويلك ✅",
+      body: `تم قبول تحويلك لخطة «${r.planName}». هذا كود التفعيل — فعّله بضغطة واحدة.`,
+      userId: r.userId,
+      link: "/student/subjects",
+      code,
+      codeSubjectId: target === "*" || /^T[12]$/.test(target) ? undefined : target,
+    });
+    return { ok: true, status: "approved" };
+  }
+
+  if (action === "reject") {
+    const reason = clip(body.reason, MAX_NOTE);
+    r.status = "rejected";
+    r.reason = reason || "بيانات التحويل غير مطابقة";
+    r.handledAt = now();
+    r.handledBy = by;
+    r.readByAdmin = true;
+
+    pushNotification(db, {
+      title: "لم يُقبل التحويل",
+      body: r.reason,
+      userId: r.userId,
+      link: "/student/subjects",
+    });
+    return { ok: true, status: "rejected" };
+  }
+
+  return { error: "إجراء غير معروف" };
+}
+
+function pushNotification(db: DB, n: Omit<Notification, "id" | "createdAt">) {
+  db.notifications = [
+    { id: `N-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`, createdAt: now(), ...n },
+    ...db.notifications,
+  ].slice(0, 500);
+}
+
+/**
+ * إشعار جهاز الطالب بحصيلة البتّ.
+ * تنبيهٌ إضافي فوق إشعار المنصّة — فشلُه لا يُسقط شيئاً، والإشعار
+ * داخل المنصّة يبقى هو المصدر.
+ */
+export async function notifyStudent(db: DB, r: PayRequest, status: PayRequestStatus) {
+  const user = db.users.find((u) => u.id === r.userId);
+  if (!user) return;
+  await sendToUsers([user], {
+    title: status === "approved" ? "تم قبول تحويلك ✅" : "لم يُقبل التحويل",
+    body: status === "approved"
+      ? `كود تفعيل «${r.planName}»: ${r.code}`
+      : r.reason || "راجع بيانات التحويل ثم أعد الإرسال",
+    url: "/student/subjects",
+  }).catch(() => { /* الإشعار تنبيه لا شرط */ });
+}

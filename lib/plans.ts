@@ -179,3 +179,31 @@ export function resolvePlan(
   const subject = subjects.find((s) => s.id === m[1]);
   return subject ? coursePricePlans(subject).find((p) => p.id === id) : undefined;
 }
+
+/**
+ * خطط الشراء المعروضة لهذا الطالب في هذا السياق.
+ * ------------------------------------------------------------------
+ * خيارات سعر الكورس أوّلاً (الأقرب إليه) ثم خطط المنصّة التي تشمله.
+ * بلا كورس — كصفحة الدفع العامّة — تُعرض خطط «كل المواد» والفصول.
+ *
+ * مصدر واحد يستخدمه صندوق الشراء وصفحة الدفع، فلا تفترق القائمتان.
+ */
+export function plansFor(
+  subject: { id: string; name: string; term?: TermNo; prices?: CoursePrice[] } | undefined,
+  plans: SitePlan[],
+  student: StudentProfile | null | undefined
+): SitePlan[] {
+  const own = subject ? coursePricePlans(subject) : [];
+  const site = plans
+    .filter((p) => {
+      if (!planForStudent(p, student)) return false;
+      if (!subject) return p.scope === "all" || p.scope === "term";
+      return (
+        p.scope === "all" ||
+        (p.scope === "term" && p.termNo === (subject.term ?? 1)) ||
+        p.subjectId === subject.id
+      );
+    })
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.price - b.price);
+  return [...own, ...site];
+}

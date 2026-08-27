@@ -35,6 +35,23 @@ export function normalizeDigits(v: string): string {
   return (v ?? "").replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 }
 
+/**
+ * هل تعمل بوّابة الدفع؟
+ * ------------------------------------------------------------------
+ * البوّابة بلا طريقة دفع واحدة شاشةٌ فارغة يقف عندها الطالب، فوجودُ
+ * طريقةٍ مفعَّلة شرطٌ لعملها لا مجرّد تحسين.
+ *
+ * والتشغيل قرارٌ صريح من اللوحة: لا تعمل البوّابة بمجرّد إضافة طريقة،
+ * ولا تُفاجئ الطالبَ بمسار شراءٍ لم يُراجَع بعد.
+ */
+export function gatewayOn(cfg?: { enabled?: boolean; methods?: PayMethod[] }): boolean {
+  /* التفعيل قرارٌ صريح — لا تعمل البوّابة حتى تُشغَّل من اللوحة. */
+  if (cfg?.enabled !== true) return false;
+  /* ومفعَّلةً بلا طريقة دفع تبقى شاشةً فارغة يقف عندها الطالب، فيعود
+     الشراء إلى واتساب حتى تُضاف طريقة واحدة على الأقلّ. */
+  return activeMethods(cfg.methods).length > 0;
+}
+
 /** الطرق المعروضة للطالب — المفعَّلة وحدها، مرتّبة. */
 export function activeMethods(list: PayMethod[] | undefined): PayMethod[] {
   return (list ?? [])

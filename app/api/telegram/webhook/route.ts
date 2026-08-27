@@ -3,7 +3,7 @@ import { loadDB, getDB, saveDB, flushDB } from "@/lib/db";
 import {
   tgConfig, tgAllowed, tgAnswer, tgEdit, tgEditCaption, tgSend, payVerdictText, esc,
 } from "@/lib/telegram";
-import { decide, notifyStudent } from "../../payments/route";
+import { decide, notifyStudent } from "@/lib/pay-decide";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

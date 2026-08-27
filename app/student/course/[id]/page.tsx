@@ -124,7 +124,7 @@ export default function CoursePlayer({ params }: { params: Promise<{ id: string 
                     <span className="grid size-14 place-items-center rounded-2xl bg-white/10 text-white"><IconLock className="size-7" /></span>
                     <p className="font-display text-lg font-extrabold text-white">هذا الكورس غير مُفعّل</p>
                     <p className="max-w-xs text-sm text-white/70">اشترك شهرياً في هذا الكورس أو خُذ الترم الكامل لمشاهدة كل الدروس.</p>
-                    <Link href="/student/subjects" className="rounded-full btn-glow px-5 py-2 text-xs font-bold text-white">خيارات الاشتراك</Link>
+                    <Link href={`/student/pay?subject=${subject.id}`} className="rounded-full btn-glow px-5 py-2 text-xs font-bold text-white">خيارات الاشتراك</Link>
                   </div>
                 </div>
               ) : embed?.kind === "video" ? (

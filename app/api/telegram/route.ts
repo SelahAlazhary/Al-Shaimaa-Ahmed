@@ -174,7 +174,8 @@ export async function POST(req: Request) {
   }
 
   /* ---- حفظ التوكن ومعرّف المحادثة ثم تسجيل الويبهوك ---- */
-  const token = String(body.token ?? "").trim() || current.token || "";
+  /* التوكن من متغيّر البيئة صالحٌ لتسجيل الويبهوك — بدونه لا يُسجَّل أبداً. */
+  const token = String(body.token ?? "").trim() || current.token || (process.env.TELEGRAM_BOT_TOKEN ?? "").trim();
   const chatId = cleanTgId(String(body.chatId ?? "")) || current.chatId || "";
   if (!token) return NextResponse.json({ error: "الصق توكن البوت من BotFather" }, { status: 400 });
 

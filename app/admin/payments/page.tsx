@@ -17,7 +17,7 @@ import { useContent } from "@/components/content/content-provider";
 import { PAY_STYLES, findPayStyle, DEFAULT_PAY_STYLE, PAY_KINDS, type PayStyle } from "@/lib/pay-styles";
 import { PayPreview } from "@/components/admin/skin-preview";
 import { findSkin } from "@/lib/skins";
-import { numberLabel, STATUS_LABEL } from "@/lib/payments";
+import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods } from "@/lib/payments";
 import type { PayMethod, PayRequest, PayMethodKind } from "@/lib/types";
 
 type Tab = "inbox" | "methods" | "bot" | "design";
@@ -66,6 +66,7 @@ export default function PaymentsAdmin() {
   const pending = requests.filter((r) => r.status === "pending");
   const skin = findSkin(content.studentSkin);
   const style = findPayStyle(cfg.style);
+  const on = gatewayOn(cfg);
 
   const setCfg = (patch: Record<string, unknown>) => saveContent({ payments: { ...cfg, ...patch } });
   const setMethods = (list: PayMethod[]) => setCfg({ methods: list });
@@ -82,9 +83,9 @@ export default function PaymentsAdmin() {
         <StatCard label="طرق دفع مفعّلة" value={methods.filter((m) => m.active).length.toLocaleString("ar-EG")} icon={<Wallet className="size-5" />} index={1} />
         <StatCard
           label="حالة البوّابة"
-          value={cfg.enabled ? "تعمل" : "مطفأة"}
+          value={on ? "تعمل" : cfg.enabled !== true ? "مطفأة" : "بلا طرق دفع"}
           icon={<ShieldCheck className="size-5" />}
-          tone={cfg.enabled ? "emerald" : "primary"}
+          tone={on ? "emerald" : "primary"}
           index={2}
         />
       </div>
@@ -393,12 +394,13 @@ function MethodsTab({
       <Card className="mb-5">
         <p className="font-display mb-1 font-bold">إعدادات البوّابة</p>
         <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
-          البوّابة مطفأة = يبقى الشراء عبر واتساب كما كان. تشغيلها يجعل الطالب
-          يختار الخطة ثم طريقة الدفع ثم يرفع إيصال التحويل داخل المنصّة.
+          مطفأةً يبقى الشراء عبر واتساب كما كان. شغّلها ليختار الطالب الخطة ثم
+          طريقة الدفع ثم يرفع إيصال التحويل داخل المنصّة — وتحتاج طريقة دفع
+          مفعّلة واحدة على الأقلّ لتظهر له.
         </p>
 
         <div className="grid gap-3">
-          <Toggle label="تشغيل بوّابة الدفع" hint="تظهر للطالب عند شراء أي كورس" on={cfg.enabled === true} onChange={(v) => setCfg({ enabled: v })} />
+          <Toggle label="تشغيل بوّابة الدفع" hint="مطفأةً يبقى الشراء عبر واتساب — تحتاج طريقة دفع مفعّلة واحدة على الأقلّ" on={cfg.enabled === true} onChange={(v) => setCfg({ enabled: v })} />
           <Toggle label="إلزام صورة الإيصال" hint="لا يُقبل الطلب بلا صورة تحويل" on={cfg.requireReceipt !== false} onChange={(v) => setCfg({ requireReceipt: v })} />
           <Toggle label="إلزام اسم/رقم المُحوِّل" hint="يسهّل مطابقة التحويل بكشف الحساب" on={cfg.requireSender !== false} onChange={(v) => setCfg({ requireSender: v })} />
           <Toggle label="توليد كود التفعيل تلقائياً" hint="عند القبول يُولَّد كود ويصل الطالب فوراً" on={cfg.autoCode !== false} onChange={(v) => setCfg({ autoCode: v })} />
