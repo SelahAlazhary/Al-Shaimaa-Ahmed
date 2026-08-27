@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet, Sparkles } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -19,7 +19,9 @@ import {
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview, PlansPreview,
+  HeroStylePreview,
 } from "@/components/admin/skin-preview";
+import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
 import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, type ToolbarStyle } from "@/lib/toolbar-styles";
 import { TILE_STYLES, findTile, DEFAULT_TILE, type TileStyle } from "@/lib/tile-styles";
@@ -35,7 +37,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -50,6 +52,7 @@ export default function AppearancePage() {
   const tile = findTile(content.tileStyle);
   const bar = findToolbar(content.toolbarStyle);
   const plansStyle = findPlansStyle(content.plansStyle);
+  const heroStyle = findHeroStyle(content.heroStyle);
   const tileColors = content.tileColors ?? {};
   const side = findSideNav(content.sideNav);
   const dock = findDock(content.dockStyle);
@@ -122,6 +125,11 @@ export default function AppearancePage() {
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
     },
+    hero: {
+      label: "قسم الهيرو",
+      isDefault: heroStyle.id === DEFAULT_HERO_STYLE,
+      patch: () => ({ heroStyle: DEFAULT_HERO_STYLE }),
+    },
     plans: {
       label: "قسم الخطط",
       isDefault: plansStyle.id === DEFAULT_PLANS_STYLE,
@@ -172,6 +180,12 @@ export default function AppearancePage() {
   const pickDock = async (x: DockStyle) => {
     setBusy(x.id);
     await saveContent({ dockStyle: x.id });
+    setBusy(null);
+  };
+
+  const pickHero = async (x: HeroStyle) => {
+    setBusy(x.id);
+    await saveContent({ heroStyle: x.id });
     setBusy(null);
   };
 
@@ -270,6 +284,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "mobile"} onClick={() => setTab("mobile")} icon={<Smartphone className="size-4" />}>
           تنسيق الهاتف ({MOBILE_LAYOUTS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "hero"} onClick={() => setTab("hero")} icon={<Sparkles className="size-4" />}>
+          قسم الهيرو ({HERO_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "plans"} onClick={() => setTab("plans")} icon={<Wallet className="size-4" />}>
           قسم الخطط ({PLANS_STYLES.length.toLocaleString("ar-EG")})
@@ -664,6 +681,40 @@ export default function AppearancePage() {
                 }`}
               >
                 <MobilePreview mobile={x} skin={skin} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{x.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  </div>
+                  {busy === x.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "hero" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {HERO_STYLES.map((x) => {
+            const on = x.id === heroStyle.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => pickHero(x)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <HeroStylePreview style={x} skin={skin} />
                 <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{x.name}</p>

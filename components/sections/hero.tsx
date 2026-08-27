@@ -26,6 +26,7 @@ import { HeroFrame } from "@/components/sections/hero-frame";
 import { useContent } from "@/components/content/content-provider";
 import { el, isHidden, btnStyle, textStyle } from "@/lib/ui-style";
 import type { HeroShape } from "@/lib/home-layouts";
+import { findHeroStyle, heroClass } from "@/lib/hero-styles";
 
 /** يحوّل رابط يوتيوب إلى صيغة تضمين للنافذة المنبثقة. */
 function toEmbedSrc(url?: string): string | undefined {
@@ -39,6 +40,8 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
   const { content, session } = useContent();
   const router = useRouter();
   const t = content.teacher;
+  /* هيئة الهيرو — مستقلّة عن موضعه الذي يحدّده تخطيط الصفحة. */
+  const HS = findHeroStyle(content.heroStyle);
   const [videoOpen, setVideoOpen] = useState(false);
   const [freeSrc, setFreeSrc] = useState<string | undefined>(undefined);
   const [freeErr, setFreeErr] = useState<string | null>(null);
@@ -75,10 +78,10 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
   };
 
   return (
-    <section id="hero" className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28">
-      <ArabicTextBackdrop count={28} seed={5} fade="top" opacity={0.5} tone="text-primary/22" />
-      <KuficBackdrop density={42} opacity={0.2} fade="top" tone="text-primary/10" />
-      <HarakatField count={14} seed={11} tone="text-accent/30" />
+    <section id="hero" className={`relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 ${heroClass(HS)}`}>
+      <span className="hero-decor-text"><ArabicTextBackdrop count={28} seed={5} fade="top" opacity={0.5} tone="text-primary/22" /></span>
+      <span className="hero-decor"><KuficBackdrop density={42} opacity={0.2} fade="top" tone="text-primary/10" /></span>
+      <span className="hero-decor hero-decor-extra"><HarakatField count={14} seed={11} tone="text-accent/30" /></span>
 
       <div
         className={`container grid items-center gap-14 ${
@@ -99,13 +102,14 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
         >
           {/* علامة مائية: حرف الضاد خلف النص */}
           <DaadGlyph
+            data-decor="extra"
             size={300}
             gold
             className="pointer-events-none absolute -top-16 right-[-4rem] -z-10 hidden opacity-[0.07] lg:block"
           />
 
           {content.hero.statusPill?.trim() && !isHidden(content, "hero.statusPill") && (
-            <Pill className="font-kufi mx-auto border-accent/40 bg-accent/10 text-[11px] tracking-wide text-foreground lg:mx-0">
+            <Pill className="hero-pill font-kufi mx-auto border-accent/40 bg-accent/10 text-[11px] tracking-wide text-foreground lg:mx-0">
               <span className="grid size-4 place-items-center rounded-full bg-accent/25">
                 <span className="size-1.5 rounded-full bg-accent" />
               </span>
@@ -114,7 +118,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
           )}
 
           {/* «الشيماء أحمد في اللغة العربية» — الاسم مذهّب والباقي بلون النص */}
-          <h1 className="mt-7 font-display text-[2.6rem] font-bold leading-[1.42] [text-wrap:balance] sm:text-[3.2rem] sm:leading-[1.38] md:text-[3.9rem] md:leading-[1.34]">
+          <h1 className="hero-title mt-7 font-display text-[2.6rem] font-bold leading-[1.42] [text-wrap:balance] sm:text-[3.2rem] sm:leading-[1.38] md:text-[3.9rem] md:leading-[1.34]">
             <span className="text-gradient">{t.name}</span>
             {t.headline ? ` ${t.headline} ` : " "}
             {t.subject}
@@ -134,7 +138,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
             whileHover="hover"
             /* items-stretch: الزرّان يتساويان في الارتفاع رغم اختلاف
                ارتفاع محتواهما (الأيقونة أطول من سطر النصّ) */
-            className={`mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${
+            className={`hero-actions mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${
               shape === "centered" || shape === "compact" || shape === "stacked" ? "" : "lg:justify-start"
             }`}
           >

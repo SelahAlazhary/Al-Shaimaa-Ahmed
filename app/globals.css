@@ -955,37 +955,66 @@ body {
 .student-skin aside nav a .sn-keep { font-weight: 700; }
 
 /* ============================================================
-   شريط الصفحة الرئيسية — يتبع تصاميم شريط الأدوات نفسها
+   شريط الصفحة الرئيسية
    ------------------------------------------------------------
-   الأصناف نفسها (tb-*) تخدم شريطين: شريط لوحة التحكّم وشريط الصفحة
-   الرئيسية. قاعدة واحدة لكل منهما بدل سجلّين منفصلين يتباعدان مع الوقت.
+   كل سطح يتحكّم في الشكل كلّه لا في اللون وحده: أصناف الهوية
+   (.glass و.foil وshadow-bento والكبسولة) تُصفَّر أولاً ثم يبني كل
+   تصميم شكله. بغير ذلك تبقى الحلقة الذهبية والكبسولة في كل التصاميم
+   فتتشابه رغم اختلاف خلفياتها — وهو ما وقع فعلاً.
    ============================================================ */
+
+/* تصفير مشترك — يسبق كل التصاميم */
+.site-bar {
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---------- مصمت: شريط بعرض الشاشة ملتصق بالأعلى ---------- */
+.tb-surface-solid .site-bar-wrap { top: 0; padding-inline: 0; }
 .tb-surface-solid .site-bar {
-  background: hsl(var(--card)) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  max-width: none;
+  border-radius: 0;
+  background: hsl(var(--card));
+  padding-inline: 1.5rem;
+  box-shadow: 0 1px 0 hsl(var(--border));
 }
+
+/* ---------- زجاجي: كبسولة عائمة مضبّبة ---------- */
 .tb-surface-glass .site-bar {
-  background: hsl(var(--card) / 0.6) !important;
-  backdrop-filter: blur(20px) saturate(1.5);
-  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  background: hsl(var(--card) / 0.55);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow: 0 14px 34px -22px hsl(var(--primary) / 0.7);
 }
+
+/* ---------- مفرَّغ: بلا خلفية، حدّ رفيع فقط ---------- */
 .tb-surface-outline .site-bar {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: inset 0 0 0 1.5px hsl(var(--border)) !important;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--border));
 }
+
+/* ---------- متدرّج ---------- */
 .tb-surface-gradient .site-bar {
-  background: linear-gradient(100deg, hsl(var(--card)), hsl(var(--muted))) !important;
+  background: linear-gradient(100deg, hsl(var(--card)), hsl(var(--muted)));
+  box-shadow: inset 0 0 0 1px hsl(var(--gold) / 0.35);
 }
+
+/* ---------- بطاقة عائمة: منفصلة بظلّ قويّ وحوافّ أهدأ ---------- */
+.tb-surface-floating .site-bar-wrap { top: 1.25rem; }
 .tb-surface-floating .site-bar {
-  box-shadow: 0 22px 46px -26px hsl(var(--primary) / 0.85) !important;
+  border-radius: 1.25rem;
+  background: hsl(var(--card));
+  box-shadow: 0 26px 52px -24px hsl(var(--primary) / 0.9);
 }
+
+/* ---------- حبر: شريط داكن بعرض الشاشة ---------- */
+.tb-surface-ink .site-bar-wrap { top: 0; padding-inline: 0; }
 .tb-surface-ink .site-bar {
-  background: hsl(var(--primary)) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  max-width: none;
+  border-radius: 0;
+  padding-inline: 1.5rem;
+  background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
 }
 .tb-surface-ink .site-bar a,
@@ -993,22 +1022,89 @@ body {
 .tb-surface-ink .site-bar button { color: hsl(var(--primary-foreground)); }
 .tb-surface-ink .site-bar .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.7) !important; }
 
-/* الشكل: الكبسولة أو شريط بحوافّ أهدأ */
+/* ---------- الارتفاع ---------- */
 .tb-height-compact .site-bar { padding-block: 0.3rem; }
-.tb-height-tall .site-bar { padding-block: 0.85rem; }
-.tb-edge-none .site-bar { box-shadow: none !important; }
-.tb-edge-line .site-bar { box-shadow: inset 0 0 0 1px hsl(var(--border)) !important; }
-.tb-edge-gold .site-bar { box-shadow: inset 0 0 0 1.5px hsl(var(--gold) / 0.55) !important; }
+.tb-height-tall .site-bar { padding-block: 0.9rem; }
 
-/* الروابط في كبسولة داخلية */
+/* ---------- الفاصل ---------- */
+.tb-edge-gold .site-bar { box-shadow: inset 0 0 0 1.5px hsl(var(--gold) / 0.6); }
+.tb-edge-line .site-bar { box-shadow: inset 0 0 0 1px hsl(var(--border)); }
+.tb-edge-shadow .site-bar { box-shadow: 0 16px 36px -24px hsl(var(--primary) / 0.8); }
+.tb-edge-none .site-bar { box-shadow: none; }
+
+/* ---------- الروابط في كبسولة داخلية ---------- */
 .tb-grouped .site-bar-links {
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 9999px;
-  background: hsl(var(--muted) / 0.7);
+  background: hsl(var(--muted) / 0.75);
 }
-.tb-surface-ink.tb-grouped .site-bar-links {
-  background: hsl(var(--primary-foreground) / 0.12);
+.tb-surface-ink.tb-grouped .site-bar-links { background: hsl(var(--primary-foreground) / 0.14); }
+
+/* ============================================================
+   قسم الهيرو — تصميم مستقلّ عن موضعه
+   ------------------------------------------------------------
+   التخطيط يحدّد موضع الهيرو، وهذه الأصناف تحدّد هيئته.
+   ============================================================ */
+
+/* ---------- معالجة العنوان ---------- */
+/* الافتراضي متدرّج — البقية تُلغيه وتضع بديلها */
+.hs-title-solid .hero-title .text-gradient,
+.hs-title-outline .hero-title .text-gradient,
+.hs-title-underline .hero-title .text-gradient,
+.hs-title-mark .hero-title .text-gradient {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: hsl(var(--primary));
 }
+
+.hs-title-outline .hero-title .text-gradient {
+  color: transparent;
+  -webkit-text-stroke: 1.5px hsl(var(--primary));
+  paint-order: stroke fill;
+}
+
+.hs-title-underline .hero-title .text-gradient {
+  box-shadow: inset 0 -0.18em 0 hsl(var(--gold) / 0.45);
+}
+
+.hs-title-mark .hero-title .text-gradient {
+  background: hsl(var(--gold) / 0.22);
+  border-radius: 0.35em;
+  padding-inline: 0.2em;
+  color: hsl(var(--primary));
+}
+
+/* ---------- شارة الحالة ---------- */
+.hs-pill-none .hero-pill { display: none; }
+
+.hs-pill-plaque .hero-pill {
+  border-radius: 0;
+  clip-path: polygon(
+    0.7rem 0, calc(100% - 0.7rem) 0, 100% 0.7rem, 100% calc(100% - 0.7rem),
+    calc(100% - 0.7rem) 100%, 0.7rem 100%, 0 calc(100% - 0.7rem), 0 0.7rem
+  );
+  /* القصّ لا يحجز مساحة — يُبعَد النصّ عن الحافّة بقدره */
+  padding-inline: 1.15rem;
+}
+
+.hs-pill-dot .hero-pill {
+  border: 0;
+  background: transparent;
+  padding-inline: 0;
+  font-size: 0.75rem;
+}
+
+/* ---------- كثافة الزخرفة ---------- */
+.hs-decor-none .hero-decor,
+.hs-decor-none .hero-decor-text { display: none; }
+.hs-decor-soft .hero-decor-extra { display: none; }
+.hs-decor-text .hero-decor { display: none; }
+
+/* ---------- ترتيب الأزرار ---------- */
+.hs-btn-stack .hero-actions { flex-direction: column; align-items: stretch; }
+.hs-btn-stack .hero-actions > * { width: 100%; }
+.hs-btn-wide .hero-actions > * { flex: 1 1 0; }
 
 /* ============================================================
    قسم الخطط — تصميم مستقلّ

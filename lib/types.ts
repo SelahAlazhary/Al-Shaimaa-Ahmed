@@ -217,7 +217,8 @@ export type SiteContent = {
   navColors?: { panel?: string; icon?: string; text?: string; active?: string };
   /** تصميم بطاقات المؤشّرات وألوانها — مستقلّ عن الثيم. */
   toolbarStyle?: string;
-  /** تصميم قسم الخطط في الصفحة الرئيسية. */
+  /** تصاميم أقسام الصفحة الرئيسية — كلٌّ مستقلّ. */
+  heroStyle?: string;
   plansStyle?: string;
   tileStyle?: string;
   tileColors?: { bg?: string; bg2?: string; text?: string; icon?: string; accent?: string };

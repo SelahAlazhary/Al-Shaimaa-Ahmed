@@ -18,6 +18,7 @@ import type { FrameShape } from "@/lib/frame-shapes";
 import type { TileStyle, TileColors } from "@/lib/tile-styles";
 import type { ToolbarStyle } from "@/lib/toolbar-styles";
 import type { PlansStyle } from "@/lib/plans-styles";
+import type { HeroStyle } from "@/lib/hero-styles";
 
 const W = 160;
 const H = 108;
@@ -1142,6 +1143,130 @@ export function PlansPreview({ style, skin }: { style: PlansStyle; skin: Student
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة قسم الهيرو                                                  */
+/* ------------------------------------------------------------------ */
+
+export function HeroStylePreview({ style, skin }: { style: HeroStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const uid = useUid("hs");
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+
+  const pad = 8;
+  const colW = (W - pad * 2) * 0.55;
+  const imgX = pad + colW + 6;
+  const imgW = W - imgX - pad;
+
+  const stack = style.buttons === "stack";
+  const wide = style.buttons === "wide";
+  const btnW = stack || wide ? colW : colW * 0.45;
+
+  let y = 26;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={`${uid}-t`} x1={pad} y1="0" x2={pad + colW} y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={tone} />
+          <stop offset="100%" stopColor={gold} />
+        </linearGradient>
+        <pattern id={`${uid}-k`} width="10" height="10" patternUnits="userSpaceOnUse">
+          <path d="M2 8V2H5V5H8" fill="none" stroke={tone} strokeWidth="0.7" opacity="0.35" />
+        </pattern>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* الزخرفة بكثافتها */}
+      {(style.decor === "full" || style.decor === "soft") && (
+        <rect width={W} height={H * 0.7} fill={`url(#${uid}-k)`} opacity={style.decor === "full" ? 0.5 : 0.25} />
+      )}
+      {(style.decor === "full" || style.decor === "text") && (
+        <g fill={tone} opacity={0.09} fontSize="26" fontWeight="700">
+          <text x={W * 0.18} y={H * 0.45}>ض</text>
+          <text x={W * 0.62} y={H * 0.85}>ن</text>
+        </g>
+      )}
+      {style.decor === "full" && (
+        <circle cx={imgX + imgW / 2} cy={H * 0.45} r={30} fill="none" stroke={gold} strokeWidth="0.8" opacity={0.3} />
+      )}
+
+      {/* شريط علوي */}
+      <rect x={pad} y={6} width={W - pad * 2} height={7} rx={3.5} fill={hsl(v.card)} />
+
+      {/* الشارة */}
+      {style.pill !== "none" && (
+        <>
+          {style.pill === "capsule" && (
+            <rect x={pad} y={y} width={40} height={8} rx={4} fill={gold} opacity={0.18} />
+          )}
+          {style.pill === "plaque" && (
+            <path
+              d={`M${pad + 3} ${y} H${pad + 37} L${pad + 40} ${y + 3} V${y + 5} L${pad + 37} ${y + 8} H${pad + 3} L${pad} ${y + 5} V${y + 3} Z`}
+              fill={gold}
+              opacity={0.2}
+            />
+          )}
+          {style.pill === "dot" && <circle cx={pad + 3} cy={y + 4} r={2} fill={gold} />}
+          <rect x={pad + (style.pill === "dot" ? 8 : 5)} y={y + 3} width={22} height={2} rx={1} fill={tone} opacity={0.65} />
+        </>
+      )}
+
+      {/* العنوان بمعالجته */}
+      {(() => {
+        const ty = style.pill === "none" ? 28 : 44;
+        const tw = colW * 0.9;
+        return (
+          <g>
+            {style.title === "mark" && (
+              <rect x={pad - 1} y={ty - 6} width={tw * 0.62} height={11} rx={2.5} fill={gold} opacity={0.25} />
+            )}
+            <rect
+              x={pad}
+              y={ty - 4}
+              width={tw * 0.6}
+              height={7}
+              rx={2}
+              fill={style.title === "gradient" ? `url(#${uid}-t)` : style.title === "outline" ? "none" : tone}
+              stroke={style.title === "outline" ? tone : "none"}
+              strokeWidth={style.title === "outline" ? 1 : 0}
+            />
+            <rect x={pad} y={ty + 6} width={tw * 0.85} height={5} rx={2} fill={hsl(v.foreground, 0.4)} />
+            {style.title === "underline" && (
+              <rect x={pad} y={ty + 4.5} width={tw * 0.6} height={1.8} rx={0.9} fill={gold} />
+            )}
+          </g>
+        );
+      })()}
+
+      {/* النبذة */}
+      <rect x={pad} y={style.pill === "none" ? 46 : 62} width={colW * 0.95} height={3} rx={1.5} fill={hsl(v.foreground, 0.2)} />
+      <rect x={pad} y={style.pill === "none" ? 52 : 68} width={colW * 0.7} height={3} rx={1.5} fill={hsl(v.foreground, 0.2)} />
+
+      {/* الأزرار */}
+      {(() => {
+        const by = style.pill === "none" ? 62 : 78;
+        return stack ? (
+          <>
+            <rect x={pad} y={by} width={btnW} height={9} rx={4.5} fill={tone} />
+            <rect x={pad} y={by + 12} width={btnW} height={9} rx={4.5} fill="none" stroke={tone} strokeWidth={0.9} />
+          </>
+        ) : (
+          <>
+            <rect x={pad} y={by} width={btnW} height={9} rx={4.5} fill={tone} />
+            <rect x={pad + btnW + 4} y={by} width={btnW} height={9} rx={4.5} fill="none" stroke={tone} strokeWidth={0.9} />
+          </>
+        );
+      })()}
+
+      {/* الصورة */}
+      <rect x={imgX} y={26} width={imgW} height={H - 38} rx={6} fill={tone} opacity={0.75} />
+      <circle cx={imgX + imgW / 2} cy={H * 0.42} r={imgW * 0.22} fill="#fff" opacity={0.25} />
     </svg>
   );
 }

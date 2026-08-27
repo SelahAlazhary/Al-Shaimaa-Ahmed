@@ -43,7 +43,7 @@ export function Navbar() {
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.1 }}
-        className="fixed inset-x-0 top-4 z-[90] mx-auto flex justify-center px-4"
+        className="site-bar-wrap fixed inset-x-0 top-4 z-[90] mx-auto flex justify-center px-4"
       >
         <nav
           onMouseLeave={() => setHovered(null)}
