@@ -70,14 +70,14 @@ export default function CodesPage() {
           <div>
             <h3 className="font-display font-extrabold">بادئة كود التفعيل</h3>
             <p className="text-xs text-muted-foreground">
-              أوّل حروف كل كود قبل الشرطة. حروف وأرقام لاتينية فقط (من حرفين إلى ستّة).
+              أوّل حروف كل كود. حروف وأرقام لاتينية وشرطة (حتى عشرة رموز) — مثل EX-EG.
               الأكواد المولَّدة من قبل تبقى بصيغتها القديمة.
             </p>
           </div>
           <label className="flex items-center gap-2">
             <input
               defaultValue={prefix}
-              maxLength={6}
+              maxLength={10}
               dir="ltr"
               onBlur={(e) => void saveContent({ codePrefix: cleanPrefix(e.target.value) })}
               className="w-28 rounded-2xl border border-border bg-card/60 px-3 py-2 text-center font-mono text-sm uppercase outline-none focus:border-primary/50"
