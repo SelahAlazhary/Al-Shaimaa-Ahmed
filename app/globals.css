@@ -704,6 +704,69 @@ body {
 }
 
 /* ============================================================
+   تنسيقات الهاتف لبوابة الطالب
+   ------------------------------------------------------------
+   كلّها داخل نطاق الشاشات الصغيرة وحدها، فلا تمسّ سطح المكتب.
+   الأصناف تُوضع على غلاف البوابة وتسري بمحدّدات الأبناء — فلا
+   يحتاج كل مكوّن أن يعرف التنسيق المختار.
+   ============================================================ */
+@media (max-width: 1023.98px) {
+  /* ---- شريط التنقّل ---- */
+  .mb-nav-bar .app-dock { padding-inline: 0; padding-bottom: env(safe-area-inset-bottom); }
+  .mb-nav-bar .app-dock-inner { max-width: none; border-radius: 0; border-inline: 0; border-bottom: 0; }
+
+  .mb-nav-pill .app-dock-inner { max-width: 20rem; padding: 0.25rem; }
+  .mb-nav-pill .app-tab { min-height: 2.75rem; }
+  .mb-nav-pill .app-tab span:last-child { display: none; }
+
+  .mb-nav-icons .app-tab span:last-child { display: none; }
+  .mb-nav-icons .app-tab { min-height: 2.9rem; }
+
+  .mb-nav-labels .app-tab { min-height: 3.4rem; font-size: 0.66rem; }
+
+  /* ---- بطاقات الكورسات ---- */
+  /* wide: الصورة فوق والنصّ تحتها */
+  .mb-cards-wide .course-card { flex-direction: column; }
+  .mb-cards-wide .course-card > span:first-of-type { width: 100%; }
+
+  /* row: صفّ مضغوط بصورة صغيرة */
+  .mb-cards-row .course-card > span:first-of-type { width: 5rem; }
+  .mb-cards-row .course-card { padding: 0.6rem; }
+
+  /* two: عمودان */
+  .mb-cards-two .course-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .mb-cards-two .course-card { flex-direction: column; padding: 0.55rem; }
+  .mb-cards-two .course-card > span:first-of-type { width: 100%; }
+
+  /* ---- الكثافة ---- */
+  .mb-density-compact { font-size: 0.92rem; }
+  .mb-density-compact .app-scroll { padding: 0.75rem; }
+  .mb-density-roomy .app-scroll { padding: 1.25rem; }
+  .mb-density-roomy { font-size: 1.02rem; }
+
+  /* ---- ترحيب مصغّر ---- */
+  .mb-slim-header .student-header { padding: 0.9rem 1rem; border-radius: 1.25rem; }
+  .mb-slim-header .student-header h1 { font-size: 1.25rem; }
+  .mb-slim-header .student-header .student-header-extra { display: none; }
+
+  /* ---- تمرير المؤشّرات أفقياً بدل التفافها ---- */
+  .mb-scroll-stats .student-stats {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* شريط التمرير مخفيّ — الإيماءة كافية على اللمس */
+    scrollbar-width: none;
+  }
+  .mb-scroll-stats .student-stats::-webkit-scrollbar { display: none; }
+  .mb-scroll-stats .student-stats > * {
+    flex: 0 0 11rem;
+    scroll-snap-align: start;
+  }
+}
+
+/* ============================================================
    حركة الهوية المتّجهة (SVG)
    كل الحركات داخل no-preference — تتوقّف تماماً مع تقليل الحركة.
    ============================================================ */

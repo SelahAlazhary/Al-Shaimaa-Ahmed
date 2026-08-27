@@ -4,7 +4,7 @@ import { DashboardShell } from "@/components/dashboard/shell";
 import { studentNav } from "@/lib/dashboard-data";
 import { getSession } from "@/lib/session";
 import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
-import { findSkin, findLayout, skinVars } from "@/lib/skins";
+import { findSkin, findLayout, findMobile, mobileClass, skinVars } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
 
 export const dynamic = "force-dynamic";
@@ -26,14 +26,16 @@ export default async function StudentLayout({ children }: { children: ReactNode 
      المتصفّح بدل عشرين كتلة أنماط لا يُعرض منها إلا واحدة. */
   const skin = findSkin(pub.content?.studentSkin);
   const layout = findLayout(pub.content?.studentLayout);
+  const mobile = findMobile(pub.content?.studentMobile);
 
   return (
     <div
-      className="student-skin relative min-h-full"
+      className={`student-skin relative min-h-full ${mobileClass(mobile)}`}
       style={skinVars(skin)}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}
+      data-mobile={mobile.id}
     >
       <SkinOrnament id={skin.ornament} />
       <DashboardShell

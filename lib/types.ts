@@ -190,6 +190,7 @@ export type SiteContent = {
 
   studentSkin?: string;
   studentLayout?: string;
+  studentMobile?: string;
   /** تخطيط الواجهة الرئيسية (من lib/home-layouts.ts). */
   homeLayout?: string;
 

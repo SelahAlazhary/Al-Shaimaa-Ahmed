@@ -58,24 +58,28 @@ export default function StudentHome() {
     .sort((a, b) => (a.left as number) - (b.left as number))[0];
   const permanent = subs.some((sb) => daysLeft(sb.expiresAt) === null);
 
+  /* النمط المضغوط يصغّر البطاقات ليتّسع الصفّ على الجوّال. */
+  const tileCls = L.stats === "inline" ? "!p-2.5 sm:!p-3" : "";
+
   /* المؤشّرات كتلة واحدة — تُوضع داخل لوح الترحيب أو تحته حسب التخطيط،
      فلا تُكتب مرّتين ولا تختفي حين يُخفى اللوح. */
   const statsBlock = (
         <div
-          className={`relative mt-7 grid gap-3 sm:gap-4 ${
-            L.stats === "inline" ? "sm:grid-cols-3"
-              : L.stats === "grid" ? "grid-cols-2 sm:grid-cols-3"
-                : L.stats === "rail" ? "sm:grid-cols-1 lg:max-w-xs"
-                  : "sm:grid-cols-3"
+          className={`student-stats relative grid gap-3 sm:gap-4 ${
+            L.stats === "inline" ? "grid-cols-3 gap-2 sm:gap-3"   // شريط أفقي مضغوط
+              : L.stats === "grid" ? "grid-cols-2 sm:grid-cols-3"  // شبكة تلتفّ على الجوّال
+                : L.stats === "rail" ? "grid-cols-1"                // عمود رأسي
+                  : "sm:grid-cols-3"                                // صفّ متساوٍ
           }`}
         >
-          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} />
+          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} className={tileCls} />
           <StatTile
             index={1}
             value={ar(courses.length)}
             unit={courses.length === 1 ? "كورس" : "كورسات"}
             label="كورساتك"
             icon={<IconBook className="size-5" />}
+            className={tileCls}
           />
           {/* الاشتراك الساري — يعرض ما تبقّى حتى الانتهاء */}
           <StatTile
@@ -97,10 +101,12 @@ export default function StudentHome() {
             bar={
               subs.length === 0 ? 0 : permanent && !expiring ? 100 : Math.min(100, ((expiring?.left ?? 0) / 30) * 100)
             }
+            className={tileCls}
           />
         </div>
   );
 
+  const railMode = !L.statsInHeader && L.stats === "rail";
   const showHeader = L.header !== "minimal";
   const statsInside = showHeader && L.statsInHeader;
 
@@ -133,40 +139,84 @@ export default function StudentHome() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] text-white ${
+        className={`student-header btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] text-white ${
           L.header === "compact" ? "p-4 sm:p-5" : L.header === "banner" ? "p-6 sm:p-8" : "p-5 sm:p-6"
         }`}
       >
         <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />
         <KuficBackdrop density={38} opacity={0.28} fade="center" tone="text-white/30" className="!z-0" />
         <Shamsa
-          size={340}
+          size={L.header === "compact" ? 220 : 340}
           rays={24}
           className="pointer-events-none absolute -left-16 -top-20 z-0 opacity-25"
         />
 
-        <div className="relative flex flex-wrap items-center justify-between gap-5">
-          <div className="min-w-0">
-            <p className="font-kufi text-base font-bold tracking-[0.04em] text-white/90 drop-shadow-sm sm:text-lg">
+        {/* كل نمط ترويسة تركيب مختلف فعلاً — لا فرق حشو فقط */}
+        <div
+          className={`relative gap-5 ${
+            L.header === "split" ? "flex flex-wrap items-center justify-between"
+              : L.header === "stacked" ? "flex flex-col items-center text-center"
+                : L.header === "compact" ? "flex items-center justify-between"
+                  : "flex flex-wrap items-center justify-between"
+          }`}
+        >
+          <div className={L.header === "stacked" ? "w-full" : "min-w-0"}>
+            <p
+              className={`font-kufi font-bold tracking-[0.04em] text-white/90 drop-shadow-sm ${
+                L.header === "compact" ? "text-xs" : "text-base sm:text-lg"
+              }`}
+            >
               أهلاً {fem ? "بكِ" : "بك"}
             </p>
-            <h1 className="font-display mt-2 truncate text-3xl font-bold tracking-tight drop-shadow-sm sm:text-4xl">
+            <h1
+              className={`font-display truncate font-bold tracking-tight drop-shadow-sm ${
+                L.header === "compact" ? "mt-0.5 text-xl sm:text-2xl"
+                  : L.header === "banner" ? "mt-2 text-3xl sm:text-4xl"
+                    : "mt-1.5 text-2xl sm:text-3xl"
+              }`}
+            >
               {session?.name}
             </h1>
-            <ElegantRule width={220} className="mt-2.5 text-white/70" />
-            {me?.grade && (
-              <p className="font-kufi mt-1.5 text-xs font-semibold text-white/80">{me.grade}</p>
+            {L.header !== "compact" && (
+              <ElegantRule
+                width={L.header === "banner" ? 220 : 170}
+                className={`mt-2.5 text-white/70 ${L.header === "stacked" ? "mx-auto" : ""}`}
+              />
+            )}
+            {me?.grade && L.header !== "compact" && (
+              <p className="student-header-extra font-kufi mt-1.5 text-xs font-semibold text-white/80">{me.grade}</p>
             )}
           </div>
 
+          {/* المنقسم والمضغوط: حلقة التقدّم في الطرف المقابل */}
+          {(L.header === "split" || L.header === "compact") && (
+            <span className="relative grid size-[4.5rem] shrink-0 place-items-center sm:size-20">
+              <svg viewBox="0 0 64 64" className="size-full -rotate-90" fill="none" aria-hidden="true">
+                <circle cx="32" cy="32" r="26" stroke="#fff" strokeOpacity={0.22} strokeWidth="7" />
+                <circle
+                  cx="32" cy="32" r="26"
+                  stroke="hsl(var(--gold-light))" strokeWidth="7" strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 26 * (avg / 100)} ${2 * Math.PI * 26}`}
+                />
+              </svg>
+              <span className="font-display absolute text-base font-bold">{ar(avg)}٪</span>
+            </span>
+          )}
         </div>
 
         {statsInside && statsBlock}
       </motion.div>
       )}
 
-      {/* المؤشّرات خارج اللوح — حين لا يضعها التخطيط بداخله */}
-      {!statsInside && <div className="mb-6">{statsBlock}</div>}
+      {/* المؤشّرات خارج اللوح — الشريط الرأسي عمود مستقلّ، وغيره صفّ فوق المحتوى */}
+      {!statsInside && L.stats !== "rail" && <div className="mb-6">{statsBlock}</div>}
+
+      {/* نمط الشريط: المؤشّرات عمود رأسي يمين المحتوى على الشاشات الواسعة */}
+      <div className={railMode ? "lg:flex lg:items-start lg:gap-6" : undefined}>
+      {railMode && (
+        <aside className="mb-6 shrink-0 lg:mb-0 lg:w-56">{statsBlock}</aside>
+      )}
+      <div className={railMode ? "min-w-0 flex-1" : undefined}>
 
       {/* ---------------- الاشتراكات السارية ---------------- */}
       {subs.length > 0 && (
@@ -273,7 +323,7 @@ export default function StudentHome() {
       )}
 
       <div
-        className={`grid gap-4 ${
+        className={`course-grid grid gap-4 ${
           L.cards === "list" ? "grid-cols-1"
             : L.cards === "grid3" ? "sm:grid-cols-2 xl:grid-cols-3"
               : L.cards === "compact" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
@@ -283,7 +333,7 @@ export default function StudentHome() {
         {courses.map((c, i) => (
           <motion.div key={c.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
             <Link href={`/student/course/${c.id}`} className="group block">
-              <Card className="relative flex gap-4 overflow-hidden !p-4 transition hover:border-accent/50">
+              <Card className="course-card relative flex gap-4 overflow-hidden !p-4 transition hover:border-accent/50">
                 <CornerKnot size={52} className="pointer-events-none absolute left-0 top-0 -scale-x-100 text-accent/35" />
                 {/* لوحة مصغّرة من نفس نظام أغلفة الكورسات */}
                 <span className="relative w-28 shrink-0 overflow-hidden rounded-2xl sm:w-32">
@@ -324,6 +374,8 @@ export default function StudentHome() {
             </Link>
           </motion.div>
         ))}
+      </div>
+      </div>
       </div>
     </>
   );

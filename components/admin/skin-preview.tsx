@@ -10,6 +10,7 @@
 import { useUid } from "@/components/brand/use-uid";
 import type { StudentSkin, StudentLayout, OrnamentId } from "@/lib/skins";
 import type { HomeLayout } from "@/lib/home-layouts";
+import type { MobileLayout } from "@/lib/skins";
 
 const W = 160;
 const H = 108;
@@ -408,6 +409,107 @@ export function HomeLayoutPreview({ layout }: { layout: HomeLayout }) {
 
       <rect x={0} y={H - 4} width={W} height={4} fill={hsl(SITE.primary, 0.85)} />
       <rect id={uid} width={0} height={0} />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة تنسيق الهاتف — إطار جهاز رأسي                                */
+/* ------------------------------------------------------------------ */
+
+const PW = 74;   // عرض إطار الجهاز
+const PH = 132;  // ارتفاعه
+
+export function MobilePreview({ mobile, skin }: { mobile: MobileLayout; skin: StudentSkin }) {
+  const v = skin.vars;
+  const pad = mobile.density === "compact" ? 4 : mobile.density === "roomy" ? 8 : 6;
+  const inner = PW - pad * 2;
+
+  /* الترحيب */
+  const headH = mobile.slimHeader ? 14 : 24;
+  const headY = 12;
+
+  /* المؤشّرات */
+  const statsY = headY + headH + pad;
+  const statsH = 14;
+
+  /* الكورسات */
+  const cardsY = statsY + statsH + pad;
+  const two = mobile.cards === "two";
+  const cols = two ? 2 : 1;
+  const cardW = (inner - (two ? 3 : 0)) / cols;
+  const cardH = mobile.cards === "row" ? 10 : mobile.cards === "wide" ? 26 : two ? 22 : 16;
+
+  /* شريط التنقّل */
+  const navH = mobile.nav === "labels" ? 15 : mobile.nav === "pill" ? 10 : 12;
+  const navY = PH - navH - (mobile.nav === "bar" ? 0 : 3);
+  const navW = mobile.nav === "bar" ? PW : mobile.nav === "pill" ? PW * 0.62 : PW - 8;
+  const navX = mobile.nav === "bar" ? 0 : (PW - navW) / 2;
+  const tabs = 5;
+
+  return (
+    <svg viewBox={`0 0 ${PW} ${PH}`} className="mx-auto block h-auto w-full max-w-[7rem]" style={{ aspectRatio: `${PW} / ${PH}` }}>
+      {/* جسم الجهاز */}
+      <rect x="0.6" y="0.6" width={PW - 1.2} height={PH - 1.2} rx="9" fill={hsl(v.background)} stroke={hsl(v.foreground, 0.28)} strokeWidth="1.2" />
+      {/* النوتش */}
+      <rect x={PW / 2 - 9} y="3" width="18" height="3.2" rx="1.6" fill={hsl(v.foreground, 0.3)} />
+
+      {/* الترحيب */}
+      <rect x={pad} y={headY} width={inner} height={headH} rx={mobile.slimHeader ? 4 : 6} fill={hsl(v.primary)} />
+      <rect x={pad + 3} y={headY + 4} width={inner * 0.42} height={2.6} rx={1.3} fill={hsl(v.goldLight, 0.9)} />
+      {!mobile.slimHeader && (
+        <rect x={pad + 3} y={headY + 10} width={inner * 0.26} height={2.2} rx={1.1} fill="#fff" opacity={0.45} />
+      )}
+
+      {/* المؤشّرات — ممرّرة أفقياً أم ملتفّة */}
+      {mobile.scrollStats ? (
+        <>
+          {[0, 1, 2].map((i) => (
+            <MiniCard key={i} skin={skin} x={pad + i * (inner * 0.42 + 2)} y={statsY} w={inner * 0.42} h={statsH} />
+          ))}
+          {/* البطاقة الثالثة مقطوعة عند الحافة — إشارة إلى التمرير */}
+          <rect x={PW - pad} y={statsY} width={pad} height={statsH} fill={hsl(v.background)} />
+        </>
+      ) : (
+        [0, 1, 2].map((i) => {
+          const w = (inner - 4) / 3;
+          return <MiniCard key={i} skin={skin} x={pad + i * (w + 2)} y={statsY} w={w} h={statsH} />;
+        })
+      )}
+
+      {/* الكورسات */}
+      {Array.from({ length: two ? 4 : 3 }).map((_, i) => {
+        const c = two ? i % 2 : 0;
+        const r = two ? Math.floor(i / 2) : i;
+        const x = pad + c * (cardW + 3);
+        const y = cardsY + r * (cardH + pad * 0.6);
+        if (y + cardH > navY - 3) return null;
+        return (
+          <g key={i}>
+            <MiniCard skin={skin} x={x} y={y} w={cardW} h={cardH} />
+            {mobile.cards === "wide" || two ? (
+              <rect x={x + 2} y={y + 2} width={cardW - 4} height={cardH * 0.55} rx={2} fill={hsl(v.accent, 0.5)} />
+            ) : (
+              <rect x={x + 2} y={y + 2} width={mobile.cards === "row" ? 7 : 11} height={cardH - 4} rx={2} fill={hsl(v.accent, 0.5)} />
+            )}
+          </g>
+        );
+      })}
+
+      {/* شريط التنقّل */}
+      <rect x={navX} y={navY} width={navW} height={navH} rx={mobile.nav === "bar" ? 0 : 5} fill={hsl(v.card)} stroke={hsl(v.gold, 0.5)} strokeWidth="0.7" />
+      {Array.from({ length: tabs }).map((_, i) => {
+        const w = navW / tabs;
+        const cx = navX + w * i + w / 2;
+        return (
+          <g key={i}>
+            <circle cx={cx} cy={navY + (mobile.nav === "labels" ? 5.5 : navH / 2)} r="1.9" fill={hsl(i === 0 ? v.primary : v.foreground, i === 0 ? 1 : 0.35)} />
+            {mobile.nav === "labels" && (
+              <rect x={cx - 3.4} y={navY + 9.5} width="6.8" height="1.6" rx="0.8" fill={hsl(v.foreground, 0.3)} />
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }

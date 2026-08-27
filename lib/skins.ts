@@ -259,3 +259,99 @@ export const DEFAULT_LAYOUT = STUDENT_LAYOUTS[0].id;
 export function findLayout(id?: string): StudentLayout {
   return STUDENT_LAYOUTS.find((l) => l.id === id) ?? STUDENT_LAYOUTS[0];
 }
+
+/* ------------------------------------------------------------------ */
+/*  عشرون تنسيقاً للهاتف — سلوك البوابة على الشاشات الصغيرة            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * الهاتف ليس نسخة مصغّرة من سطح المكتب: شريط التنقّل وموضعه، وعدد
+ * الأعمدة، وارتفاع البطاقات، وحجم الخطّ — كلّها قرارات مستقلّة.
+ * لذلك للهاتف تنسيقه الخاص لا مجرّد نقاط توقّف على تخطيط الشاشة الكبيرة.
+ */
+
+/** شريط التنقّل السفلي. */
+export type MobileNav =
+  | "dock"     // شريط عائم منفصل عن الحافة (افتراضي)
+  | "bar"      // شريط ملتصق بعرض الشاشة
+  | "pill"     // كبسولة مضغوطة في الوسط
+  | "labels"   // أيقونات بعناوين تحتها
+  | "icons";   // أيقونات فقط بلا عناوين
+
+/** بطاقات الكورسات على الهاتف. */
+export type MobileCards =
+  | "stack"    // بطاقة كاملة العرض بصورة جانبية
+  | "wide"     // صورة فوق والنصّ تحتها
+  | "row"      // صفّ مضغوط بصورة صغيرة
+  | "two";     // عمودان
+
+/** كثافة الحشو والخطّ. */
+export type MobileDensity = "cozy" | "compact" | "roomy";
+
+export type MobileLayout = {
+  id: string;
+  name: string;
+  hint: string;
+  nav: MobileNav;
+  cards: MobileCards;
+  density: MobileDensity;
+  /** لوح ترحيب مصغّر على الهاتف بدل الكامل. */
+  slimHeader: boolean;
+  /** المؤشّرات تُمرَّر أفقياً بدل أن تلتفّ. */
+  scrollStats: boolean;
+};
+
+function m(
+  id: string, name: string, hint: string,
+  nav: MobileNav, cards: MobileCards, density: MobileDensity,
+  slimHeader: boolean, scrollStats: boolean
+): MobileLayout {
+  return { id, name, hint, nav, cards, density, slimHeader, scrollStats };
+}
+
+export const MOBILE_LAYOUTS: MobileLayout[] = [
+  m("dockStack", "العائم", "شريط عائم وبطاقات كاملة العرض", "dock", "stack", "cozy", false, false),
+  m("dockWide", "العائم بصور", "شريط عائم وصورة فوق كل كورس", "dock", "wide", "cozy", false, false),
+  m("dockTwo", "العائم بعمودين", "شريط عائم وبطاقتان في الصفّ", "dock", "two", "compact", true, true),
+  m("barStack", "الملتصق", "شريط بعرض الشاشة وبطاقات كاملة", "bar", "stack", "cozy", false, false),
+  m("barRow", "الملتصق المضغوط", "شريط ملتصق وصفوف مضغوطة", "bar", "row", "compact", true, true),
+  m("barWide", "الملتصق بصور", "شريط ملتصق وصور كبيرة", "bar", "wide", "roomy", false, false),
+  m("pillStack", "الكبسولة", "شريط كبسولة وبطاقات كاملة", "pill", "stack", "cozy", true, false),
+  m("pillRow", "الكبسولة المضغوطة", "كبسولة وصفوف مضغوطة", "pill", "row", "compact", true, true),
+  m("pillTwo", "الكبسولة بعمودين", "كبسولة وبطاقتان في الصفّ", "pill", "two", "compact", true, true),
+  m("labelsStack", "العناوين", "أيقونات بعناوين وبطاقات كاملة", "labels", "stack", "cozy", false, false),
+  m("labelsWide", "العناوين بصور", "أيقونات بعناوين وصور كبيرة", "labels", "wide", "roomy", false, false),
+  m("labelsTwo", "العناوين بعمودين", "أيقونات بعناوين وعمودان", "labels", "two", "compact", true, true),
+  m("iconsStack", "الأيقونات", "أيقونات فقط وبطاقات كاملة", "icons", "stack", "cozy", true, false),
+  m("iconsRow", "الأيقونات المضغوطة", "أيقونات فقط وصفوف مضغوطة", "icons", "row", "compact", true, true),
+  m("iconsTwo", "الأيقونات بعمودين", "أيقونات فقط وعمودان", "icons", "two", "compact", true, true),
+  m("roomyStack", "الفسيح", "تباعد مريح وخطّ أكبر", "dock", "stack", "roomy", false, false),
+  m("roomyWide", "الفسيح بصور", "فسيح وصور كبيرة", "bar", "wide", "roomy", false, true),
+  m("denseRow", "المكثّف", "أكبر عدد كورسات في الشاشة بلا تمرير جانبي", "icons", "row", "compact", true, false),
+  m("readerWide", "القارئ", "صور كبيرة وترحيب مصغّر", "pill", "wide", "roomy", true, false),
+  m("focusRow", "التركيز", "بلا ترحيب وصفوف مضغوطة", "labels", "row", "compact", true, true),
+];
+
+export const DEFAULT_MOBILE = MOBILE_LAYOUTS[0].id;
+
+export function findMobile(id?: string): MobileLayout {
+  return MOBILE_LAYOUTS.find((x) => x.id === id) ?? MOBILE_LAYOUTS[0];
+}
+
+/**
+ * أصناف التنسيق — تُطبَّق على غلاف البوابة وتسري بمحدّدات الأبناء.
+ * كلّها داخل نطاق الهاتف فقط، فلا تمسّ سطح المكتب.
+ */
+export function mobileClass(x: MobileLayout): string {
+  const density =
+    x.density === "compact" ? "mb-density-compact"
+      : x.density === "roomy" ? "mb-density-roomy"
+        : "mb-density-cozy";
+  return [
+    `mb-nav-${x.nav}`,
+    `mb-cards-${x.cards}`,
+    density,
+    x.slimHeader ? "mb-slim-header" : "",
+    x.scrollStats ? "mb-scroll-stats" : "",
+  ].filter(Boolean).join(" ");
+}
