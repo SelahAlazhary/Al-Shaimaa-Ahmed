@@ -142,6 +142,30 @@ async function editKeyboard(
   }).catch(() => null);
 }
 
+
+/**
+ * ادّعاء المحادثة عند أوّل «/start».
+ * يعيد true إن تمّ الربط الآن — أي إن لم تكن محادثةٌ مضبوطة من قبل.
+ */
+function claimChat(chatId: string, fromId?: number): boolean {
+  const db = getDB();
+  db.integrations = db.integrations ?? {};
+  const t = db.integrations.telegram ?? {};
+
+  /* توكن من متغيّر بيئة أو محادثة مضبوطة: لا ادّعاء — الضبط قرار اللوحة. */
+  if (!t.token && !process.env.TELEGRAM_BOT_TOKEN) return false;
+  if ((process.env.TELEGRAM_CHAT_ID || t.chatId || "").trim()) return false;
+
+  const ids = new Set(t.allowedIds ?? []);
+  ids.add(chatId);
+  if (fromId !== undefined) ids.add(String(fromId));
+
+  db.integrations.telegram = { ...t, chatId, allowedIds: Array.from(ids), enabled: true };
+  saveDB(db);
+  void flushDB();
+  return true;
+}
+
 /* ------------------------------------------------------------------ */
 
 type Message = {
@@ -168,18 +192,40 @@ async function onMessage(m: Message) {
     من الأوامر لا يُجاب إلا لمن في القائمة.
   */
   if (/^\/(start|id)\b/.test(text)) {
+    /*
+      أوّل «/start» بعد ربط التوكن يملك البوت.
+      ------------------------------------------------------------
+      كان على المشرفة أن تنسخ المعرّف من ردّ البوت وتعود إلى اللوحة
+      وتلصقه في حقلين. لا داعي: الويبهوك موثَّق بالسرّ أصلاً، ولا يعرف
+      اسمَ البوت أحدٌ لحظةَ ربطه، فأوّلُ من يخاطبه هو من ربطه.
+
+      الادّعاء مقصور على حالة واحدة: ألّا تكون محادثةٌ مضبوطة بعد.
+      وبعدها لا يُغيّرها أحد إلا من اللوحة.
+    */
+    const claimed = claimChat(chatId, m.from?.id);
+
     await tgSend(
-      [
-        "👋 <b>بوت بوّابة الدفع</b>",
-        "",
-        "معرّف هذه المحادثة:",
-        `<code>${esc(chatId)}</code>`,
-        "",
-        "الصقيه في «بوّابة الدفع ← بوت تليجرام» داخل لوحة الإدارة لتصلك طلبات التحويل هنا،",
-        "وأضفه في «المعرّفات المسموح لها» ليعمل البوت معك.",
-        "",
-        "الأوامر: /pending لعرض الطلبات المعلّقة.",
-      ].join("\n"),
+      claimed
+        ? [
+          "✅ <b>تم الربط</b>",
+          "",
+          "هذه المحادثة صارت وجهةَ طلبات الدفع، ومعرّفك في قائمة المسموح لهم.",
+          `<code>${esc(chatId)}</code>`,
+          "",
+          "ستصلك كل طلبات التحويل هنا بصورة الإيصال وبيانات الطالب وزرَّي قبول ورفض.",
+          "",
+          "الأوامر: /pending لعرض الطلبات المعلّقة.",
+        ].join("\n")
+        : [
+          "👋 <b>بوت بوّابة الدفع</b>",
+          "",
+          "معرّف هذه المحادثة:",
+          `<code>${esc(chatId)}</code>`,
+          "",
+          "الصقيه في «بوّابة الدفع ← بوت تليجرام» داخل لوحة الإدارة ليعمل البوت معك.",
+          "",
+          "الأوامر: /pending لعرض الطلبات المعلّقة.",
+        ].join("\n"),
       { chatId }
     );
     return;

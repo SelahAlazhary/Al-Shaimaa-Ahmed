@@ -567,10 +567,18 @@ function BotTab() {
 
         <ol className="mb-4 grid gap-2 text-[12px] leading-relaxed text-muted-foreground">
           <li>١. افتح <b className="text-foreground">@BotFather</b> على تليجرام وأرسل <code className="rounded bg-muted px-1">/newbot</code> واتبع الخطوات.</li>
-          <li>٢. الصق التوكن الذي يعطيك إياه في الحقل بالأسفل واحفظ.</li>
-          <li>٣. افتح محادثة بوتك (أو أضفه لمجموعة) وأرسل <code className="rounded bg-muted px-1">/start</code> — سيردّ بمعرّف المحادثة.</li>
-          <li>٤. الصق المعرّف هنا واضغط «إرسال رسالة اختبار».</li>
+          <li>٢. الصق التوكن الذي يعطيك إياه في الحقل بالأسفل واضغط «حفظ وربط الويبهوك».</li>
+          <li>
+            ٣. افتح محادثة بوتك (أو أضفه لمجموعة) وأرسل <code className="rounded bg-muted px-1">/start</code>.
+            <b className="text-foreground"> هذا كل شيء</b> — أوّل رسالة تربط المحادثة وتضيف معرّفك تلقائياً.
+          </li>
         </ol>
+
+        {state?.configured && !state.chatId && (
+          <p className="mb-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+            التوكن محفوظ — أرسل <code className="rounded bg-black/10 px-1">/start</code> لبوتك من تليجرام ليكتمل الربط تلقائياً، ثم حدّث الصفحة.
+          </p>
+        )}
 
         {state?.configured && (
           <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-600">
