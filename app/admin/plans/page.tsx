@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
-import { TRACKS } from "@/lib/data";
+import { TRACKS, STAGES, EDU_SYSTEMS, SCIENCE_BRANCHES, TRACK_STAGE, BRANCH_TRACK, AZHAR } from "@/lib/data";
 import { useContent } from "@/components/content/content-provider";
-import { planPrice } from "@/lib/plans";
+import { planPrice, audienceLabel } from "@/lib/plans";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
 
 const KIND_LABEL: Record<PlanKind, string> = {
@@ -25,6 +25,8 @@ type Form = {
   price: number; durationDays: number; endsAt: string; badge: string;
   highlight: boolean; desc: string; perks: string; visible: boolean; order: number;
   color: string; cta: string; termNo: 1 | 2; whatsapp: string; track: string;
+  audStage: string; audGrade: string; audSystem: string; audBranch: string;
+  audTerm: string; audGender: string;
   discountOn: boolean; discountType: "percent" | "amount"; discountValue: number;
   discountLabel: string; discountUntil: string;
 };
@@ -33,6 +35,7 @@ const EMPTY: Form = {
   name: "", kind: "term", scope: "all", subjectId: "", price: 0, durationDays: 0,
   endsAt: "", badge: "", highlight: false, desc: "", perks: "", visible: true, order: 0,
   color: "", cta: "", termNo: 1, whatsapp: "", track: "",
+  audStage: "", audGrade: "", audSystem: "", audBranch: "", audTerm: "", audGender: "",
   discountOn: false, discountType: "percent", discountValue: 0,
   discountLabel: "", discountUntil: "",
 };
@@ -55,6 +58,7 @@ export default function PlansPage() {
   const { db, save, content } = useContent();
   const plans = db?.plans ?? [];
   const subjects = db?.subjects ?? [];
+  const grades = db?.grades ?? [];
   const [editing, setEditing] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<Form>(EMPTY);
@@ -70,7 +74,10 @@ export default function PlansPage() {
       badge: p.badge ?? "", highlight: Boolean(p.highlight), desc: p.desc ?? "",
       perks: (p.perks ?? []).join("\n"), visible: p.visible, order: p.order ?? 0,
       color: p.color ?? "", cta: p.cta ?? "", termNo: p.termNo ?? 1,
-      whatsapp: p.whatsapp ?? "", track: p.track ?? "",
+      whatsapp: p.whatsapp ?? "", track: p.audience?.track ?? p.track ?? "",
+      audStage: p.audience?.stage ?? "", audGrade: p.audience?.grade ?? "",
+      audSystem: p.audience?.system ?? "", audBranch: p.audience?.branch ?? "",
+      audTerm: p.audience?.term ?? "", audGender: p.audience?.gender ?? "",
       discountOn: Boolean(p.discount?.active),
       discountType: p.discount?.type ?? "percent",
       discountValue: p.discount?.value ?? 0,
@@ -103,6 +110,19 @@ export default function PlansPage() {
       cta: f.cta.trim() || undefined,
       whatsapp: f.whatsapp.trim() || undefined,
       track: f.track || undefined,
+      /* الفئة تُحفظ منزوعةَ الفارغ — الفارغ يعني «الكل» فلا يُخزَّن. */
+      audience: (() => {
+        const a = {
+          stage: f.audStage || undefined,
+          grade: f.audGrade || undefined,
+          system: f.audSystem || undefined,
+          track: f.track || undefined,
+          branch: f.audBranch || undefined,
+          term: f.audTerm || undefined,
+          gender: f.audGender || undefined,
+        };
+        return Object.values(a).some(Boolean) ? a : undefined;
+      })(),
       discount: f.discountOn && Number(f.discountValue) > 0
         ? {
             active: true,
@@ -202,15 +222,98 @@ export default function PlansPage() {
             <label><span className="lbl">نص الزر (اختياري)</span>
               <input className="inp" value={f.cta} onChange={(e) => set({ cta: e.target.value })} placeholder="اشترك الآن" />
             </label>
-            <label><span className="lbl">الشعبة</span>
-              <select className="inp" value={f.track} onChange={(e) => set({ track: e.target.value })}>
-                <option value="">كل الشعب</option>
-                {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <span className="mt-1 block text-[10px] text-muted-foreground">
-                تظهر الخطة لطلاب هذه الشعبة وحدهم. «كل الشعب» تعرضها للجميع.
+            {/*
+              فئة الخطة — لمن تظهر بحسب بيانات تسجيله.
+              كل حقل «الكل» لا يُضيّق شيئاً، فالخطة العامّة لا تحتاج ضبطاً،
+              والموجَّهة تُضيّق بما شئتِ من الحقول معاً.
+            */}
+            <div className="sm:col-span-3">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="lbl !mb-0">فئة الخطة (لمن تظهر)</span>
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+                  {audienceLabel({
+                    track: f.track,
+                    audience: {
+                      stage: f.audStage, grade: f.audGrade, system: f.audSystem,
+                      track: f.track, branch: f.audBranch, term: f.audTerm, gender: f.audGender,
+                    },
+                  })}
+                </span>
+                {[f.audStage, f.audGrade, f.audSystem, f.track, f.audBranch, f.audTerm, f.audGender].some(Boolean) && (
+                  <button
+                    type="button"
+                    onClick={() => set({ audStage: "", audGrade: "", audSystem: "", track: "", audBranch: "", audTerm: "", audGender: "" })}
+                    className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground"
+                  >
+                    مسح الفئة
+                  </button>
+                )}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label><span className="lbl">المرحلة</span>
+                  <select className="inp" value={f.audStage} onChange={(e) => set({ audStage: e.target.value, audGrade: "", audTerm: "" })}>
+                    <option value="">كل المراحل</option>
+                    {STAGES.map((x) => <option key={x} value={x}>{x}</option>)}
+                  </select>
+                </label>
+
+                <label><span className="lbl">الصف</span>
+                  <select className="inp" value={f.audGrade} onChange={(e) => set({ audGrade: e.target.value })}>
+                    <option value="">كل الصفوف</option>
+                    {grades.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
+                  </select>
+                </label>
+
+                <label><span className="lbl">النظام التعليمي</span>
+                  <select className="inp" value={f.audSystem} onChange={(e) => set({ audSystem: e.target.value, audBranch: e.target.value === AZHAR ? "" : f.audBranch })}>
+                    <option value="">كل الأنظمة</option>
+                    {EDU_SYSTEMS.map((x) => <option key={x} value={x}>{x}</option>)}
+                  </select>
+                </label>
+
+                {/* الشعبة للثانوية وحدها — كما في شاشة التسجيل */}
+                {(!f.audStage || f.audStage === TRACK_STAGE) && (
+                  <label><span className="lbl">الشعبة</span>
+                    <select className="inp" value={f.track} onChange={(e) => set({ track: e.target.value, audBranch: e.target.value === BRANCH_TRACK ? f.audBranch : "" })}>
+                      <option value="">كل الشعب</option>
+                      {TRACKS.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </label>
+                )}
+
+                {/* فرع العلمي لتربية وتعليم وحدها — الأزهر بلا تقسيم */}
+                {f.track === BRANCH_TRACK && f.audSystem !== AZHAR && (
+                  <label><span className="lbl">فرع الشعبة العلمية</span>
+                    <select className="inp" value={f.audBranch} onChange={(e) => set({ audBranch: e.target.value })}>
+                      <option value="">كل الفروع</option>
+                      {SCIENCE_BRANCHES.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                  </label>
+                )}
+
+                <label><span className="lbl">الفصل الدراسي</span>
+                  <select className="inp" value={f.audTerm} onChange={(e) => set({ audTerm: e.target.value })}>
+                    <option value="">كل الفصول</option>
+                    {(content.terms ?? [])
+                      .filter((t) => !f.audStage || !t.stage || t.stage === f.audStage)
+                      .map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                  </select>
+                </label>
+
+                <label><span className="lbl">النوع</span>
+                  <select className="inp" value={f.audGender} onChange={(e) => set({ audGender: e.target.value })}>
+                    <option value="">الكل</option>
+                    <option value="male">طلاب</option>
+                    <option value="female">طالبات</option>
+                  </select>
+                </label>
+              </div>
+
+              <span className="mt-2 block text-[10px] text-muted-foreground">
+                الطالب لا يرى إلا الخطط التي تطابق بياناته. الحقل المتروك على «الكل» لا يُضيّق شيئاً.
               </span>
-            </label>
+            </div>
             <label><span className="lbl">واتساب التفعيل (اختياري)</span>
               <input
                 className="inp text-right" dir="ltr" inputMode="numeric"

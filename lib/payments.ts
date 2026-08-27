@@ -65,12 +65,19 @@ export function targetName(target: string, subjects: Subject[]): string {
 
 /** ما ينقص الطلب — نصّ عربي واحد أو null إن كان سليماً. */
 export function requestProblem(
-  f: { methodId?: string; senderName?: string; receipt?: string },
+  f: { methodId?: string; senderName?: string; senderAccount?: string; receipt?: string },
   rules: { requireReceipt?: boolean; requireSender?: boolean }
 ): string | null {
   if (!(f.methodId ?? "").trim()) return "اختر طريقة الدفع";
+  /*
+    الرقم المُحوَّل منه هو ما يُطابَق به التحويل في كشف الحساب — بدونه
+    تبقى المراجعة تخميناً، فهو مطلوب دائماً لا بحسب الإعداد.
+  */
+  if (!(f.senderAccount ?? "").trim()) {
+    return "اكتب الرقم أو الحساب الذي حوّلت منه";
+  }
   if (rules.requireSender !== false && !(f.senderName ?? "").trim()) {
-    return "اكتب اسم أو رقم من حوّل المبلغ";
+    return "اكتب اسم من حوّل المبلغ";
   }
   if (rules.requireReceipt !== false && !(f.receipt ?? "").trim()) {
     return "أرفق صورة إيصال التحويل";

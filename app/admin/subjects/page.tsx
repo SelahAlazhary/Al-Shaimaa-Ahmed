@@ -47,7 +47,7 @@ export default function SubjectsPage() {
             <label className="sm:col-span-2"><span className="mb-1 block text-xs font-semibold text-muted-foreground">اسم الكورس</span>
               <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-sm outline-none focus:border-primary/50" />
             </label>
-            <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">السعر الشهري (ج.م)</span>
+            <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">السعر الأساسي (ج.م)</span>
               <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className="w-full rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-sm outline-none focus:border-primary/50" />
             </label>
             <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">عدد الدروس</span>

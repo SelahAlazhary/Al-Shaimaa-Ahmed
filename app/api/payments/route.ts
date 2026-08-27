@@ -5,7 +5,7 @@ import { recordEvent, bannedUntil } from "@/lib/security";
 import { clientIp, limit } from "@/lib/guard";
 import { can } from "@/lib/perms";
 import { sendToUsers } from "@/lib/push";
-import { planPrice } from "@/lib/plans";
+import { planPrice, planForStudent, resolvePlan } from "@/lib/plans";
 import {
   activeMethods, planTarget, targetName, requestProblem, newActivationCode, normalizeDigits,
 } from "@/lib/payments";
@@ -62,19 +62,25 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const plan = db.plans.find((p) => p.id === String(body.planId ?? ""));
+  /* الخطة قد تكون خيار سعر داخل الكورس — المصدر واحد للاثنين. */
+  const plan = resolvePlan(String(body.planId ?? ""), db.plans, db.subjects);
   if (!plan) return NextResponse.json({ error: "الخطة غير موجودة" }, { status: 400 });
+  /* فئة الخطة تُفحص هنا أيضاً: إخفاؤها في الواجهة ليس منعاً. */
+  if (!planForStudent(plan, me)) {
+    return NextResponse.json({ error: "هذه الخطة غير متاحة لبياناتك" }, { status: 403 });
+  }
 
   const method = activeMethods(cfg.methods).find((m) => m.id === String(body.methodId ?? ""));
   if (!method) return NextResponse.json({ error: "طريقة الدفع غير متاحة" }, { status: 400 });
 
   const senderName = clip(body.senderName, MAX_TEXT);
+  const senderAccount = clip(body.senderAccount, MAX_TEXT);
   const senderRef = clip(body.senderRef, MAX_TEXT);
   const receipt = clip(body.receipt, 600);
   const note = clip(body.note, MAX_NOTE);
 
   const problem = requestProblem(
-    { methodId: method.id, senderName, receipt },
+    { methodId: method.id, senderName, senderAccount, receipt },
     { requireReceipt: cfg.requireReceipt, requireSender: cfg.requireSender }
   );
   if (problem) return NextResponse.json({ error: problem }, { status: 400 });
@@ -105,6 +111,7 @@ export async function POST(req: Request) {
     methodId: method.id,
     methodName: method.name,
     senderName: senderName ? normalizeDigits(senderName) : undefined,
+    senderAccount: senderAccount ? normalizeDigits(senderAccount) : undefined,
     senderRef: senderRef ? normalizeDigits(senderRef) : undefined,
     receipt: receipt || undefined,
     note: note || undefined,

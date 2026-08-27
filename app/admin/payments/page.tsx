@@ -231,6 +231,9 @@ function Inbox_({
                   <p><span className="text-muted-foreground">الخطة:</span> <b>{r.planName}</b>{r.subjectName ? ` — ${r.subjectName}` : ""}</p>
                   <p><span className="text-muted-foreground">المبلغ:</span> <b>{r.amount.toLocaleString("ar-EG")} ج.م</b> · {r.methodName}</p>
                   {r.senderName && <p><span className="text-muted-foreground">المُحوِّل:</span> {r.senderName}</p>}
+                  {r.senderAccount && (
+                    <p><span className="text-muted-foreground">حوّل من:</span> <b className="font-mono">{r.senderAccount}</b></p>
+                  )}
                   {r.senderRef && <p><span className="text-muted-foreground">رقم العملية:</span> {r.senderRef}</p>}
                   {r.note && <p><span className="text-muted-foreground">ملاحظة:</span> {r.note}</p>}
                   <p className="text-[11px] text-muted-foreground">

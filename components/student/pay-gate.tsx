@@ -44,6 +44,7 @@ export function PayGate({
   const [plan, setPlan] = useState<SitePlan | null>(plans.length === 1 ? plans[0] : null);
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [senderName, setSenderName] = useState("");
+  const [senderAccount, setSenderAccount] = useState("");
   const [senderRef, setSenderRef] = useState("");
   const [note, setNote] = useState("");
   const [receipt, setReceipt] = useState("");
@@ -77,7 +78,7 @@ export function PayGate({
   const submit = async () => {
     setErr(null);
     const problem = requestProblem(
-      { methodId: method?.id, senderName, receipt },
+      { methodId: method?.id, senderName, senderAccount, receipt },
       { requireReceipt: cfg.requireReceipt, requireSender: cfg.requireSender }
     );
     if (problem) { setErr(problem); return; }
@@ -90,7 +91,7 @@ export function PayGate({
         planId: plan?.id,
         methodId: method?.id,
         subjectId: subject?.id,
-        senderName, senderRef, note, receipt,
+        senderName, senderAccount, senderRef, note, receipt,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -239,9 +240,27 @@ export function PayGate({
             )}
 
             <div className="grid gap-3">
+              {/*
+                الرقم المُحوَّل منه هو ما تُطابَق به العملية في كشف
+                الحساب، فهو مطلوب دائماً لا بحسب الإعداد.
+              */}
               <label className="block">
                 <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">
-                  اسم أو رقم من حوّل المبلغ {cfg.requireSender !== false && <b className="text-rose-500">*</b>}
+                  الرقم أو الحساب الذي حوّلت منه <b className="text-rose-500">*</b>
+                </span>
+                <input
+                  value={senderAccount}
+                  onChange={(e) => setSenderAccount(e.target.value)}
+                  dir="ltr"
+                  inputMode="numeric"
+                  placeholder="01xxxxxxxxx"
+                  className="w-full rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-right font-mono text-sm outline-none focus:border-primary/50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                  اسم من حوّل المبلغ {cfg.requireSender !== false && <b className="text-rose-500">*</b>}
                 </span>
                 <input
                   value={senderName}

@@ -1,4 +1,4 @@
-import type { SitePlan } from "./types";
+import type { SitePlan, CoursePrice, CoursePriceKind, TermNo } from "./types";
 
 /**
  * سعر الخطة بعد الخصم — مصدر واحد للحساب يستخدمه الموقع والبوابة واللوحة.
@@ -19,14 +19,50 @@ export type PricedPlan = {
  * الخطة بلا شعبة معروضة للجميع، وبشعبة تظهر لطلاب تلك الشعبة وحدهم.
  * الزائر (بلا حساب) يرى كل الخطط الظاهرة — لا شعبة تُقارَن بها بعد.
  */
+export type PlanAudience = {
+  stage?: string; grade?: string; system?: string;
+  track?: string; branch?: string; term?: string; gender?: string;
+};
+
+/** بيانات الطالب التي تُطابَق بها فئة الخطة — أسماء التسجيل نفسها. */
+export type StudentProfile = {
+  stage?: string; grade?: string; eduSystem?: string;
+  track?: string; branch?: string; termName?: string; gender?: string;
+};
+
 export function planForStudent(
-  plan: { track?: string },
-  student: { track?: string } | null | undefined
+  plan: { track?: string; audience?: PlanAudience },
+  student: StudentProfile | null | undefined
 ): boolean {
-  const want = (plan.track ?? "").trim();
-  if (!want) return true;
+  /* الزائر يرى كل الخطط الظاهرة — لا بيانات تسجيل تُقارَن بها بعد. */
   if (!student) return true;
-  return (student.track ?? "").trim() === want;
+
+  /* `track` القديم يبقى مفهوماً، والفئة الجديدة تغلب عليه إن ضُبطت. */
+  const a = plan.audience ?? {};
+  const pairs: [string | undefined, string | undefined][] = [
+    [a.stage, student.stage],
+    [a.grade, student.grade],
+    [a.system, student.eduSystem],
+    [a.track ?? plan.track, student.track],
+    [a.branch, student.branch],
+    [a.term, student.termName],
+    [a.gender, student.gender],
+  ];
+
+  /* الحقل الفارغ لا يُضيّق شيئاً — الخطة العامّة تظهر للجميع بلا ضبط. */
+  return pairs.every(([want, has]) => {
+    const w = (want ?? "").trim();
+    return !w || w === (has ?? "").trim();
+  });
+}
+
+/** وصف الفئة بالعربية — يُعرض في اللوحة وفي بطاقة الخطة. */
+export function audienceLabel(plan: { track?: string; audience?: PlanAudience }): string {
+  const a = plan.audience ?? {};
+  const parts = [a.stage, a.grade, a.system, a.track ?? plan.track, a.branch, a.term, a.gender]
+    .map((v) => (v ?? "").trim())
+    .filter(Boolean);
+  return parts.length ? parts.join(" · ") : "كل الطلاب";
 }
 
 /**
@@ -72,4 +108,74 @@ export function planPrice(plan: SitePlan, now = Date.now()): PricedPlan {
 /** لون الخطة (أو لون الثيم الافتراضي). */
 export function planColor(plan: SitePlan): string | undefined {
   return plan.color && /^#?[0-9a-fA-F]{3,8}$/.test(plan.color) ? plan.color : undefined;
+}
+
+/* ------------------------------------------------------------------ */
+/*  خيارات سعر الكورس                                                  */
+/* ------------------------------------------------------------------ */
+
+/** مدّة كل نوع بالأيام — الترم يتبع تاريخ نهايته لا عدداً. */
+const KIND_DAYS: Record<string, number | null> = {
+  month: 30,
+  lesson: 7,
+  once: null,
+  term: null,
+  custom: null,
+};
+
+export const COURSE_PRICE_KINDS: { id: CoursePriceKind; label: string; hint: string }[] = [
+  { id: "month", label: "شهري", hint: "يفتح الكورس ٣٠ يوماً" },
+  { id: "term", label: "الترم كامل", hint: "حتى تاريخ نهاية الترم" },
+  { id: "lesson", label: "حصّة واحدة", hint: "وصول قصير (٧ أيام)" },
+  { id: "once", label: "مرّة واحدة", hint: "وصول دائم بلا انتهاء" },
+  { id: "custom", label: "مدّة مخصّصة", hint: "تحدّد عدد الأيام بنفسك" },
+];
+
+/**
+ * خيارات سعر الكورس كخطط.
+ * ------------------------------------------------------------------
+ * تُحوَّل إلى شكل الخطة لأن كل ما بعدها — البوّابة، الأكواد، حساب
+ * السعر، مدّة الاشتراك — مبنيّ على الخطة. تحويلها هنا يعني مساراً
+ * واحداً للشراء لا مسارين يفترقان في السلوك.
+ *
+ * المعرّف مسبوق بـ`CP:` فلا يلتبس بخطة حقيقية، ويُعاد بناؤه من الكورس
+ * وقت الحاجة فلا يُخزَّن مرّتين.
+ */
+export function coursePricePlans(subject: {
+  id: string; name: string; term?: TermNo; prices?: CoursePrice[];
+}): SitePlan[] {
+  return (subject.prices ?? [])
+    .filter((p) => (p.label ?? "").trim())
+    .map((p, i) => ({
+      id: `CP:${subject.id}:${p.id}`,
+      name: p.label.trim(),
+      kind: p.kind === "term" ? "term" : p.kind === "custom" ? "custom" : "month",
+      scope: "subject",
+      subjectId: subject.id,
+      termNo: subject.term,
+      price: Math.max(0, p.price ?? 0),
+      durationDays: p.durationDays ?? KIND_DAYS[p.kind] ?? null,
+      endsAt: null,
+      badge: p.badge,
+      highlight: p.highlight,
+      desc: p.desc,
+      discount: p.discount,
+      visible: true,
+      order: i,
+      createdAt: "",
+    }));
+}
+
+/** خطة بمعرّفها — من الخطط المحفوظة أو من خيارات أسعار الكورسات. */
+export function resolvePlan(
+  id: string,
+  plans: SitePlan[],
+  subjects: { id: string; name: string; term?: TermNo; prices?: CoursePrice[] }[]
+): SitePlan | undefined {
+  const direct = plans.find((p) => p.id === id);
+  if (direct) return direct;
+  const m = id.match(/^CP:([^:]+):/);
+  if (!m) return undefined;
+  const subject = subjects.find((s) => s.id === m[1]);
+  return subject ? coursePricePlans(subject).find((p) => p.id === id) : undefined;
 }

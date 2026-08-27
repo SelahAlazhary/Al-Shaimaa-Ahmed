@@ -13,6 +13,7 @@ import { useContent } from "@/components/content/content-provider";
 import { CourseArt, COVER_PATTERNS } from "@/components/brand/course-art";
 import { CoverTextEditor } from "@/components/admin/cover-text-editor";
 import { CoverStickersEditor } from "@/components/admin/cover-stickers-editor";
+import { CoursePricesEditor } from "@/components/admin/course-prices-editor";
 import type { Lesson, Material, Subject, Quiz, QuizQuestion, ImageFit, CoverPattern, CoverText, CoverSticker } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 
@@ -324,19 +325,29 @@ export default function CourseManage({ params }: { params: Promise<{ id: string 
         <CoverStickersEditor subject={subject} onChange={setCoverStickers} />
       </Card>
 
-      {/* السعر الشهري */}
+      {/* أسعار الكورس */}
       <Card className="mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="font-display font-extrabold">السعر الشهري لهذا الكورس</h3>
-            <p className="text-xs text-muted-foreground">اشتراك الشهر يفتح هذا الكورس بشكل دائم. سعر الترم الكامل يُضبط من «تخصيص الموقع».</p>
+            <h3 className="font-display font-extrabold">أسعار هذا الكورس</h3>
+            <p className="text-xs text-muted-foreground">
+              أضف أكثر من خيار — شهري · ترم كامل · حصّة · مرّة واحدة — فيختار الطالب ما يناسبه
+              من بوّابة الدفع. الخيار الأوّل هو السعر الأساسي المعروض في البطاقات.
+            </p>
           </div>
           <label className="flex items-center gap-2">
-            <input type="number" defaultValue={subject.price} onBlur={(e) => save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, price: Number(e.target.value) || 0 } : s)) })}
-              className="w-28 rounded-2xl border border-border bg-card/60 px-3 py-2 text-sm outline-none focus:border-primary/50" />
-            <span className="text-sm text-muted-foreground">ج.م / شهر</span>
+            <span className="text-xs text-muted-foreground">السعر الأساسي</span>
+            <input type="number" value={subject.price}
+              onChange={(e) => save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, price: Number(e.target.value) || 0 } : s)) })}
+              className="w-24 rounded-2xl border border-border bg-card/60 px-3 py-2 text-sm outline-none focus:border-primary/50" />
+            <span className="text-xs text-muted-foreground">ج.م</span>
           </label>
         </div>
+
+        <CoursePricesEditor
+          subject={subject}
+          onChange={(patch) => save({ subjects: subjects.map((s) => (s.id === id ? { ...subject, ...patch } : s)) })}
+        />
       </Card>
 
       {/* إضافة درس */}

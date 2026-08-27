@@ -163,6 +163,7 @@ export function payRequestText(r: PayRequest, siteUrl?: string): string {
     `💰 <b>المبلغ:</b> ${esc(r.amount)} ج.م`,
     `🏦 <b>طريقة الدفع:</b> ${esc(r.methodName)}`,
     r.senderName ? `↩️ <b>المُحوِّل:</b> ${esc(r.senderName)}` : "",
+    r.senderAccount ? `💳 <b>حوّل من:</b> <code>${esc(r.senderAccount)}</code>` : "",
     r.senderRef ? `#️⃣ <b>رقم العملية:</b> ${esc(r.senderRef)}` : "",
     r.note ? `📝 <b>ملاحظة:</b> ${esc(r.note)}` : "",
     "",

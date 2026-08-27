@@ -124,6 +124,20 @@ export type SitePlan = {
   cta?: string;                 // نص زر الخطة
   whatsapp?: string;            // رقم واتساب التفعيل لهذه الخطة (فارغ = رقم المنصّة العام)
   track?: string;               // شعبة الخطة: علمي/أدبي (فارغ = كل الشعب)
+  /**
+   * فئة الخطة — لمن تظهر بحسب بيانات تسجيله.
+   * كل حقل فارغ = «الكل»، فالخطة العامّة لا تحتاج ضبطاً، والخطة
+   * الموجَّهة تُضيّق بما تشاء من الحقول معاً.
+   */
+  audience?: {
+    stage?: string;    // المرحلة الدراسية
+    grade?: string;    // الصف
+    system?: string;   // النظام التعليمي: أزهر / تربية وتعليم
+    track?: string;    // الشعبة: علمي / أدبي
+    branch?: string;   // فرع الشعبة العلمية: علوم / رياضة
+    term?: string;     // الفصل الدراسي المختار عند التسجيل
+    gender?: string;   // النوع
+  };
   perks?: string[];             // مزايا الخطة (نقاط)
   visible: boolean;             // إظهارها على الصفحة الرئيسية
   order?: number;               // ترتيب العرض
@@ -338,6 +352,27 @@ export type Material = {
   title: string;
   url: string;        // رابط الملف (PDF/مستند) — يُرفع أو رابط خارجي
 };
+/**
+ * خيار سعر للكورس.
+ * ------------------------------------------------------------------
+ * الكورس كان بسعر واحد اسمه «السعر الشهري»، فمن أراد بيعه بالترم أو
+ * بالحصّة اضطرّ لصنع خطة منفصلة في قسم الخطط. هذه الخيارات تُباع من
+ * بطاقة الكورس نفسها: لكلٍّ اسمه ومدّته وسعره وخصمه.
+ */
+export type CoursePriceKind = "month" | "term" | "lesson" | "once" | "custom";
+
+export type CoursePrice = {
+  id: string;
+  label: string;          // «شهري» · «الترم كامل» · «حصّة واحدة»
+  kind: CoursePriceKind;
+  price: number;
+  durationDays?: number | null;  // فارغ = يتبع نوعه
+  badge?: string;
+  highlight?: boolean;
+  desc?: string;
+  discount?: PlanDiscount;
+};
+
 export type Subject = {
   id: string;
   name: string;
@@ -347,7 +382,9 @@ export type Subject = {
   term?: TermNo;      // الفصل الدراسي (١ أو ٢) — يُقسَّم به عرض الكورسات
   lessons: number;    // للعرض (يُحدَّث تلقائياً من عدد الدروس)
   students: number;
-  price: number;      // سعر الاشتراك الشهري لهذا الكورس (ج.م)
+  price: number;      // (توافق قديم) السعر الأساسي — أوّل خيار حين تُضبط الخيارات
+  /** خيارات السعر: شهري · ترم · حصّة … تُباع من بطاقة الكورس مباشرة. */
+  prices?: CoursePrice[];
   cover?: string;     // صورة غلاف الكورس (اختياري)
   coverFit?: ImageFit;// ضبط الغلاف داخل بطاقة الكورس (محاذاة/تكبير/حواف)
   coverRatio?: number;// نسبة أبعاد الغلاف الأصلية (عرض ÷ ارتفاع) — تُقاس تلقائياً
@@ -705,7 +742,8 @@ export type PayRequest = {
   amount: number;
   methodId: string;
   methodName: string;
-  senderName?: string;   // اسم/رقم المُحوِّل كما كتبه الطالب
+  senderName?: string;    // اسم المُحوِّل كما كتبه الطالب
+  senderAccount?: string; // الرقم أو الحساب الذي حُوِّل منه
   senderRef?: string;    // رقم العملية
   receipt?: string;      // صورة التحويل
   note?: string;         // ملاحظة الطالب
