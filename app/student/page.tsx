@@ -27,6 +27,8 @@ import { EnableNotifications } from "@/components/pwa/enable-notifications";
 import { Card, Progress, StatusBadge, Medallion, GoldRule } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import { findLayout } from "@/lib/skins";
+import { findDesign, shapeStyle } from "@/lib/designs";
+import { EdgeArtLayer } from "@/components/brand/edge-art";
 import { subjectActive, activeSubs, daysLeft } from "@/lib/access";
 
 const ar = (n: number) => n.toLocaleString("ar-EG");
@@ -35,6 +37,8 @@ export default function StudentHome() {
   const { db, session, content, loading } = useContent();
   /* التخطيط المختار من اللوحة — يحكم شكل الترحيب والمؤشّرات والبطاقات. */
   const L = findLayout(content.studentLayout);
+  /* الهيئة تحدّد الشكل (الحوافّ والزخرفة) بمعزل عن الثيم الذي يحدّد اللون. */
+  const D = findDesign(content.studentDesign);
   const me = db?.users.find((u) => u.id === session?.uid);
   const subjects = (db?.subjects ?? []).filter((s) => s.status === "منشورة");
   const live = db?.live ?? [];
@@ -72,7 +76,7 @@ export default function StudentHome() {
                   : "sm:grid-cols-3"                                // صفّ متساوٍ
           }`}
         >
-          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} className={tileCls} />
+          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} className={tileCls} shape={shapeStyle(D.tile)} />
           <StatTile
             index={1}
             value={ar(courses.length)}
@@ -80,6 +84,7 @@ export default function StudentHome() {
             label="كورساتك"
             icon={<IconBook className="size-5" />}
             className={tileCls}
+            shape={shapeStyle(D.tile)}
           />
           {/* الاشتراك الساري — يعرض ما تبقّى حتى الانتهاء */}
           <StatTile
@@ -102,6 +107,7 @@ export default function StudentHome() {
               subs.length === 0 ? 0 : permanent && !expiring ? 100 : Math.min(100, ((expiring?.left ?? 0) / 30) * 100)
             }
             className={tileCls}
+            shape={shapeStyle(D.tile)}
           />
         </div>
   );
@@ -139,10 +145,12 @@ export default function StudentHome() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`student-header btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] text-white ${
+        style={shapeStyle(D.panel)}
+        className={`student-header btn-glow relative mb-6 overflow-hidden text-white ${
           L.header === "compact" ? "p-4 sm:p-5" : L.header === "banner" ? "p-6 sm:p-8" : "p-5 sm:p-6"
         }`}
       >
+        <EdgeArtLayer kind={D.edge} className="z-0 text-white/60" />
         <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />
         <KuficBackdrop density={38} opacity={0.28} fade="center" tone="text-white/30" className="!z-0" />
         <Shamsa

@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
 import { findSkin, findLayout, findMobile, mobileClass, skinVars } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
+import { findDesign } from "@/lib/designs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "بوابة الطالب", robots: { index: false } };
@@ -27,6 +28,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const skin = findSkin(pub.content?.studentSkin);
   const layout = findLayout(pub.content?.studentLayout);
   const mobile = findMobile(pub.content?.studentMobile);
+  const design = findDesign(pub.content?.studentDesign);
 
   return (
     <div
@@ -36,6 +38,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       data-layout={layout.id}
       data-card={skin.card}
       data-mobile={mobile.id}
+      data-design={design.id}
     >
       <SkinOrnament id={skin.ornament} />
       <DashboardShell

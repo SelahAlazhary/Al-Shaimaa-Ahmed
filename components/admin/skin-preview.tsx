@@ -11,6 +11,8 @@ import { useUid } from "@/components/brand/use-uid";
 import type { StudentSkin, StudentLayout, OrnamentId } from "@/lib/skins";
 import type { HomeLayout } from "@/lib/home-layouts";
 import type { MobileLayout } from "@/lib/skins";
+import { shapeStyle, type StudentDesign } from "@/lib/designs";
+import { EdgeArtLayer } from "@/components/brand/edge-art";
 
 const W = 160;
 const H = 108;
@@ -511,5 +513,70 @@ export function MobilePreview({ mobile, skin }: { mobile: MobileLayout; skin: St
         );
       })}
     </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة الهيئة — الشكل لا اللون                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * تُرسم بعناصر HTML لا SVG: الأشكال نفسها مبنيّة على `clip-path`، فرسمها
+ * بالعنصر الحقيقي يُظهر الشكل كما سيبدو تماماً بدل محاكاته بمسار SVG قد
+ * يختلف عنه. زخرفة الحافّة وحدها SVG — وهي كذلك في الصفحة الحقيقية.
+ */
+export function DesignPreview({ design, skin }: { design: StudentDesign; skin: StudentSkin }) {
+  const v = skin.vars;
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-2xl p-3"
+      style={{ background: hsl(v.background), aspectRatio: `${W} / ${H}` }}
+    >
+      {/* لوح الترحيب */}
+      <div
+        className="relative overflow-hidden"
+        style={{ ...shapeStyle(design.panel), background: hsl(v.primary), height: "42%" }}
+      >
+        <span className="absolute inset-x-0 top-0 text-[hsl(var(--gold-light))]" style={{ color: hsl(v.goldLight) }}>
+          <EdgeArtLayer kind={design.edge} />
+        </span>
+        <div className="relative p-2.5">
+          <div className="h-1.5 w-10 rounded-full" style={{ background: hsl(v.goldLight, 0.9) }} />
+          <div className="mt-1.5 h-2 w-16 rounded-full bg-white/45" />
+        </div>
+      </div>
+
+      {/* بطاقات */}
+      <div className="mt-2 grid grid-cols-3 gap-1.5" style={{ height: "24%" }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-full"
+            style={{
+              ...shapeStyle(design.tile),
+              background: hsl(v.card),
+              boxShadow:
+                design.border === "none"
+                  ? undefined
+                  : `inset 0 0 0 1px ${hsl(v.gold, design.border === "dashed" ? 0.35 : 0.55)}`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-1.5" style={{ height: "22%" }}>
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="h-full"
+            style={{
+              ...shapeStyle(design.tile),
+              background: hsl(v.card),
+              boxShadow: design.border === "none" ? undefined : `inset 0 0 0 1px ${hsl(v.gold, 0.5)}`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

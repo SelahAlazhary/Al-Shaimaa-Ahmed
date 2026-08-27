@@ -8,17 +8,18 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
   STUDENT_SKINS, STUDENT_LAYOUTS, MOBILE_LAYOUTS, findSkin, findLayout, findMobile,
   type StudentSkin, type StudentLayout, type MobileLayout,
 } from "@/lib/skins";
-import { SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview } from "@/components/admin/skin-preview";
+import { SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview } from "@/components/admin/skin-preview";
+import { STUDENT_DESIGNS, findDesign, type StudentDesign } from "@/lib/designs";
 import { HOME_LAYOUTS, findHomeLayout, type HomeLayout } from "@/lib/home-layouts";
 
-type Tab = "skin" | "layout" | "mobile" | "home";
+type Tab = "skin" | "design" | "layout" | "mobile" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -29,6 +30,7 @@ export default function AppearancePage() {
   const layout = findLayout(content.studentLayout);
   const home = findHomeLayout(content.homeLayout);
   const mobile = findMobile(content.studentMobile);
+  const design = findDesign(content.studentDesign);
 
   const pickSkin = async (s: StudentSkin) => {
     setBusy(s.id);
@@ -39,6 +41,12 @@ export default function AppearancePage() {
   const pickLayout = async (l: StudentLayout) => {
     setBusy(l.id);
     await saveContent({ studentLayout: l.id });
+    setBusy(null);
+  };
+
+  const pickDesign = async (x: StudentDesign) => {
+    setBusy(x.id);
+    await saveContent({ studentDesign: x.id });
     setBusy(null);
   };
 
@@ -58,12 +66,15 @@ export default function AppearancePage() {
     <>
       <PageHeader
         title="مظهر المنصّة"
-        subtitle={`ثيم الطالب: ${skin.name} · تخطيطه: ${layout.name} · الهاتف: ${mobile.name} · الرئيسية: ${home.name}`}
+        subtitle={`الثيم: ${skin.name} · الهيئة: ${design.name} · التخطيط: ${layout.name} · الهاتف: ${mobile.name} · الرئيسية: ${home.name}`}
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
         <TabBtn active={tab === "skin"} onClick={() => setTab("skin")} icon={<Palette className="size-4" />}>
           الثيم واللون ({STUDENT_SKINS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "design"} onClick={() => setTab("design")} icon={<Shapes className="size-4" />}>
+          الهيئة والشكل ({STUDENT_DESIGNS.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "layout"} onClick={() => setTab("layout")} icon={<LayoutGrid className="size-4" />}>
           تخطيط بوابة الطالب ({STUDENT_LAYOUTS.length.toLocaleString("ar-EG")})
@@ -97,6 +108,40 @@ export default function AppearancePage() {
                     <p className="truncate text-[10px] text-muted-foreground">{s.hint}</p>
                   </div>
                   {busy === s.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "design" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {STUDENT_DESIGNS.map((x) => {
+            const on = x.id === design.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => pickDesign(x)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <DesignPreview design={x} skin={skin} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{x.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  </div>
+                  {busy === x.id ? (
                     <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
                   ) : on ? (
                     <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
@@ -215,7 +260,7 @@ export default function AppearancePage() {
 
       <Card className="mt-6">
         <p className="text-xs leading-relaxed text-muted-foreground">
-          ثيم الطالب يحدّد الألوان والزخرفة وأسلوب البطاقات، وتخطيطه يحدّد ترتيب لوح الترحيب
+          الثيم يحدّد الألوان، والهيئة تحدّد الشكل (حوافّ اللوح والبطاقات وزخرفة الحافّة)، والتخطيط يحدّد ترتيب لوح الترحيب
           والمؤشّرات وبطاقات الكورسات، وتخطيط الواجهة الرئيسية يحدّد شكل الهيرو وترتيب الأقسام
           وعرض الحاوية وكثافة التباعد والفاصل بينها. الثلاثة مستقلّة — أي تركيبة تعمل.
         </p>

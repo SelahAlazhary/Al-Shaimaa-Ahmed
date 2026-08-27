@@ -29,6 +29,7 @@ export function StatTile({
   badge,
   index = 0,
   className = "",
+  shape,
 }: {
   value?: ReactNode;
   unit?: string;
@@ -39,6 +40,8 @@ export function StatTile({
   badge?: string;
   index?: number;
   className?: string;
+  /** شكل البطاقة من الهيئة المختارة — قصّ أو انحناء. */
+  shape?: React.CSSProperties;
 }) {
   const uid = useUid("tile");
   const pct = Math.max(0, Math.min(100, ring ?? 0));
@@ -51,7 +54,8 @@ export function StatTile({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4 }}
-      className={`group relative overflow-hidden rounded-[1.4rem] bg-white/[0.07] p-4 ring-1 ring-white/15 backdrop-blur-sm transition-shadow hover:ring-white/30 sm:p-5 ${className}`}
+      style={shape}
+      className={`group relative overflow-hidden bg-white/[0.07] p-4 ring-1 ring-white/15 backdrop-blur-sm transition-shadow hover:ring-white/30 sm:p-5 ${shape ? "" : "rounded-[1.4rem]"} ${className}`}
     >
       {/* وهج متدرّج في الركن — يضيء قليلاً عند المرور */}
       <span
