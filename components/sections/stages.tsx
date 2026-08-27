@@ -15,6 +15,7 @@ import { KuficBackdrop, ArchTile, CornerKnot, ElegantRule } from "@/components/b
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { useContent } from "@/components/content/content-provider";
 import { mediaSrc } from "@/lib/media";
+import { findSectionStyle, sectionClass, sxGridClass } from "@/lib/section-styles";
 import type { StageCard } from "@/lib/types";
 
 const ar = (n: number) => n.toLocaleString("ar-EG");
@@ -36,13 +37,14 @@ const FALLBACK: StageCard[] = [
 
 export function Stages() {
   const { content } = useContent();
+  const SX = findSectionStyle(content.stagesStyle);
   if (content.ui?.["section.stages"]?.hidden) return null;
 
   const stages = (content.stages ?? FALLBACK).filter((s) => s?.name && s.branches?.length);
   if (!stages.length) return null;
 
   return (
-    <section id="stages" className="relative py-24">
+    <section id="stages" className={`relative py-24 ${sectionClass(SX)}`} data-section-style={SX.id}>
       <ArabicTextBackdrop count={22} seed={13} fade="center" opacity={0.42} tone="text-accent/22" />
       <KuficBackdrop density={44} opacity={0.14} fade="center" tone="text-primary/8" />
 
@@ -57,15 +59,15 @@ export function Stages() {
           desc="اختر مرحلتك وابدأ من أول درس — الترتيب مبنيّ على المنهج، لا على المزاج."
         />
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className={`sx-grid grid items-stretch gap-5 ${sxGridClass(SX.grid, stages.length)}`}>
           {stages.map((s, i) => (
             <Reveal key={s.name} delay={i * 0.1}>
               <motion.article
                 whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="group glass foil relative h-full overflow-hidden rounded-4xl p-7 shadow-bento"
+                className="sx-card group glass foil relative h-full overflow-hidden rounded-4xl p-7 shadow-bento"
               >
-                <CornerKnot size={72} className="pointer-events-none absolute right-0 top-0 text-accent/40" />
+                <CornerKnot size={72} className="sx-knot pointer-events-none absolute right-0 top-0 text-accent/40" />
 
                 {/* ترويسة اللوح */}
                 <div className="relative flex items-start gap-4">

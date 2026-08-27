@@ -86,7 +86,8 @@ export function SectionHeading({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`mb-12 max-w-2xl ${center ? "mx-auto text-center" : ""}`}
+      /* sx-head: خطّاف تصميم القسم — المعالجة تأتي من CSS لا من هنا. */
+      className={`sx-head mb-12 max-w-2xl ${center ? "mx-auto text-center" : ""}`}
     >
       {eyebrow && (
         <span className={`mb-4 flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-primary ${center ? "justify-center" : ""}`}>

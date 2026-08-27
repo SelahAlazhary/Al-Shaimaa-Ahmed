@@ -234,6 +234,10 @@ export type SiteContent = {
   /** تصاميم أقسام الصفحة الرئيسية — كلٌّ مستقلّ. */
   heroStyle?: string;
   plansStyle?: string;
+  /** تصاميم أقسام البطاقات — كلٌّ مستقلّ عن جاره. */
+  stagesStyle?: string;
+  featuresStyle?: string;
+  testimonialsStyle?: string;
   tileStyle?: string;
   tileColors?: { bg?: string; bg2?: string; text?: string; icon?: string; accent?: string };
   /** صورة داخل بطاقة المؤشّر — زينة خلف الرقم لا محتوى. */

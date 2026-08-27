@@ -2014,3 +2014,154 @@ body {
 .tb-art-hang .app-body > header,
 .tb-art-float .app-body > header { margin-top: 0.75rem; }
 
+/* ============================================================
+   أقسام البطاقات في الصفحة الرئيسية
+   ------------------------------------------------------------
+   ثلاثة أقسام تشترك في بنية واحدة — عنوانٌ ثم شبكةُ بطاقات: المراحل
+   والمزايا والشهادات. فقواعدها واحدة ولكلِّ قسم اختيارُه المستقلّ.
+
+   الخطّافات على العناصر: ‎.sx-head‎ للعنوان، ‎.sx-grid‎ للشبكة،
+   ‎.sx-card‎ لكل بطاقة. والأصناف على الـ‎<section>‎ نفسه.
+   ============================================================ */
+
+/* ---------- سطح البطاقة ---------- */
+/* تصفير هوية البطاقة أوّلاً: أصنافها الأصلية (glass foil rounded-4xl)
+   تُبقي شكلاً واحداً مهما تغيّر السطح، فتبدو التصاميم متشابهة. */
+[class*="sx-card-"] .sx-card {
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 0;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease;
+}
+
+.sx-card-solid .sx-card {
+  background: hsl(var(--card));
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  border-radius: 1.75rem;
+}
+.sx-card-glass .sx-card {
+  background: hsl(var(--card) / 0.55);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.7);
+  border-radius: 1.9rem;
+}
+.sx-card-outline .sx-card {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--border));
+  border-radius: 1.4rem;
+}
+.sx-card-soft .sx-card {
+  background: hsl(var(--card));
+  box-shadow: 0 18px 42px -28px hsl(var(--primary) / 0.9);
+  border-radius: 2.1rem;
+}
+.sx-card-plaque .sx-card {
+  background: hsl(var(--card));
+  box-shadow: inset 0 0 0 1px hsl(var(--gold) / 0.45);
+  border-radius: 0;
+  clip-path: polygon(
+    1.1rem 0, calc(100% - 1.1rem) 0, 100% 1.1rem,
+    100% calc(100% - 1.1rem), calc(100% - 1.1rem) 100%,
+    1.1rem 100%, 0 calc(100% - 1.1rem), 0 1.1rem
+  );
+}
+.sx-card-ticket .sx-card {
+  background: hsl(var(--card));
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% calc(50% - 0.7rem), calc(100% - 0.45rem) 50%, 100% calc(50% + 0.7rem),
+    100% 100%, 0 100%,
+    0 calc(50% + 0.7rem), 0.45rem 50%, 0 calc(50% - 0.7rem)
+  );
+}
+.sx-card-tint .sx-card {
+  background: linear-gradient(150deg, hsl(var(--primary) / 0.1), hsl(var(--gold) / 0.07));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.18);
+  border-radius: 1.75rem;
+}
+
+/* ---------- زخرفة الحافّة ---------- */
+/* العقدة الركنية الأصلية تُخفى إلا في وضعها، وإلا اجتمعت زخرفتان. */
+.sx-edge-top .sx-card > .sx-knot,
+.sx-edge-side .sx-card > .sx-knot,
+.sx-edge-glow .sx-card > .sx-knot,
+.sx-edge-none .sx-card > .sx-knot { display: none; }
+
+.sx-edge-top .sx-card,
+.sx-edge-side .sx-card { position: relative; overflow: hidden; }
+
+.sx-edge-top .sx-card::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  height: 0.28rem;
+  background: linear-gradient(to left, hsl(var(--primary)), hsl(var(--gold)));
+}
+.sx-edge-side .sx-card::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 0.28rem;
+  background: linear-gradient(hsl(var(--primary)), hsl(var(--gold)));
+}
+.sx-edge-glow .sx-card:hover {
+  box-shadow: 0 24px 54px -26px hsl(var(--primary) / 0.85), inset 0 0 0 1px hsl(var(--gold) / 0.4);
+  transform: translateY(-3px);
+}
+
+/* ---------- الشبكة ---------- */
+/* التعرّج يُنزل الثانية من كل زوج — ولا يعمل إلا حيث تتّسع الأعمدة */
+@media (min-width: 640px) {
+  .sx-grid-stagger .sx-grid > *:nth-child(even) { transform: translateY(1.75rem); }
+}
+.sx-grid-list .sx-card { display: flex; align-items: center; gap: 1.25rem; }
+
+/* ---------- العنوان ---------- */
+.sx-head-start .sx-head { text-align: start; align-items: flex-start; }
+.sx-head-start .sx-head > * { margin-inline: 0; }
+
+.sx-head-split .sx-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  text-align: start;
+}
+.sx-head-split .sx-head > * { margin-inline: 0; }
+.sx-head-split .sx-head > *:last-child { max-width: 26rem; }
+
+.sx-head-rule .sx-head { position: relative; }
+.sx-head-rule .sx-head::before,
+.sx-head-rule .sx-head::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-inline: auto;
+  width: min(22rem, 60%);
+  background: linear-gradient(to left, transparent, hsl(var(--gold)), transparent);
+}
+.sx-head-rule .sx-head::before { margin-bottom: 1.1rem; }
+.sx-head-rule .sx-head::after { margin-top: 1.1rem; }
+
+.sx-head-badge .sx-head::before {
+  content: "✦";
+  display: grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  margin-inline: auto;
+  margin-bottom: 0.9rem;
+  border-radius: 9999px;
+  background: hsl(var(--gold) / 0.16);
+  color: hsl(var(--gold));
+  font-size: 0.9rem;
+}
+

@@ -14,6 +14,7 @@ import { useContent } from "@/components/content/content-provider";
 import { IconStar, IconTrophy } from "@/components/brand/icons";
 import { CornerKnot } from "@/components/brand/pattern";
 import { mediaSrc } from "@/lib/media";
+import { findSectionStyle, sectionClass, sxGridClass } from "@/lib/section-styles";
 import type { Testimonial } from "@/lib/types";
 
 export function Testimonials() {
@@ -21,13 +22,14 @@ export function Testimonials() {
   if (content.ui?.["section.testimonials"]?.hidden) return null;
 
   const all = (content.testimonials ?? []).filter((t) => !t.hidden);
+  const SX = findSectionStyle(content.testimonialsStyle);
   if (!all.length) return null;
 
   const featured = all.find((t) => t.featured);
   const rest = featured ? all.filter((t) => t.id !== featured.id) : all;
 
   return (
-    <section id="testimonials" className="relative py-24">
+    <section id="testimonials" className={`relative py-24 ${sectionClass(SX)}`} data-section-style={SX.id}>
       <div className="container">
         <SectionHeading
           eyebrow="شهادات الطلاب"
@@ -38,7 +40,7 @@ export function Testimonials() {
         {featured && <FeaturedCard t={featured} />}
 
         {rest.length > 0 && (
-          <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${featured ? "mt-4" : ""}`}>
+          <div className={`sx-grid grid items-stretch gap-4 ${sxGridClass(SX.grid, rest.length)} ${featured ? "mt-4" : ""}`}>
             {rest.map((t, i) => (
               <motion.div
                 key={t.id}
@@ -65,9 +67,9 @@ function FeaturedCard({ t }: { t: Testimonial }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5 }}
-      className="glass relative overflow-hidden rounded-3xl border border-primary/30 p-5 sm:p-7"
+      className="sx-card glass relative overflow-hidden rounded-3xl border border-primary/30 p-5 sm:p-7"
     >
-      <CornerKnot size={84} className="pointer-events-none absolute bottom-0 left-0 hidden text-primary/25 sm:block" />
+      <CornerKnot size={84} className="sx-knot pointer-events-none absolute bottom-0 left-0 hidden text-primary/25 sm:block" />
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <Avatar t={t} size={88} className="size-16 sm:size-[5.5rem]" />
@@ -95,7 +97,7 @@ function FeaturedCard({ t }: { t: Testimonial }) {
 /** بطاقة شهادة عادية. */
 function Card({ t }: { t: Testimonial }) {
   return (
-    <figure className="glass flex h-full flex-col gap-3 rounded-3xl p-4 sm:p-5">
+    <figure className="sx-card glass flex h-full flex-col gap-3 rounded-3xl p-4 sm:p-5">
       <blockquote className="flex-1 text-sm leading-relaxed text-muted-foreground">«{t.text}»</blockquote>
       <figcaption className="flex items-center gap-3 border-t border-border pt-3">
         <Avatar t={t} size={40} className="size-10" />

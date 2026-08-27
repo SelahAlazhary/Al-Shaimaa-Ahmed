@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet, Sparkles, ImagePlus } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet, Sparkles, ImagePlus, LayoutList } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -19,9 +19,13 @@ import {
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview, PlansPreview,
-  HeroStylePreview,
+  HeroStylePreview, SectionPreview,
 } from "@/components/admin/skin-preview";
 import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
+import {
+  SECTION_STYLES, findSectionStyle, DEFAULT_SECTION_STYLE, SX_SECTIONS,
+  type SectionStyle, type SxSectionKey,
+} from "@/lib/section-styles";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
 import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, type ToolbarStyle } from "@/lib/toolbar-styles";
 import {
@@ -40,7 +44,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections";
 
 export default function AppearancePage() {
   const { content, saveContent, uploadImage } = useContent();
@@ -56,6 +60,9 @@ export default function AppearancePage() {
   const bar = findToolbar(content.toolbarStyle);
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
+  /* كل قسم بطاقات يحمل اختياره بمفتاحه — فلا يُجبَر قسمٌ على شكل جاره. */
+  const [sxKey, setSxKey] = useState<SxSectionKey>("stagesStyle");
+  const sxStyle = findSectionStyle(content[sxKey]);
   const tileColors = content.tileColors ?? {};
   const tileArt: TileArt = content.tileArt ?? {};
   const side = findSideNav(content.sideNav);
@@ -132,6 +139,11 @@ export default function AppearancePage() {
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
     },
+    sections: {
+      label: "أقسام البطاقات",
+      isDefault: SX_SECTIONS.every((x) => (content[x.key] ?? DEFAULT_SECTION_STYLE) === DEFAULT_SECTION_STYLE),
+      patch: () => Object.fromEntries(SX_SECTIONS.map((x) => [x.key, DEFAULT_SECTION_STYLE])),
+    },
     hero: {
       label: "قسم الهيرو",
       isDefault: heroStyle.id === DEFAULT_HERO_STYLE,
@@ -187,6 +199,12 @@ export default function AppearancePage() {
   const pickDock = async (x: DockStyle) => {
     setBusy(x.id);
     await saveContent({ dockStyle: x.id });
+    setBusy(null);
+  };
+
+  const pickSection = async (x: SectionStyle) => {
+    setBusy(x.id);
+    await saveContent({ [sxKey]: x.id });
     setBusy(null);
   };
 
@@ -304,6 +322,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "mobile"} onClick={() => setTab("mobile")} icon={<Smartphone className="size-4" />}>
           تنسيق الهاتف ({MOBILE_LAYOUTS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<LayoutList className="size-4" />}>
+          أقسام البطاقات ({SECTION_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "hero"} onClick={() => setTab("hero")} icon={<Sparkles className="size-4" />}>
           قسم الهيرو ({HERO_STYLES.length.toLocaleString("ar-EG")})
@@ -813,6 +834,69 @@ export default function AppearancePage() {
             );
           })}
         </div>
+      )}
+
+      {tab === "sections" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">أيّ قسم تصمّم الآن؟</p>
+            <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+              ثلاثة أقسام تشترك في بنية واحدة — عنوانٌ ثم شبكةُ بطاقات. لكلٍّ اختيارُه
+              المستقلّ، فاختر القسم أوّلاً ثم التصميم.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SX_SECTIONS.map((x) => (
+                <button
+                  key={x.key}
+                  type="button"
+                  onClick={() => setSxKey(x.key)}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-bold transition ${
+                    sxKey === x.key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  {x.label}
+                  <span className="ms-2 text-[10px] font-semibold opacity-70">
+                    {findSectionStyle(content[x.key]).name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {SECTION_STYLES.map((x) => {
+              const on = x.id === sxStyle.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickSection(x)}
+                  disabled={busy !== null}
+                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <SectionPreview style={x} skin={skin} />
+                  <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {tab === "hero" && (

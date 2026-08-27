@@ -8,6 +8,7 @@
 import { motion } from "framer-motion";
 import { SectionHeading, Reveal } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
+import { findSectionStyle, sectionClass, sxGridClass } from "@/lib/section-styles";
 import { FEATURE_ICONS, IconManuscript } from "@/components/brand/icons";
 import { ArchTile, CornerKnot, KuficBackdrop } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
@@ -20,9 +21,10 @@ export function Features() {
   if (content.ui?.["section.features"]?.hidden) return null;
 
   const subject = content.teacher?.subject || "اللغة العربية";
+  const SX = findSectionStyle(content.featuresStyle);
 
   return (
-    <section id="features" className="relative py-24">
+    <section id="features" className={`relative py-24 ${sectionClass(SX)}`} data-section-style={SX.id}>
       <ArabicTextBackdrop count={20} seed={29} fade="center" opacity={0.38} tone="text-primary/18" />
       <KuficBackdrop density={46} opacity={0.14} fade="center" tone="text-primary/8" />
 
@@ -37,7 +39,7 @@ export function Features() {
           desc="منهج مرتّب يبني القاعدة قبل الحفظ، وتطبيق بعد كل درس، ومتابعة حتى الإتقان."
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`sx-grid grid items-stretch gap-4 ${sxGridClass(SX.grid, content.features.length)}`}>
           {content.features.map((f, i) => {
             const Icon = FEATURE_ICONS[f.icon] ?? IconManuscript;
             return (
@@ -45,12 +47,12 @@ export function Features() {
                 <motion.article
                   whileHover={{ y: -6 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="group glass relative h-full overflow-hidden rounded-4xl p-6 shadow-bento"
+                  className="sx-card group glass relative h-full overflow-hidden rounded-4xl p-6 shadow-bento"
                 >
                   {/* منمنمة الزاوية */}
                   <CornerKnot
                     size={64}
-                    className="pointer-events-none absolute right-0 top-0 text-accent/45 transition-opacity group-hover:opacity-90"
+                    className="sx-knot pointer-events-none absolute right-0 top-0 text-accent/45 transition-opacity group-hover:opacity-90"
                   />
 
                   {/* ميدالية الرقم */}

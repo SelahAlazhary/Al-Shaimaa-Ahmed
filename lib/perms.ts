@@ -138,6 +138,7 @@ const APPEARANCE_KEYS = new Set([
   "sideNav", "dockStyle", "navIcons", "navColors",
   "tileStyle", "tileColors", "tileArt",
   "toolbarStyle", "heroStyle", "plansStyle", "homeLayout",
+  "stagesStyle", "featuresStyle", "testimonialsStyle",
   "showThemeToggle",
 ]);
 

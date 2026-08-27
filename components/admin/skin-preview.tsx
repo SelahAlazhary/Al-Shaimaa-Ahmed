@@ -20,6 +20,7 @@ import type { ToolbarStyle } from "@/lib/toolbar-styles";
 import type { PlansStyle } from "@/lib/plans-styles";
 import type { HeroStyle } from "@/lib/hero-styles";
 import type { PayStyle } from "@/lib/pay-styles";
+import type { SectionStyle } from "@/lib/section-styles";
 
 const W = 160;
 const H = 108;
@@ -1615,6 +1616,147 @@ export function PayPreview({
           </g>
         );
       })()}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة أقسام البطاقات                                              */
+/* ------------------------------------------------------------------ */
+
+export function SectionPreview({ style, skin }: { style: SectionStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const text = hsl(v.foreground);
+
+  const pad = 9;
+  const inner = W - pad * 2;
+
+  /* الشبكة — الأعمدة والصفوف بحسب المحور */
+  const list = style.grid === "list";
+  const cols = list ? 1 : style.grid === "two" || style.grid === "wide" ? 2 : 3;
+  const rows = list ? 3 : style.grid === "three" || style.grid === "auto" ? 2 : 2;
+  const n = list ? 3 : cols * rows;
+
+  const gap = 3.5;
+  const cw = (inner - gap * (cols - 1)) / cols;
+  const ch = list ? 13 : 21;
+
+  /* العنوان بمعالجته */
+  const headH = style.head === "badge" ? 24 : style.head === "rule" ? 22 : 17;
+  const top = headH + 6;
+
+  const cardFill =
+    style.card === "outline" ? "none"
+      : style.card === "glass" ? hsl(v.card, 0.55)
+        : style.card === "tint" ? tone
+          : hsl(v.card);
+  const cardOpacity = style.card === "tint" ? 0.12 : 1;
+  const cardStroke =
+    style.card === "soft" ? "none"
+      : style.card === "plaque" ? gold
+        : style.card === "tint" ? tone
+          : hsl(v.border);
+
+  /* شكل البطاقة — القصّ مسارٌ لأنه شكل حقيقي لا حدّ */
+  const shape = (x: number, y: number, w: number, h: number) => {
+    if (style.card === "plaque") {
+      const c = 3.5;
+      return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+    }
+    if (style.card === "ticket") {
+      const m = y + h / 2;
+      return `M${x} ${y} H${x + w} V${m - 2.6} L${x + w - 1.6} ${m} L${x + w} ${m + 2.6} V${y + h} H${x} V${m + 2.6} L${x + 1.6} ${m} L${x} ${m - 2.6} Z`;
+    }
+    return null;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* العنوان */}
+      {(() => {
+        const startAligned = style.head === "start" || style.head === "split";
+        const cx = startAligned ? pad : W / 2;
+        const anchorX = (w: number) => (startAligned ? pad : W / 2 - w / 2);
+        return (
+          <g>
+            {style.head === "badge" && (
+              <>
+                <circle cx={W / 2} cy={9} r={4.5} fill={gold} opacity={0.2} />
+                <path d={`M${W / 2} 6.5 L${W / 2 + 1} 8.6 L${W / 2 + 2.4} 9 L${W / 2 + 1} 9.9 L${W / 2} 12 L${W / 2 - 1} 9.9 L${W / 2 - 2.4} 9 L${W / 2 - 1} 8.6 Z`} fill={gold} />
+              </>
+            )}
+            {style.head === "rule" && (
+              <rect x={W / 2 - 30} y={7} width={60} height={0.8} fill={gold} opacity={0.7} />
+            )}
+
+            <rect x={anchorX(46)} y={style.head === "badge" ? 16 : style.head === "rule" ? 11 : 7} width={46} height={5} rx={2.5} fill={text} opacity={0.68} />
+            <rect
+              x={style.head === "split" ? W - pad - 40 : anchorX(62)}
+              y={style.head === "split" ? 9 : style.head === "badge" ? 24 : style.head === "rule" ? 19 : 15}
+              width={style.head === "split" ? 40 : 62}
+              height={3}
+              rx={1.5}
+              fill={text}
+              opacity={0.24}
+            />
+            {style.head === "rule" && (
+              <rect x={W / 2 - 30} y={25} width={60} height={0.8} fill={gold} opacity={0.7} />
+            )}
+            {startAligned && <rect x={pad} y={style.head === "split" ? 17 : 22} width={18} height={1.4} rx={0.7} fill={gold} />}
+            {cx < 0 && null}
+          </g>
+        );
+      })()}
+
+      {/* البطاقات */}
+      {Array.from({ length: n }).map((_, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const stagger = style.grid === "stagger" && col % 2 === 1 ? 3.5 : 0;
+        const x = pad + col * (cw + gap);
+        const y = top + row * (ch + gap) + stagger;
+        if (y + ch > H - 2) return null;
+        const d = shape(x, y, cw, ch);
+
+        return (
+          <g key={i}>
+            {d ? (
+              <path d={d} fill={cardFill} fillOpacity={cardOpacity} stroke={cardStroke} strokeWidth={style.card === "outline" ? 1.2 : 0.7} />
+            ) : (
+              <rect
+                x={x} y={y} width={cw} height={ch}
+                rx={style.card === "soft" ? 6 : style.card === "outline" ? 4 : 5}
+                fill={cardFill} fillOpacity={cardOpacity}
+                stroke={cardStroke} strokeWidth={style.card === "outline" ? 1.2 : 0.7}
+              />
+            )}
+
+            {/* زخرفة الحافّة */}
+            {style.edge === "top" && <rect x={x} y={y} width={cw} height={1.4} fill={tone} />}
+            {style.edge === "side" && <rect x={x} y={y} width={1.4} height={ch} fill={tone} />}
+            {style.edge === "corner" && (
+              <path d={`M${x + cw - 7} ${y} H${x + cw} V${y + 7}`} fill="none" stroke={gold} strokeWidth={0.8} opacity={0.75} />
+            )}
+            {style.edge === "glow" && i === 0 && (
+              <rect x={x - 1.5} y={y - 1.5} width={cw + 3} height={ch + 3} rx={6} fill="none" stroke={tone} strokeWidth={1.4} opacity={0.3} />
+            )}
+
+            {/* محتوى البطاقة */}
+            <rect x={x + 4} y={y + 4} width={7} height={7} rx={2} fill={tone} opacity={0.5} />
+            <rect x={x + (list ? 15 : 4)} y={y + (list ? 4.5 : 14)} width={Math.min(cw - 20, 30)} height={2.6} rx={1.3} fill={text} opacity={0.55} />
+            {ch > 15 && (
+              <>
+                <rect x={x + (list ? 15 : 4)} y={y + (list ? 9.5 : 19)} width={cw - (list ? 20 : 8)} height={2} rx={1} fill={text} opacity={0.2} />
+                {!list && <rect x={x + 4} y={y + 23} width={cw - 14} height={2} rx={1} fill={text} opacity={0.2} />}
+              </>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }
