@@ -22,6 +22,7 @@ import { activeMethods, numberLabel, requestProblem, STATUS_LABEL } from "@/lib/
 import { planPrice, planColor } from "@/lib/plans";
 import { planDuration, planScopeLabel } from "@/components/sections/plans";
 import type { PayMethod, PayRequest, SitePlan, Subject } from "@/lib/types";
+import { PayMark } from "@/components/brand/pay-marks";
 
 const STEPS = ["الخطة", "طريقة الدفع", "التحويل"];
 
@@ -216,14 +217,13 @@ export function PayGate({
                       style={m.color ? ({ "--pg-accent": m.color } as React.CSSProperties) : undefined}
                     >
                       <div className="flex items-center gap-3">
-                        <span
-                          className="pay-method-icon grid size-9 shrink-0 place-items-center rounded-xl bg-cover bg-center text-xs font-extrabold text-white"
-                          style={{
-                            background: m.logo ? `center/cover url(${m.logo})` : (m.color || "hsl(var(--primary))"),
-                          }}
-                        >
-                          {!m.logo && m.name.slice(0, 1)}
-                        </span>
+                        <PayMark
+                          kind={m.kind}
+                          name={m.name}
+                          logo={m.logo}
+                          color={m.color}
+                          className="pay-method-icon size-10"
+                        />
                         <span className="min-w-0 flex-1">
                           <span className="block text-sm font-bold">{m.name}</span>
                           {m.holder && (

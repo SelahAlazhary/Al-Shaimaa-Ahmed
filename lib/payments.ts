@@ -153,3 +153,40 @@ export const STATUS_LABEL: Record<PayRequest["status"], string> = {
   approved: "مقبول",
   rejected: "مرفوض",
 };
+
+/**
+ * طرق الدفع الشائعة في مصر — قوالبُ جاهزة.
+ * ------------------------------------------------------------------
+ * البوّابة بلا طرق شاشةٌ فارغة، وإضافةُ كلِّ طريقة من الصفر كتابةٌ
+ * متكرّرة: الاسم والنوع واللون. القوالبُ تملأ ذلك كلَّه ولا تترك
+ * لصاحبة المنصّة إلا ما لا يعرفه غيرُها — الرقمَ واسمَ صاحب الحساب.
+ */
+export const METHOD_TEMPLATES: {
+  name: string;
+  kind: PayMethod["kind"];
+  color: string;
+  note?: string;
+}[] = [
+  { name: "فودافون كاش", kind: "wallet", color: "#e60000", note: "حوّل من تطبيق فودافون كاش أو بكود ‎*9*7#‎" },
+  { name: "اتصالات كاش", kind: "wallet", color: "#8dc63f", note: "حوّل من تطبيق اتصالات كاش" },
+  { name: "أورنج كاش", kind: "wallet", color: "#ff7900", note: "حوّل من تطبيق أورنج كاش" },
+  { name: "وي باي", kind: "wallet", color: "#7b2d8b", note: "حوّل من تطبيق WE Pay" },
+  { name: "إنستاباي", kind: "instapay", color: "#6d3bd6", note: "حوّل إلى عنوان إنستاباي من تطبيق بنكك" },
+  { name: "فوري", kind: "fawry", color: "#ffb600", note: "ادفع من أقرب منفذ فوري بالكود" },
+  { name: "حساب بنكي", kind: "bank", color: "#1f4e79", note: "حوّل من تطبيق بنكك أو من الفرع" },
+];
+
+/** يبني طرقاً من القوالب بمعرّفات جديدة — بلا أرقام، فهي وحدها ما يُكتب. */
+export function methodsFromTemplates(startOrder = 0): PayMethod[] {
+  return METHOD_TEMPLATES.map((t, i) => ({
+    id: `M-${Date.now().toString(36)}-${i}`,
+    kind: t.kind,
+    name: t.name,
+    number: "",
+    note: t.note,
+    color: t.color,
+    /* تُضاف معطّلة: طريقةٌ بلا رقم تُعرض على الطالب شاشةَ حيرة. */
+    active: false,
+    order: startOrder + i,
+  }));
+}

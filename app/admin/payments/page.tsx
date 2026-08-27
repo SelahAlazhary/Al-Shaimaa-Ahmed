@@ -17,8 +17,12 @@ import { useContent } from "@/components/content/content-provider";
 import { PAY_STYLES, findPayStyle, DEFAULT_PAY_STYLE, PAY_KINDS, type PayStyle } from "@/lib/pay-styles";
 import { PayPreview } from "@/components/admin/skin-preview";
 import { findSkin } from "@/lib/skins";
-import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods, cleanPrefix, sameNumber } from "@/lib/payments";
+import {
+  numberLabel, STATUS_LABEL, gatewayOn, activeMethods, cleanPrefix, sameNumber,
+  METHOD_TEMPLATES, methodsFromTemplates,
+} from "@/lib/payments";
 import type { PayMethod, PayRequest, PayMethodKind } from "@/lib/types";
+import { PayMark } from "@/components/brand/pay-marks";
 
 type Tab = "inbox" | "methods" | "bot" | "design";
 
@@ -463,27 +467,49 @@ function MethodsTab({
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="font-display font-bold">طرق الدفع</p>
-        <button
-          type="button"
-          onClick={add}
-          className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white"
-        >
-          <Plus className="size-4" /> طريقة جديدة
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {/* القوالب تُضاف معطّلة بلا أرقام — يُكتب الرقم ثم تُفعَّل */}
+          <button
+            type="button"
+            onClick={() => setMethods([...methods, ...methodsFromTemplates(methods.length)])}
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-primary/50 px-4 py-2 text-xs font-bold text-primary transition hover:bg-primary/10"
+          >
+            <Plus className="size-4" />
+            أضف الطرق الشائعة ({METHOD_TEMPLATES.length.toLocaleString("ar-EG")})
+          </button>
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white"
+          >
+            <Plus className="size-4" /> طريقة فارغة
+          </button>
+        </div>
       </div>
 
       {methods.length === 0 ? (
-        <Card className="py-12 text-center text-sm text-muted-foreground">
-          لم تُضَف طرق دفع بعد — أضف حساباً بنكياً أو رقم محفظة ليظهر للطلاب.
+        <Card className="py-12 text-center">
+          <p className="font-display text-base font-extrabold">لم تُضَف طرق دفع بعد</p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            البوّابة بلا طرق شاشةٌ فارغة، فيعود الشراء إلى واتساب. اضغط
+            «أضف الطرق الشائعة» ليُملأ الاسمُ والنوعُ واللونُ لسبع طرق مصرية،
+            ولا يبقى عليك إلا الرقم — ثم فعّل ما تريد منها.
+          </p>
+          <button
+            type="button"
+            onClick={() => setMethods(methodsFromTemplates(0))}
+            className="btn-glow mt-5 inline-flex items-center gap-1.5 rounded-2xl px-5 py-2.5 text-xs font-bold text-white"
+          >
+            <Plus className="size-4" /> أضف الطرق الشائعة
+          </button>
         </Card>
       ) : (
         <div className="grid gap-4">
           {methods.map((m, i) => (
             <Card key={m.id} className="grid gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
-                  {KIND_ICON[m.kind]}
-                </span>
+                {/* الشعار كما سيراه الطالب — لا أيقونة فئة مجرّدة */}
+                <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-9" />
                 <select
                   value={m.kind}
                   onChange={(e) => patch(m.id, { kind: e.target.value as PayMethodKind })}
@@ -519,7 +545,12 @@ function MethodsTab({
               <Field label="تعليمات للطالب" value={m.note ?? ""} placeholder="حوّل المبلغ ثم صوّر رسالة التأكيد" onChange={(v) => patch(m.id, { note: v })} />
 
               <div className="flex flex-wrap items-center gap-3">
-                <Toggle label="مفعّلة" hint="المعطّلة لا تظهر للطالب" on={m.active} onChange={(v) => patch(m.id, { active: v })} />
+                <Toggle
+                  label="مفعّلة"
+                  hint={m.number.trim() ? "المعطّلة لا تظهر للطالب" : "اكتب الرقم أوّلاً — طريقة بلا رقم لا تُفعَّل"}
+                  on={m.active && Boolean(m.number.trim())}
+                  onChange={(v) => patch(m.id, { active: v && Boolean(m.number.trim()) })}
+                />
 
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-[11px] font-bold transition hover:border-primary/60">
                   {busyLogo === m.id ? <Loader2 className="size-3.5 animate-spin text-primary" /> : <ImageIcon className="size-3.5 text-primary" />}
