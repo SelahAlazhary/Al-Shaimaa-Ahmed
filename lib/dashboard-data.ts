@@ -28,7 +28,6 @@ export const adminNav: NavItem[] = [
 export const studentNav: NavItem[] = [
   { href: "/student", label: "الرئيسية", icon: "Home" },
   { href: "/student/subjects", label: "موادي", icon: "BookOpen" },
-  { href: "/student/pay", label: "الاشتراك", icon: "Wallet" },
   { href: "/student/exams", label: "الاختبارات", icon: "FileCheck2" },
   { href: "/student/live", label: "البث المباشر", icon: "Radio" },
   { href: "/student/notifications", label: "الإشعارات", icon: "Bell" },

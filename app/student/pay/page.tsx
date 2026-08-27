@@ -7,11 +7,11 @@
  * فيها بيانات التحويل ورفعُ الإيصال، وتُغلق بضغطة خارجها فيضيع ما كُتب.
  * الدفعُ خطوةٌ تستحقّ صفحتها.
  *
- * السياق يأتي من `?subject=` — فتُعرض خطط ذلك الكورس؛ وبدونه تُعرض
- * خطط المنصّة العامّة.
+ * ولا تُفتح إلا من داخل كورس: السياق يأتي من `?subject=`. صفحةُ دفعٍ
+ * عامّة تسأل «ادفع» قبل أن يختار الطالب ما يدفع مقابله.
  */
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -50,7 +50,32 @@ function PayInner() {
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
+  /*
+    البوّابة لا تُفتح إلا من داخل كورس.
+    ------------------------------------------------------------------
+    صفحةُ دفعٍ عامّة تسأل «ادفع» قبل أن يختار الطالب ما يدفع مقابله —
+    فالسياق شرطٌ لا زينة. وبلا كورسٍ صالح يُعاد إلى قائمة الكورسات.
+  */
+  const noSubject = !loading && Boolean(db) && !subject;
+  useEffect(() => {
+    if (noSubject) router.replace("/student/subjects");
+  }, [noSubject, router]);
+
   if (loading || !db) return <StudentHomeSkeleton header statsInHeader cards={2} />;
+
+  if (!subject) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-16 text-center">
+        <p className="font-display text-lg font-extrabold">اختر الكورس أوّلاً</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          الاشتراك يبدأ من داخل الكورس الذي تريده — جارٍ تحويلك إلى قائمة الكورسات.
+        </p>
+        <Link href="/student/subjects" className="btn-glow rounded-2xl px-5 py-2.5 text-sm font-bold text-white">
+          الكورسات
+        </Link>
+      </Card>
+    );
+  }
 
   const activate = async () => {
     setErr(null);
@@ -59,33 +84,29 @@ function PayInner() {
     const res = await fetch("/api/redeem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, subjectId: subject?.id }),
+      body: JSON.stringify({ code, subjectId: subject.id }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) { setErr(data.error || "تعذّر التفعيل"); return; }
     setDone(true);
     await refresh();
-    setTimeout(() => router.push(subject ? `/student/course/${subject.id}` : "/student/subjects"), 1400);
+    setTimeout(() => router.push(`/student/course/${subject.id}`), 1400);
   };
 
   return (
     <>
       <PageHeader
-        title={subject ? `الاشتراك في «${subject.name}»` : "الاشتراك والدفع"}
-        subtitle={
-          subject
-            ? `${subject.teacher} · ${subject.grade}`
-            : `${fem ? "اختاري" : "اختر"} خطة الاشتراك ثم طريقة الدفع`
-        }
+        title={`الاشتراك في «${subject.name}»`}
+        subtitle={`${subject.teacher} · ${subject.grade}`}
       />
 
       <Link
-        href={subject ? `/student/course/${subject.id}` : "/student/subjects"}
+        href={`/student/course/${subject.id}`}
         className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-bold text-muted-foreground transition hover:text-foreground"
       >
         <IconArrowLeft className="size-3.5 rotate-180" />
-        {subject ? "رجوع للكورس" : "رجوع للكورسات"}
+        رجوع للكورس
       </Link>
 
       {done ? (
@@ -93,7 +114,7 @@ function PayInner() {
           <IconCheckCircle className="size-14 text-emerald-500" />
           <p className="font-display text-xl font-extrabold">تم التفعيل 🎉</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            {subject ? `يمكنك الآن مشاهدة كل دروس «${subject.name}».` : "اشتراكك صار سارياً — استمتع بالدروس."}
+            يمكنك الآن مشاهدة كل دروس «{subject.name}».
           </p>
         </Card>
       ) : (
@@ -104,7 +125,7 @@ function PayInner() {
               <PayGate
                 plans={plans}
                 subject={subject}
-                onDone={() => router.push(subject ? `/student/course/${subject.id}` : "/student/subjects")}
+                onDone={() => router.push(`/student/course/${subject.id}`)}
               />
             ) : (
               <div className="py-10 text-center">
