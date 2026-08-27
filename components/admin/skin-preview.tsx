@@ -15,7 +15,7 @@ import { shapeStyle, type StudentDesign } from "@/lib/designs";
 import { EdgeArtLayer } from "@/components/brand/edge-art";
 import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
 import type { FrameShape } from "@/lib/frame-shapes";
-import type { TileStyle, TileColors } from "@/lib/tile-styles";
+import type { TileStyle, TileColors, TileArt } from "@/lib/tile-styles";
 import type { ToolbarStyle } from "@/lib/toolbar-styles";
 import type { PlansStyle } from "@/lib/plans-styles";
 import type { HeroStyle } from "@/lib/hero-styles";
@@ -830,19 +830,23 @@ export function FramePreview({
 export function TilePreview({
   tile,
   colors,
+  art,
   skin,
 }: {
   tile: TileStyle;
   colors?: TileColors;
+  /** الصورة المرفوعة — تُرسم في المعاينة كما تُرسم في البطاقة الحقيقية. */
+  art?: TileArt;
   skin: StudentSkin;
 }) {
   const v = skin.vars;
   const bg =
     colors?.bg ||
-    (tile.surface === "solid" ? hsl(v.card)
+    (tile.surface === "solid" || tile.surface === "sheen" ? hsl(v.card)
       : tile.surface === "gradient" ? hsl(v.primary)
-        : tile.surface === "glass" ? hsl(v.card, 0.5)
-          : "transparent");
+        : tile.surface === "tint" ? hsl(v.primary)
+          : tile.surface === "glass" ? hsl(v.card, 0.5)
+            : "transparent");
   const bg2 = colors?.bg2 || hsl(v.glow);
   const text = colors?.text || hsl(v.foreground);
   const badge = colors?.icon || hsl(v.gold);
@@ -859,6 +863,50 @@ export function TilePreview({
 
   const centered = tile.layout === "centered";
   const inline = tile.layout === "inline";
+  const split = tile.layout === "split";
+  const overlay = tile.layout === "overlay";
+
+  /* موضع الصورة — يطابق قواعد ‎.tl-art-*‎ في globals.css */
+  const artOn = Boolean(art?.image) && art?.mode !== "badge";
+  const artStyle: React.CSSProperties | undefined = artOn
+    ? {
+      position: "absolute",
+      backgroundImage: `url(${art!.image})`,
+      backgroundRepeat: "no-repeat",
+      opacity: Math.max(5, Math.min(100, art?.opacity ?? 22)) / 100,
+      filter: `blur(${Math.max(0, Math.min(12, art?.blur ?? 0)) * 0.4}px)`,
+      ...(art?.mode === "corner"
+        ? { insetInlineStart: -4, bottom: -4, width: "45%", aspectRatio: "1", backgroundSize: "contain", backgroundPosition: "bottom left" }
+        : art?.mode === "side"
+          ? { insetInlineEnd: 0, top: 0, bottom: 0, width: "38%", backgroundSize: "cover", backgroundPosition: "center", maskImage: "linear-gradient(to left, #000 55%, transparent)", WebkitMaskImage: "linear-gradient(to left, #000 55%, transparent)" }
+          : art?.mode === "strip"
+            ? { insetInline: 0, top: 0, height: "38%", backgroundSize: "cover", backgroundPosition: "center", maskImage: "linear-gradient(to bottom, #000 45%, transparent)", WebkitMaskImage: "linear-gradient(to bottom, #000 45%, transparent)" }
+            : { inset: 0, backgroundSize: "cover", backgroundPosition: "center" }),
+    }
+    : undefined;
+
+  const badgeEl = tile.icon !== "none" && (
+    <span
+      style={{
+        width: 22,
+        height: 22,
+        background: art?.image && art.mode === "badge" ? `center/cover url(${art.image})` : badge,
+        borderRadius: tile.icon === "medallion" ? 0 : badgeShape,
+        clipPath:
+          tile.icon === "medallion"
+            ? "polygon(50% 0, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0 50%, 15% 15%)"
+            : undefined,
+        flexShrink: 0,
+      }}
+    />
+  );
+
+  const numEl = (size: string) => (
+    <span style={{ color: text, fontWeight: 700, fontSize: size, lineHeight: 1, position: "relative" }}>٧٥٪</span>
+  );
+  const labelEl = (
+    <p style={{ color: text, opacity: 0.7, fontSize: "0.6rem", marginTop: 6, position: "relative" }}>متوسّط تقدّمك</p>
+  );
 
   return (
     <div
@@ -866,7 +914,7 @@ export function TilePreview({
       style={{ background: hsl(v.background), aspectRatio: "160 / 108" }}
     >
       <div
-        className="w-full max-w-[9rem] p-3"
+        className="relative w-full max-w-[9rem] overflow-hidden p-3"
         style={{
           background: fill,
           boxShadow: ring,
@@ -874,39 +922,53 @@ export function TilePreview({
           textAlign: centered ? "center" : "right",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            justifyContent: centered ? "center" : "space-between",
-            flexDirection: inline ? "row-reverse" : "row",
-          }}
-        >
-          {tile.icon !== "none" && (
-            <span
-              style={{
-                width: 22,
-                height: 22,
-                background: badge,
-                borderRadius: tile.icon === "medallion" ? 0 : badgeShape,
-                clipPath:
-                  tile.icon === "medallion"
-                    ? "polygon(50% 0, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0 50%, 15% 15%)"
-                    : undefined,
-                flexShrink: 0,
-              }}
-            />
-          )}
-          {inline && (
-            <span style={{ color: text, fontWeight: 700, fontSize: "1.1rem", lineHeight: 1 }}>٧٥٪</span>
-          )}
-        </div>
-
-        {!inline && (
-          <p style={{ color: text, fontWeight: 700, fontSize: "1.35rem", lineHeight: 1, marginTop: 10 }}>٧٥٪</p>
+        {/* غلالة المُغلَّل ولمعة اللامع — طبقتان خلف النصّ لا فوقه */}
+        {tile.surface === "tint" && (
+          <span style={{ position: "absolute", inset: 0, background: hsl(v.card), opacity: 0.82 }} />
         )}
-        <p style={{ color: text, opacity: 0.7, fontSize: "0.6rem", marginTop: 6 }}>متوسّط تقدّمك</p>
+        {tile.surface === "sheen" && (
+          <span style={{ position: "absolute", inset: 0, background: "linear-gradient(115deg, transparent 38%, hsl(0 0% 100% / 0.22) 50%, transparent 62%)" }} />
+        )}
+        {artOn && <span style={artStyle} />}
+
+        {split ? (
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ background: accent, borderRadius: "0.55rem", padding: "0.3rem", display: "grid", flex: "none" }}>
+              {badgeEl}
+            </span>
+            <span style={{ minWidth: 0, flex: 1 }}>
+              {numEl("1.2rem")}
+              {labelEl}
+            </span>
+          </div>
+        ) : overlay ? (
+          <div style={{ position: "relative", minHeight: 58 }}>
+            <span style={{ position: "absolute", insetInlineStart: 0, top: 0 }}>{badgeEl}</span>
+            <p style={{ marginTop: 26 }}>{numEl("1.5rem")}</p>
+            {labelEl}
+          </div>
+        ) : (
+          <>
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                justifyContent: centered ? "center" : "space-between",
+                flexDirection: inline ? "row-reverse" : "row",
+              }}
+            >
+              {badgeEl}
+              {inline && numEl("1.1rem")}
+            </div>
+
+            {!inline && (
+              <p style={{ marginTop: 10, position: "relative" }}>{numEl("1.35rem")}</p>
+            )}
+            {labelEl}
+          </>
+        )}
       </div>
     </div>
   );

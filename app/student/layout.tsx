@@ -7,7 +7,7 @@ import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
 import { findSkin, findLayout, findMobile, mobileClass, skinCss } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
 import { findDesign } from "@/lib/designs";
-import { findTile, tileClass, tileColorVars } from "@/lib/tile-styles";
+import { findTile, tileClass, tileColorVars, tileArtVars, tileArtClass } from "@/lib/tile-styles";
 import { findToolbar, toolbarClass } from "@/lib/toolbar-styles";
 import { findSideNav, sideNavClass, findDock, dockClass, navColorVars, DEFAULT_ICON_SET } from "@/lib/nav-styles";
 
@@ -36,6 +36,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const dock = findDock(pub.content?.dockStyle);
   const icons = pub.content?.navIcons ?? DEFAULT_ICON_SET;
   const tile = findTile(pub.content?.tileStyle);
+  const tileArt = pub.content?.tileArt;
   const bar = findToolbar(pub.content?.toolbarStyle);
 
   return (
@@ -44,8 +45,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           كتلة واحدة للثيم المختار فقط، فلا تُحمَّل عشرون كتلة لا تُعرض. */}
       <style dangerouslySetInnerHTML={{ __html: skinCss(skin) }} />
     <div
-      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${tileClass(tile)} ${toolbarClass(bar)}`}
-      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors) }}
+      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${tileClass(tile)} ${tileArtClass(tileArt)} ${toolbarClass(bar)}`}
+      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors), ...tileArtVars(tileArt) }}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}

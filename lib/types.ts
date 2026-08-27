@@ -222,6 +222,8 @@ export type SiteContent = {
   plansStyle?: string;
   tileStyle?: string;
   tileColors?: { bg?: string; bg2?: string; text?: string; icon?: string; accent?: string };
+  /** صورة داخل بطاقة المؤشّر — زينة خلف الرقم لا محتوى. */
+  tileArt?: { image?: string; mode?: "cover" | "corner" | "side" | "strip" | "badge"; opacity?: number; blur?: number };
 
   /**
    * زرّ تبديل الفاتح/الداكن.

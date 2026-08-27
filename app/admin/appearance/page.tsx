@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet, Sparkles } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop, Wallet, Sparkles, ImagePlus } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -24,7 +24,10 @@ import {
 import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
 import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, type ToolbarStyle } from "@/lib/toolbar-styles";
-import { TILE_STYLES, findTile, DEFAULT_TILE, type TileStyle } from "@/lib/tile-styles";
+import {
+  TILE_STYLES, findTile, DEFAULT_TILE, TILE_ART_MODES, DEFAULT_TILE_ART,
+  type TileStyle, type TileArt, type TileArtMode,
+} from "@/lib/tile-styles";
 import { DEFAULT_FRAME } from "@/lib/frame-shapes";
 import {
   SIDE_NAV_STYLES, DOCK_STYLES, findSideNav, findDock,
@@ -40,7 +43,7 @@ const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570"
 type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero";
 
 export default function AppearancePage() {
-  const { content, saveContent } = useContent();
+  const { content, saveContent, uploadImage } = useContent();
   const [tab, setTab] = useState<Tab>("skin");
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -54,6 +57,7 @@ export default function AppearancePage() {
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
   const tileColors = content.tileColors ?? {};
+  const tileArt: TileArt = content.tileArt ?? {};
   const side = findSideNav(content.sideNav);
   const dock = findDock(content.dockStyle);
   const iconSet = content.navIcons ?? DEFAULT_ICON_SET;
@@ -88,8 +92,11 @@ export default function AppearancePage() {
     },
     tiles: {
       label: "بطاقات المؤشّرات",
-      isDefault: tile.id === DEFAULT_TILE && Object.values(tileColors).every((v) => !v),
-      patch: () => ({ tileStyle: DEFAULT_TILE, tileColors: {} }),
+      isDefault:
+        tile.id === DEFAULT_TILE &&
+        Object.values(tileColors).every((v) => !v) &&
+        !tileArt.image,
+      patch: () => ({ tileStyle: DEFAULT_TILE, tileColors: {}, tileArt: {} }),
     },
     design: {
       label: "الهيئة",
@@ -210,6 +217,19 @@ export default function AppearancePage() {
   /** ألوان البطاقة تُدمج فلا يمحو ضبطُ لونٍ لونًا آخر. */
   const setTileColor = (patch: Record<string, string>) =>
     saveContent({ tileColors: { ...tileColors, ...patch } });
+
+  /* الصورة داخل البطاقة — الرفع يملأ الوضع الافتراضي معه فتظهر فوراً. */
+  const setTileArt = (patch: Partial<TileArt>) =>
+    saveContent({ tileArt: { ...tileArt, ...patch } });
+
+  const [artBusy, setArtBusy] = useState(false);
+
+  const pickTileImage = async (file: File) => {
+    setArtBusy(true);
+    const url = await uploadImage(file);
+    if (url) await saveContent({ tileArt: { ...DEFAULT_TILE_ART, ...tileArt, image: url } });
+    setArtBusy(false);
+  };
 
   const pickDesign = async (x: StudentDesign) => {
     setBusy(x.id);
@@ -367,6 +387,101 @@ export default function AppearancePage() {
       {tab === "tiles" && (
         <>
           <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">صورة داخل البطاقة</p>
+            <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+              صورة أو GIF يظهر داخل بطاقات المؤشّرات. طبقة زينة خلف الرقم لا فوقه —
+              فالشفافية مضبوطة حتى يبقى الرقم مقروءاً، وهو أهمّ ما في البطاقة.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2 text-xs font-bold transition hover:border-primary/60">
+                {artBusy ? <Loader2 className="size-4 animate-spin text-primary" /> : <ImagePlus className="size-4 text-primary" />}
+                {tileArt.image ? "تغيير الصورة" : "رفع صورة أو GIF"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={artBusy}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (f) void pickTileImage(f);
+                  }}
+                />
+              </label>
+
+              {tileArt.image && (
+                <>
+                  <span
+                    className="size-12 shrink-0 rounded-xl border border-border bg-muted bg-cover bg-center"
+                    style={{ backgroundImage: `url(${tileArt.image})` }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void saveContent({ tileArt: {} })}
+                    className="rounded-xl border border-border px-3 py-2 text-[11px] font-bold text-muted-foreground transition hover:border-destructive/60 hover:text-destructive"
+                  >
+                    إزالة الصورة
+                  </button>
+                </>
+              )}
+            </div>
+
+            {tileArt.image && (
+              <div className="mt-4 grid gap-4">
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-muted-foreground">موضع الصورة</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TILE_ART_MODES.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => void setTileArt({ mode: m.id as TileArtMode })}
+                        title={m.hint}
+                        className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                          (tileArt.mode ?? "cover") === m.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="flex flex-wrap items-center gap-3">
+                  <span className="w-40 shrink-0 text-xs font-semibold text-muted-foreground">
+                    شدّة الظهور ({(tileArt.opacity ?? 22).toLocaleString("ar-EG")}٪)
+                  </span>
+                  <input
+                    type="range"
+                    min={5}
+                    max={100}
+                    value={tileArt.opacity ?? 22}
+                    onChange={(e) => void setTileArt({ opacity: Number(e.target.value) })}
+                    className="h-1.5 min-w-[12rem] flex-1 accent-primary"
+                  />
+                </label>
+
+                <label className="flex flex-wrap items-center gap-3">
+                  <span className="w-40 shrink-0 text-xs font-semibold text-muted-foreground">
+                    الضباب ({(tileArt.blur ?? 0).toLocaleString("ar-EG")} بكسل)
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={12}
+                    value={tileArt.blur ?? 0}
+                    onChange={(e) => void setTileArt({ blur: Number(e.target.value) })}
+                    className="h-1.5 min-w-[12rem] flex-1 accent-primary"
+                  />
+                </label>
+              </div>
+            )}
+          </Card>
+
+          <Card className="mb-5">
             <p className="font-display mb-1 font-bold">ألوان البطاقات</p>
             <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
               مستقلّة عن الثيم تماماً — تغيّر لون البطاقات وحدها دون أن تمسّ هوية المنصّة.
@@ -433,7 +548,7 @@ export default function AppearancePage() {
                     on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <TilePreview tile={x} colors={tileColors} skin={skin} />
+                  <TilePreview tile={x} colors={tileColors} art={tileArt} skin={skin} />
                   <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{x.name}</p>

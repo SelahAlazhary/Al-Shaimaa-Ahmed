@@ -72,6 +72,13 @@ export function StatTile({
           : "bg-card ring-1 ring-[hsl(var(--gold)/0.35)] hover:ring-[hsl(var(--gold)/0.6)]"
       } ${shape ? "" : "rounded-[1.4rem]"} ${className}`}
     >
+      {/*
+        صورة البطاقة المرفوعة — طبقة زينة خلف النصّ.
+        تُرسم دائماً ولا تظهر إلا حين يُضبط ‎--tile-art‎، فيبقى الترتيب
+        واحداً في كل البطاقات ولا يعتمد المكوّن على قراءة الإعداد.
+      */}
+      <span aria-hidden="true" className="tile-art" />
+
       {/* وهج متدرّج في الركن — يضيء قليلاً عند المرور */}
       <span
         aria-hidden="true"

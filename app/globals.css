@@ -1295,6 +1295,113 @@ body {
 }
 .tl-icon-none .stat-tile .tile-badge { display: none; }
 
+/* أسطح إضافية */
+.tl-surface-tint .stat-tile {
+  background: var(--tile-bg, hsl(var(--primary)));
+  box-shadow: inset 0 0 0 1px var(--tile-accent, hsl(var(--gold) / 0.3));
+  opacity: 1;
+}
+/* الغلالة طبقة مستقلّة فلا تُخفّف النصّ معها */
+.tl-surface-tint .stat-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsl(var(--card));
+  opacity: 0.82;
+  pointer-events: none;
+}
+.tl-surface-sheen .stat-tile {
+  background: var(--tile-bg, hsl(var(--card)));
+  box-shadow: inset 0 0 0 1px var(--tile-accent, hsl(var(--gold) / 0.35));
+}
+.tl-surface-sheen .stat-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, hsl(0 0% 100% / 0.22) 50%, transparent 62%);
+  pointer-events: none;
+}
+
+/* ترتيبات إضافية */
+.tl-layout-split .stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.tl-layout-split .stat-tile .tile-head {
+  order: 0;
+  flex: none;
+  margin: 0;
+  border-radius: 1rem;
+  padding: 0.5rem;
+  background: var(--tile-accent, hsl(var(--gold) / 0.16));
+}
+.tl-layout-split .stat-tile .tile-body { margin-top: 0; min-width: 0; flex: 1; }
+
+.tl-layout-overlay .stat-tile .tile-head {
+  position: absolute;
+  inset-block-start: 0.85rem;
+  inset-inline-start: 0.85rem;
+  margin: 0;
+}
+.tl-layout-overlay .stat-tile .tile-body { margin-top: 1.5rem; }
+.tl-layout-overlay .stat-tile .tile-body .font-display span:first-child { font-size: 2.9rem; }
+
+/* ============================================================
+   صورة داخل البطاقة
+   ------------------------------------------------------------
+   طبقة زينة خلف النصّ لا محتوى — لذلك aria-hidden وشفافية مضبوطة.
+   لا تُرسم أصلاً إلا حين تُرفع صورة (الصنف يُضاف حينها فقط).
+   ============================================================ */
+.tile-art {
+  position: absolute;
+  pointer-events: none;
+  background-image: var(--tile-art);
+  background-repeat: no-repeat;
+  opacity: var(--tile-art-op, 0.22);
+  filter: blur(var(--tile-art-blur, 0px));
+}
+.tl-art-cover .tile-art {
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.tl-art-corner .tile-art {
+  inset-block-end: -0.5rem;
+  inset-inline-start: -0.5rem;
+  width: 45%;
+  aspect-ratio: 1;
+  background-size: contain;
+  background-position: bottom left;
+}
+.tl-art-side .tile-art {
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 38%;
+  background-size: cover;
+  background-position: center;
+  -webkit-mask-image: linear-gradient(to left, #000 55%, transparent);
+  mask-image: linear-gradient(to left, #000 55%, transparent);
+}
+.tl-art-strip .tile-art {
+  inset-inline: 0;
+  inset-block-start: 0;
+  height: 38%;
+  background-size: cover;
+  background-position: center;
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent);
+  mask-image: linear-gradient(to bottom, #000 45%, transparent);
+}
+/* داخل الشارة: الصورة تحلّ محلّ الأيقونة فلا حاجة لطبقة خلفية */
+.tl-art-badge .tile-art { display: none; }
+.tl-art-badge .stat-tile .tile-badge {
+  background-image: var(--tile-art);
+  background-size: cover;
+  background-position: center;
+}
+.tl-art-badge .stat-tile .tile-badge > * { display: none; }
+
+
 /* ============================================================
    القائمة السفلية (الهاتف)
    ============================================================ */
