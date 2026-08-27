@@ -19,7 +19,7 @@ import {
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview, PlansPreview,
-  HeroStylePreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview,
+  HeroStylePreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview, MobileHomePreview,
 } from "@/components/admin/skin-preview";
 import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
 import {
@@ -32,6 +32,7 @@ import {
   FOOTER_STYLES, findFooterStyle, DEFAULT_FOOTER_STYLE,
   type FaqStyle, type CtaStyle, type FooterStyle,
 } from "@/lib/block-styles";
+import { MOBILE_HOMES, findMobileHome, DEFAULT_MOBILE_HOME, type MobileHome } from "@/lib/mobile-home";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
 import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, BAR_STICKS, type ToolbarStyle } from "@/lib/toolbar-styles";
 import {
@@ -50,7 +51,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome";
 
 
 /** اختيار تثبيت الشريط — إعدادٌ لا هيئة، فله صفُّه الخاصّ. */
@@ -102,6 +103,7 @@ export default function AppearancePage() {
   const bar = findToolbar(content.toolbarStyle);
   /* شريط الواجهة مستقلّ؛ وفارغاً يتبع شريط اللوحة كما كان. */
   const navBar = findToolbar(content.navbarStyle || content.toolbarStyle);
+  const mHome = findMobileHome(content.mobileHome);
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
   /* كل قسم بطاقات يحمل اختياره بمفتاحه — فلا يُجبَر قسمٌ على شكل جاره. */
@@ -185,6 +187,11 @@ export default function AppearancePage() {
       label: "تنسيق الهاتف",
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    mhome: {
+      label: "واجهة الهاتف",
+      isDefault: mHome.id === DEFAULT_MOBILE_HOME,
+      patch: () => ({ mobileHome: DEFAULT_MOBILE_HOME }),
     },
     navbar: {
       label: "شريط الواجهة",
@@ -295,6 +302,12 @@ export default function AppearancePage() {
   const pickPlans = async (x: PlansStyle) => {
     setBusy(x.id);
     await saveContent({ plansStyle: x.id });
+    setBusy(null);
+  };
+
+  const pickMobileHome = async (x: MobileHome) => {
+    setBusy(x.id);
+    await saveContent({ mobileHome: x.id });
     setBusy(null);
   };
 
@@ -409,6 +422,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<LayoutList className="size-4" />}>
           أقسام البطاقات ({SECTION_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "mhome"} onClick={() => setTab("mhome")} icon={<Smartphone className="size-4" />}>
+          واجهة الهاتف ({MOBILE_HOMES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "navbar"} onClick={() => setTab("navbar")} icon={<PanelTop className="size-4" />}>
           شريط الواجهة ({TOOLBAR_STYLES.length.toLocaleString("ar-EG")})
@@ -982,6 +998,51 @@ export default function AppearancePage() {
                   }`}
                 >
                   <SectionPreview style={x} skin={skin} />
+                  <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {tab === "mhome" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">الواجهة الرئيسية على الهاتف</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              الهاتف ليس شاشةً مصغّرة بل ترتيبٌ آخر: الإبهام يصل إلى أسفل الشاشة لا أعلاها،
+              والتمرير أرخص من الضغط، والصورة الكبيرة تُبعد الزرَّ عن اليد. هذه التنسيقات
+              لا تمسّ الشاشات الأوسع إطلاقاً.
+            </p>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {MOBILE_HOMES.map((x) => {
+              const on = x.id === mHome.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickMobileHome(x)}
+                  disabled={busy !== null}
+                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <MobileHomePreview mh={x} skin={skin} />
                   <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{x.name}</p>

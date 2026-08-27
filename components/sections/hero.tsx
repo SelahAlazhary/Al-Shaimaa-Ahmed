@@ -84,7 +84,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
       <span className="hero-decor hero-decor-extra"><HarakatField count={14} seed={11} tone="text-accent/30" /></span>
 
       <div
-        className={`container grid items-center gap-14 ${
+        className={`hero-grid container grid items-center gap-14 ${
           shape === "split" || shape === "reversed" ? "lg:grid-cols-2" : "grid-cols-1"
         }`}
       >
@@ -93,7 +93,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className={`relative ${
+          className={`hero-text relative ${
             shape === "reversed" ? "order-2 text-center lg:order-2 lg:text-right"
               : shape === "stacked" ? "order-2 text-center"
                 : shape === "centered" || shape === "compact" ? "order-1 mx-auto max-w-3xl text-center"
@@ -208,7 +208,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
         {/* ---------------- عمود الصورة ---------------- */}
         {shape !== "compact" && (
         <div
-          className={`flex justify-center ${
+          className={`hero-media flex justify-center ${
             shape === "reversed" ? "order-1 lg:order-1"
               : shape === "stacked" ? "order-1"
                 : shape === "centered" ? "order-2 mt-4"

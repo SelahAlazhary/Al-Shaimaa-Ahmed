@@ -240,6 +240,8 @@ export type SiteContent = {
   navbarStyle?: string;
   /** تثبيت شريط الواجهة: عائم · مثبّت · يمشي مع الصفحة. */
   navbarStick?: string;
+  /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
+  mobileHome?: string;
   /** تثبيت شريط اللوحة. */
   toolbarStick?: string;
   /** تصاميم أقسام الصفحة الرئيسية — كلٌّ مستقلّ. */

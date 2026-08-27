@@ -14,6 +14,8 @@ import {
   findHomeLayout, WIDTH_CLASS, DENSITY_CLASS, type HomeSection,
 } from "@/lib/home-layouts";
 import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
+import { findMobileHome, mobileHomeClass } from "@/lib/mobile-home";
+import { MobileDock } from "@/components/sections/mobile-dock";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +35,12 @@ export default async function Home() {
   const L = findHomeLayout(content.homeLayout);
   /* شريط الواجهة له مفتاحه؛ وفارغاً يتبع شريط اللوحة كما كان. */
   const bar = findToolbar(content.navbarStyle || content.toolbarStyle);
+  /* تنسيق الهاتف — قواعده كلّها داخل استعلام وسائط، فلا يمسّ الأوسع. */
+  const MH = findMobileHome(content.mobileHome);
 
   return (
     <main
-      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)}`}
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)}`}
       data-home-layout={L.id}
       data-toolbar={bar.id}
     >
@@ -57,6 +61,9 @@ export default async function Home() {
       })}
 
       <CtaFooter />
+
+      {/* دعوة ثابتة أسفل شاشة الهاتف — ظهورها من CSS بحسب التنسيق */}
+      <MobileDock />
     </main>
   );
 }

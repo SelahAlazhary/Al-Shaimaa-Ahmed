@@ -2414,3 +2414,111 @@ body {
 
 /* الشريط الحبري: روابطه تُضيء بالذهب لا بالأزرق الذي لا يُرى عليه */
 .tb-surface-ink .site-bar-links a:hover { color: hsl(var(--gold-light)); }
+
+/* ============================================================
+   تنسيقات الواجهة الرئيسية على الهاتف
+   ------------------------------------------------------------
+   الهاتف ليس شاشةً مصغّرة بل ترتيبٌ آخر: الإبهام يصل إلى أسفل الشاشة لا
+   أعلاها، والتمرير أرخص من الضغط، والصورة الكبيرة تُبعد الزرَّ عن اليد.
+
+   كل ما هنا داخل استعلام وسائط واحد — فلا يمسّ الشاشات الأوسع إطلاقاً.
+   ============================================================ */
+@media (max-width: 767px) {
+
+  /* ---------- ترتيب الهيرو ---------- */
+  .mh-hero-imageFirst .hero-media { order: -1; }
+  .mh-hero-imageFirst .hero-text { order: 1; }
+
+  .mh-hero-textOnly .hero-media { display: none; }
+
+  .mh-hero-compact .hero-media { max-width: 9rem; margin-inline: auto; }
+  .mh-hero-compact .hero-grid { gap: 2rem; }
+
+  /* الصورة خلفية: تُسحب خلف النصّ بشبكة موضع واحد */
+  .mh-hero-behind .hero-grid {
+    display: grid;
+    grid-template-areas: "stack";
+    gap: 0;
+  }
+  .mh-hero-behind .hero-grid > * { grid-area: stack; }
+  .mh-hero-behind .hero-media {
+    opacity: 0.22;
+    filter: blur(1.5px);
+    pointer-events: none;
+  }
+  .mh-hero-behind .hero-text { position: relative; z-index: 1; }
+
+  /* ---------- إيقاع الأقسام ---------- */
+  .mh-flow-tight section { padding-block: 2.75rem; }
+  .mh-flow-tight .container { padding-inline: 1rem; }
+
+  .mh-flow-banded section:nth-of-type(even) { background: hsl(var(--muted) / 0.6); }
+
+  .mh-flow-carded section { padding-block: 1rem; }
+  .mh-flow-carded section > .container {
+    background: hsl(var(--card));
+    border-radius: 1.75rem;
+    padding-block: 2rem;
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+  }
+
+  /* ---------- عرض البطاقات ---------- */
+  .mh-cards-two .sx-grid,
+  .mh-cards-two .plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .mh-cards-two .sx-card { padding: 0.9rem; }
+
+  /* شريط أفقي ينجذب للبطاقة — التمرير أرخص من الضغط */
+  .mh-cards-scroll .sx-grid,
+  .mh-cards-scroll .plan-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 0.8rem;
+    padding-inline: 1rem;
+    margin-inline: -1rem;
+    scrollbar-width: none;
+  }
+  .mh-cards-scroll .sx-grid::-webkit-scrollbar,
+  .mh-cards-scroll .plan-grid::-webkit-scrollbar { display: none; }
+  .mh-cards-scroll .sx-grid > *,
+  .mh-cards-scroll .plan-grid > * {
+    flex: 0 0 78%;
+    scroll-snap-align: center;
+  }
+
+  /* ---------- الدعوة الثابتة ---------- */
+  /* حيث يصل الإبهام — أسفل الشاشة لا أعلاها */
+  .mh-cta-bar .mh-dock,
+  .mh-cta-float .mh-dock { display: block; }
+  .mh-cta-bar main,
+  .mh-cta-float main { padding-bottom: 5.5rem; }
+}
+.mh-dock { display: none; }
+
+/* الدعوة الطافية: زرٌّ مضغوط في الركن لا شريطٌ بعرض الشاشة —
+   وإلا كان «العائم» و«الشريط» رسماً واحداً باسمين. */
+@media (max-width: 767px) {
+  .mh-cta-float .mh-dock {
+    inset-inline: auto;
+    inset-inline-end: 0.9rem;
+    background: none;
+    padding: 0;
+    bottom: 1rem;
+  }
+  .mh-cta-float .mh-dock-inner { flex-direction: column-reverse; gap: 0.6rem; }
+  .mh-cta-float .mh-dock-inner > a:first-child {
+    flex: none;
+    inline-size: 3.4rem;
+    block-size: 3.4rem;
+    border-radius: 9999px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+  /* الأيقونة وحدها تبقى — النصّ لا يتّسع في قرص */
+  .mh-cta-float .mh-dock-inner > a:first-child svg { font-size: 1rem; inline-size: 1.25rem; block-size: 1.25rem; }
+  .mh-cta-float main { padding-bottom: 1.5rem; }
+}

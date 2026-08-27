@@ -22,6 +22,7 @@ import type { HeroStyle } from "@/lib/hero-styles";
 import type { PayStyle } from "@/lib/pay-styles";
 import type { SectionStyle } from "@/lib/section-styles";
 import type { FaqStyle, CtaStyle, FooterStyle } from "@/lib/block-styles";
+import type { MobileHome } from "@/lib/mobile-home";
 
 const W = 160;
 const H = 108;
@@ -2097,6 +2098,137 @@ export function FooterPreview({ style, skin }: { style: FooterStyle; skin: Stude
           return g;
         });
       })()}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة تنسيق الواجهة على الهاتف                                     */
+/* ------------------------------------------------------------------ */
+
+export function MobileHomePreview({ mh, skin }: { mh: MobileHome; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const text = hsl(v.foreground);
+
+  /* هاتف رأسيّ داخل الإطار الأفقي — النسبة الحقيقية أصدق من مربّع */
+  const PW = 58;
+  const PH = 100;
+  const px = (W - PW) / 2;
+  const py = (H - PH) / 2;
+  const pad = 4;
+  const ix = px + pad;
+  const iw = PW - pad * 2;
+
+  const tight = mh.flow === "tight";
+  const gap = tight ? 3 : 5;
+  let y = py + 9;
+
+  const rows: React.ReactNode[] = [];
+  const push = (n: React.ReactNode) => rows.push(<g key={rows.length}>{n}</g>);
+
+  /* الهيرو */
+  const media = (h: number, opts: { faded?: boolean; small?: boolean } = {}) => (
+    <rect
+      x={opts.small ? ix + iw / 2 - 7 : ix}
+      y={y}
+      width={opts.small ? 14 : iw}
+      height={h}
+      rx={3}
+      fill={tone}
+      opacity={opts.faded ? 0.18 : 0.75}
+    />
+  );
+  const heroText = () => (
+    <>
+      <rect x={ix} y={y} width={iw * 0.8} height={4} rx={2} fill={text} opacity={0.7} />
+      <rect x={ix} y={y + 6} width={iw * 0.6} height={2.4} rx={1.2} fill={text} opacity={0.28} />
+      <rect x={ix} y={y + 12} width={iw * 0.55} height={6} rx={3} fill={tone} />
+    </>
+  );
+
+  if (mh.hero === "behind") {
+    push(<>{media(34, { faded: true })}</>);
+    push(<g transform={`translate(0,${6})`}>{heroText()}</g>);
+    y += 34 + gap;
+  } else if (mh.hero === "imageFirst") {
+    push(media(24));
+    y += 24 + 4;
+    push(heroText());
+    y += 20 + gap;
+  } else if (mh.hero === "textOnly") {
+    push(heroText());
+    y += 20 + gap;
+  } else if (mh.hero === "compact") {
+    push(<>{media(14, { small: true })}</>);
+    y += 14 + 3;
+    push(heroText());
+    y += 20 + gap;
+  } else {
+    push(heroText());
+    y += 20 + 4;
+    push(media(22));
+    y += 22 + gap;
+  }
+
+  /* الأقسام */
+  const secH = tight ? 13 : 17;
+  for (let i = 0; i < 3 && y + secH < py + PH - 8; i++) {
+    const banded = mh.flow === "banded" && i % 2 === 1;
+    const carded = mh.flow === "carded";
+    push(
+      <>
+        {banded && <rect x={px} y={y - 2} width={PW} height={secH + 4} fill={hsl(v.muted)} />}
+        {carded && (
+          <rect x={ix} y={y - 1} width={iw} height={secH + 2} rx={4}
+            fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} />
+        )}
+        {mh.cards === "two" ? (
+          <>
+            <rect x={ix + 2} y={y + 2} width={iw / 2 - 3.5} height={secH - 4} rx={2.5} fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} />
+            <rect x={ix + iw / 2 + 1.5} y={y + 2} width={iw / 2 - 3.5} height={secH - 4} rx={2.5} fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} />
+          </>
+        ) : mh.cards === "scroll" ? (
+          <>
+            <rect x={ix + 2} y={y + 2} width={iw * 0.72} height={secH - 4} rx={2.5} fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} />
+            <rect x={ix + 2 + iw * 0.76} y={y + 2} width={iw * 0.72} height={secH - 4} rx={2.5} fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} opacity={0.55} />
+          </>
+        ) : (
+          <rect x={ix + 2} y={y + 2} width={iw - 4} height={secH - 4} rx={2.5} fill={hsl(v.card)} stroke={hsl(v.border)} strokeWidth={0.5} />
+        )}
+      </>
+    );
+    y += secH + gap;
+  }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.muted)} />
+
+      {/* جسم الهاتف */}
+      <rect x={px} y={py} width={PW} height={PH} rx={7} fill={hsl(v.background)} stroke={hsl(v.border)} strokeWidth={0.8} />
+      {/* الشقّ العلوي */}
+      <rect x={px + PW / 2 - 7} y={py + 2.5} width={14} height={2.4} rx={1.2} fill={hsl(v.border)} />
+      {/* الشريط العلوي */}
+      <rect x={ix} y={py + 7} width={iw} height={0} fill="none" />
+
+      <g clipPath="none">{rows}</g>
+
+      {/* الدعوة الثابتة */}
+      {mh.cta === "bar" && (
+        <>
+          <rect x={px} y={py + PH - 13} width={PW} height={13} fill={hsl(v.background)} opacity={0.95} />
+          <rect x={ix} y={py + PH - 10} width={iw - 10} height={7} rx={3.5} fill={tone} />
+          <rect x={ix + iw - 8} y={py + PH - 10} width={8} height={7} rx={2.5} fill="none" stroke={gold} strokeWidth={0.8} />
+        </>
+      )}
+      {mh.cta === "float" && (
+        <circle cx={ix + 7} cy={py + PH - 8} r={5.5} fill={tone} />
+      )}
+
+      {/* حدّ الهاتف فوق كل شيء ليقصّ ما تجاوزه بصرياً */}
+      <rect x={px} y={py} width={PW} height={PH} rx={7} fill="none" stroke={hsl(v.border)} strokeWidth={1.4} />
     </svg>
   );
 }
