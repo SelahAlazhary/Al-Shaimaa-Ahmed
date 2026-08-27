@@ -508,8 +508,30 @@ function MethodsTab({
           {methods.map((m, i) => (
             <Card key={m.id} className="grid gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                {/* الشعار كما سيراه الطالب — لا أيقونة فئة مجرّدة */}
-                <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-9" />
+                {/*
+                  الشعار يُضغط فيُرفع.
+                  ------------------------------------------------------------
+                  الرفعُ كان زرّاً صغيراً بين المفاتيح، والشعارُ مرآةٌ لما
+                  سيراه الطالب — فأولى أن يكون هو نفسُه موضعَ الرفع.
+                */}
+                <label
+                  className="group relative shrink-0 cursor-pointer"
+                  title={m.logo ? "اضغط لتغيير الشعار" : "اضغط لرفع شعار"}
+                >
+                  <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-11" />
+                  <span className="absolute inset-0 grid place-items-center rounded-xl bg-black/55 opacity-0 transition group-hover:opacity-100">
+                    {busyLogo === m.id
+                      ? <Loader2 className="size-4 animate-spin text-white" />
+                      : <ImageIcon className="size-4 text-white" />}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={busyLogo !== null}
+                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void pickLogo(m.id, f); }}
+                  />
+                </label>
                 <select
                   value={m.kind}
                   onChange={(e) => patch(m.id, { kind: e.target.value as PayMethodKind })}
@@ -552,18 +574,12 @@ function MethodsTab({
                   onChange={(v) => patch(m.id, { active: v && Boolean(m.number.trim()) })}
                 />
 
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-[11px] font-bold transition hover:border-primary/60">
-                  {busyLogo === m.id ? <Loader2 className="size-3.5 animate-spin text-primary" /> : <ImageIcon className="size-3.5 text-primary" />}
-                  {m.logo ? "تغيير الشعار" : "شعار (اختياري)"}
-                  <input type="file" accept="image/*" className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void pickLogo(m.id, f); }} />
-                </label>
+                <span className="text-[11px] text-muted-foreground">
+                  {m.logo ? "الشعار مرفوع — اضغطه بالأعلى لتغييره" : "اضغط المربّع بالأعلى لرفع شعار الطريقة"}
+                </span>
                 {m.logo && (
-                  <>
-                    <span className="size-9 rounded-xl border border-border bg-cover bg-center" style={{ backgroundImage: `url(${m.logo})` }} />
-                    <button type="button" onClick={() => patch(m.id, { logo: "" })}
-                      className="text-[11px] font-bold text-muted-foreground hover:text-rose-500">إزالة</button>
-                  </>
+                  <button type="button" onClick={() => patch(m.id, { logo: "" })}
+                    className="text-[11px] font-bold text-muted-foreground hover:text-rose-500">إزالة الشعار</button>
                 )}
 
                 <span className="ms-2 text-[11px] font-semibold text-muted-foreground">اللون:</span>

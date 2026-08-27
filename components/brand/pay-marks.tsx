@@ -112,10 +112,15 @@ export function PayMark({
   className?: string;
 }) {
   if (logo) {
+    /*
+      الشعار المرفوع يُحتوى لا يُقصّ: شعارات المحافظ عريضة غالباً،
+      والقصُّ يبتر اسمَها فيصير مربّعاً ملوّناً لا يدلّ على شيء.
+      وخلفيةٌ فاتحة تحته لأن أكثرها مرسومٌ ليقع على أبيض.
+    */
     return (
       <span
         aria-hidden
-        className={`${className} shrink-0 rounded-xl bg-cover bg-center`}
+        className={`${className} shrink-0 rounded-xl border border-border bg-white bg-contain bg-center bg-no-repeat`}
         style={{ backgroundImage: `url(${logo})` }}
       />
     );
