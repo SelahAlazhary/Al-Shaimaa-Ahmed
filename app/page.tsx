@@ -13,6 +13,7 @@ import { getPublicDB, loadDB } from "@/lib/db";
 import {
   findHomeLayout, WIDTH_CLASS, DENSITY_CLASS, type HomeSection,
 } from "@/lib/home-layouts";
+import { findToolbar, toolbarClass } from "@/lib/toolbar-styles";
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +31,14 @@ export default async function Home() {
   await loadDB();
   const { content } = getPublicDB();
   const L = findHomeLayout(content.homeLayout);
+  /* شريط الصفحة العلوي يتبع تصاميم شريط الأدوات نفسها — سجلّ واحد لا اثنان. */
+  const bar = findToolbar(content.toolbarStyle);
 
   return (
     <main
-      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]}`}
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)}`}
       data-home-layout={L.id}
+      data-toolbar={bar.id}
     >
       {/* خلفية الصفحة — تُضبط من «تخصيص الموقع ← الصور» */}
       <SiteBackground />

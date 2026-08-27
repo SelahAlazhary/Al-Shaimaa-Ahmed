@@ -47,13 +47,13 @@ export function Navbar() {
       >
         <nav
           onMouseLeave={() => setHovered(null)}
-          className="glass foil flex w-full max-w-5xl items-center justify-between gap-2 rounded-full px-4 py-2.5 shadow-bento"
+          className="site-bar glass foil flex w-full max-w-5xl items-center justify-between gap-2 rounded-full px-4 py-2.5 shadow-bento"
         >
           <a href="#hero" className="shrink-0 ps-1">
             <BrandLockup brand={content.brand} subtitle={content.platformSubtitle} logo={content.teacher.logo} size={36} />
           </a>
 
-          <ul className="hidden items-center lg:flex">
+          <ul className="site-bar-links hidden items-center lg:flex">
             {visibleLinks.map((l, i) => (
               <li key={l.id} className="relative flex items-center">
                 {/* فاصل مذهّب دقيق بين كل رابطين */}

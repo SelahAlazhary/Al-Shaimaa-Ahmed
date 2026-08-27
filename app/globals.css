@@ -955,6 +955,62 @@ body {
 .student-skin aside nav a .sn-keep { font-weight: 700; }
 
 /* ============================================================
+   شريط الصفحة الرئيسية — يتبع تصاميم شريط الأدوات نفسها
+   ------------------------------------------------------------
+   الأصناف نفسها (tb-*) تخدم شريطين: شريط لوحة التحكّم وشريط الصفحة
+   الرئيسية. قاعدة واحدة لكل منهما بدل سجلّين منفصلين يتباعدان مع الوقت.
+   ============================================================ */
+.tb-surface-solid .site-bar {
+  background: hsl(var(--card)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.tb-surface-glass .site-bar {
+  background: hsl(var(--card) / 0.6) !important;
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+.tb-surface-outline .site-bar {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--border)) !important;
+}
+.tb-surface-gradient .site-bar {
+  background: linear-gradient(100deg, hsl(var(--card)), hsl(var(--muted))) !important;
+}
+.tb-surface-floating .site-bar {
+  box-shadow: 0 22px 46px -26px hsl(var(--primary) / 0.85) !important;
+}
+.tb-surface-ink .site-bar {
+  background: hsl(var(--primary)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: hsl(var(--primary-foreground));
+}
+.tb-surface-ink .site-bar a,
+.tb-surface-ink .site-bar span,
+.tb-surface-ink .site-bar button { color: hsl(var(--primary-foreground)); }
+.tb-surface-ink .site-bar .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.7) !important; }
+
+/* الشكل: الكبسولة أو شريط بحوافّ أهدأ */
+.tb-height-compact .site-bar { padding-block: 0.3rem; }
+.tb-height-tall .site-bar { padding-block: 0.85rem; }
+.tb-edge-none .site-bar { box-shadow: none !important; }
+.tb-edge-line .site-bar { box-shadow: inset 0 0 0 1px hsl(var(--border)) !important; }
+.tb-edge-gold .site-bar { box-shadow: inset 0 0 0 1.5px hsl(var(--gold) / 0.55) !important; }
+
+/* الروابط في كبسولة داخلية */
+.tb-grouped .site-bar-links {
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: hsl(var(--muted) / 0.7);
+}
+.tb-surface-ink.tb-grouped .site-bar-links {
+  background: hsl(var(--primary-foreground) / 0.12);
+}
+
+/* ============================================================
    قسم الخطط — تصميم مستقلّ
    ============================================================ */
 
