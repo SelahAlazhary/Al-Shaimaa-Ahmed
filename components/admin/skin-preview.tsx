@@ -17,6 +17,7 @@ import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
 import type { FrameShape } from "@/lib/frame-shapes";
 import type { TileStyle, TileColors } from "@/lib/tile-styles";
 import type { ToolbarStyle } from "@/lib/toolbar-styles";
+import type { PlansStyle } from "@/lib/plans-styles";
 
 const W = 160;
 const H = 108;
@@ -1012,6 +1013,135 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
       {/* محتوى الصفحة تحت الشريط */}
       <rect x={bx + 5} y={by + H_BAR + 7} width={bw - 10} height="20" rx="3" fill={hsl(v.card)} />
       <rect x={bx + 5} y={by + H_BAR + 31} width={bw - 10} height="26" rx="3" fill={hsl(v.card)} />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة قسم الخطط                                                   */
+/* ------------------------------------------------------------------ */
+
+export function PlansPreview({ style, skin }: { style: PlansStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const list = style.grid === "list";
+  const cols = list ? 1 : style.grid === "two" || style.grid === "wide" ? 2 : 3;
+  const n = list ? 3 : cols;
+
+  const pad = 8;
+  const gap = 4;
+  const inner = W - pad * 2;
+  const cw = list ? inner : (inner - gap * (cols - 1)) / cols;
+  const ch = list ? 18 : 62;
+  const top = 30;
+  const featured = list ? 1 : Math.floor(cols / 2);
+
+  /** شكل البطاقة — القصّ يُرسم مساراً لأنه شكل حقيقي لا حدّ. */
+  const cardPath = (x: number, y: number, w: number, h: number) => {
+    if (style.surface === "plaque") {
+      const c = 6;
+      return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+    }
+    if (style.surface === "ticket") {
+      const m = y + h / 2;
+      return `M${x} ${y} H${x + w} V${m - 4} L${x + w - 3} ${m} L${x + w} ${m + 4} V${y + h} H${x} V${m + 4} L${x + 3} ${m} L${x} ${m - 4} Z`;
+    }
+    return null;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* عنوان القسم */}
+      <rect x={W / 2 - 26} y={10} width={52} height={4} rx={2} fill={hsl(v.foreground, 0.6)} />
+      <rect x={W / 2 - 16} y={18} width={32} height={2.5} rx={1.2} fill={hsl(v.accent)} />
+
+      {Array.from({ length: n }).map((_, i) => {
+        const on = i === featured;
+        const x = list ? pad : pad + i * (cw + gap);
+        const y = list ? top + i * (ch + gap) : top - (on && style.featured === "lift" ? 5 : 0);
+        const h = ch + (on && style.featured === "scale" ? 6 : 0);
+        const w = cw + (on && style.featured === "scale" ? 4 : 0);
+        const xx = x - (on && style.featured === "scale" ? 2 : 0);
+        const d = cardPath(xx, y, w, h);
+
+        const fill =
+          style.surface === "outline" ? "none"
+            : style.surface === "glass" ? hsl(v.card, 0.6)
+              : hsl(v.card);
+        const stroke =
+          style.featured === "border" && on ? tone
+            : style.surface === "outline" ? hsl(v.border)
+              : style.surface === "soft" ? "none"
+                : hsl(v.border);
+
+        return (
+          <g key={i}>
+            {/* هالة الخطة المميّزة */}
+            {on && style.featured === "glow" && (
+              <rect x={xx - 2} y={y - 2} width={w + 4} height={h + 4} rx={7} fill={tone} opacity={0.16} />
+            )}
+
+            {d ? (
+              <path d={d} fill={fill} stroke={stroke} strokeWidth={on ? 1.4 : 0.8} />
+            ) : (
+              <rect x={xx} y={y} width={w} height={h} rx={5} fill={fill} stroke={stroke} strokeWidth={on ? 1.4 : 0.8} />
+            )}
+
+            {/* تاج علوي */}
+            {on && style.featured === "crown" && (
+              <rect x={xx} y={y} width={w} height={2.5} rx={1.2} fill={tone} />
+            )}
+
+            {/* السعر بأشكاله */}
+            {style.price === "circle" ? (
+              <>
+                <circle cx={xx + w / 2} cy={y + h * 0.42} r={Math.min(13, w / 3)} fill={tone} opacity={0.14} />
+                <circle cx={xx + w / 2} cy={y + h * 0.42} r={Math.min(13, w / 3)} fill="none" stroke={tone} strokeWidth={1} opacity={0.5} />
+                <rect x={xx + w / 2 - 7} y={y + h * 0.42 - 1.5} width={14} height={3.5} rx={1.7} fill={tone} />
+              </>
+            ) : style.price === "badge" ? (
+              <>
+                {/* الشارة في موضع السعر — وموضعه يحدّده نمط العرض لا هذا الفرع */}
+                <rect x={xx + 5} y={y + h * 0.3} width={Math.min(34, w - 10)} height={9} rx={4.5} fill={tone} opacity={0.16} />
+                <rect x={xx + 8} y={y + h * 0.3 + 3} width={Math.min(20, w - 16)} height={3} rx={1.5} fill={tone} />
+              </>
+            ) : (
+              <rect
+                x={xx + 5}
+                y={y + (style.price === "top" ? 5 : h * 0.32)}
+                width={Math.min(22, w - 10)}
+                height={5}
+                rx={2.5}
+                fill={tone}
+              />
+            )}
+
+            {/* الاسم والمزايا */}
+            <rect x={xx + 5} y={y + (style.price === "top" ? 15 : h * 0.16)} width={Math.min(26, w - 10)} height={3} rx={1.5} fill={hsl(v.foreground, 0.5)} />
+            {!list && (
+              <>
+                <rect x={xx + 5} y={y + h * 0.55} width={w - 12} height={2} rx={1} fill={hsl(v.foreground, 0.22)} />
+                <rect x={xx + 5} y={y + h * 0.63} width={w - 16} height={2} rx={1} fill={hsl(v.foreground, 0.22)} />
+                <rect x={xx + 5} y={y + h * 0.71} width={w - 20} height={2} rx={1} fill={hsl(v.foreground, 0.22)} />
+              </>
+            )}
+
+            {/* الزرّ */}
+            <rect
+              x={xx + 5}
+              y={y + h - 11}
+              width={w - 10}
+              height={7}
+              rx={3.5}
+              fill={on ? tone : "none"}
+              stroke={on ? "none" : tone}
+              strokeWidth={0.9}
+            />
+          </g>
+        );
+      })}
     </svg>
   );
 }

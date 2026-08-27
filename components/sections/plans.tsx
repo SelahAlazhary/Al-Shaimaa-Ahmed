@@ -18,6 +18,7 @@ import { GeoBackdrop } from "@/components/brand/pattern";
 import { EmptyPlans } from "@/components/brand/illustrations";
 import { useUid } from "@/components/brand/use-uid";
 import { planPrice, planColor, planForStudent, planWaLink } from "@/lib/plans";
+import { findPlansStyle, plansClass, plansGridClass } from "@/lib/plans-styles";
 import type { SitePlan } from "@/lib/types";
 
 /** وصف مدّة الخطة بلغة الطالب. */
@@ -129,8 +130,10 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
       <motion.div
         whileHover={{ y: -6 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-        className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-card p-7 shadow-bento"
+        className="plan-card relative flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-card p-7 shadow-bento"
+        data-featured={featured ? "true" : undefined}
         style={{
+          ["--plan-tone" as string]: tone,
           border: `2px solid ${featured ? tone : "hsl(var(--border))"}`,
           boxShadow: featured ? `0 22px 50px -30px ${tone}` : undefined,
         }}
@@ -146,13 +149,15 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
         </span>
 
         {/* الاسم والوصف */}
+        <div className="plan-body flex flex-1 flex-col">
         <h3 className="font-display mt-6 text-[1.35rem] font-bold leading-snug">{plan.name}</h3>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {plan.desc || planScopeLabel(plan, subjectName)}
         </p>
 
         {/* السعر */}
-        <div className="mt-6 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <div className="plan-price-wrap mt-6">
+        <div className="plan-price flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="font-display text-[2.6rem] font-bold leading-none" style={{ color: tone }}>
             {priced.price.toLocaleString("ar-EG")}
           </span>
@@ -164,7 +169,8 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
               {priced.original.toLocaleString("ar-EG")}
             </span>
           )}
-          <span className="text-sm text-muted-foreground">/ {planDuration(plan, termEnd)}</span>
+          <span className="plan-per text-sm text-muted-foreground">/ {planDuration(plan, termEnd)}</span>
+        </div>
         </div>
 
         {priced.active && (
@@ -188,6 +194,8 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
             ))}
           </ul>
         )}
+
+        </div>
 
         {/* الزرّ */}
         <Link
@@ -216,6 +224,8 @@ export function Plans() {
   const plans = (db?.plans ?? [])
     .filter((p) => p.visible && planForStudent(p, me))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.price - b.price);
+  /* تصميم القسم — مستقلّ عن الثيم وعن بقية الأقسام. */
+  const PS = findPlansStyle(content.plansStyle);
   const sec = content.plansSection ?? {};
   const subjectName = (id?: string) => db?.subjects.find((s) => s.id === id)?.name;
   // الاشتراك لا يُفتح إلا بعد تسجيل الدخول
@@ -223,7 +233,7 @@ export function Plans() {
   const anyDiscount = plans.some((p) => planPrice(p).active);
 
   return (
-    <section id="plans" className="relative py-24">
+    <section id="plans" className={`relative py-24 ${plansClass(PS)}`}>
       <GeoBackdrop density={46} opacity={0.18} fade="center" tone="text-primary/10" />
       <div className="container">
         <SectionHeading
@@ -254,7 +264,7 @@ export function Plans() {
             <p className="text-sm">لم تُضَف خطط بعد.</p>
           </div>
         ) : (
-          <div className={`grid items-stretch gap-6 ${plans.length === 1 ? "mx-auto max-w-md" : plans.length === 2 ? "sm:grid-cols-2 lg:mx-auto lg:max-w-3xl" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+          <div className={`grid items-stretch gap-6 ${plansGridClass(PS.grid, plans.length)}`}>
             {plans.map((p, i) => (
               <PlanCard
                 key={p.id}

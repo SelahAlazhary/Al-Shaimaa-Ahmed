@@ -10,6 +10,7 @@ import type { User } from "./types";
 
 export type AdminPerm =
   | "customize"
+  | "appearance"
   | "students"
   | "subjects"
   | "plans"
@@ -28,6 +29,7 @@ export type AdminPerm =
 /** الصلاحيات بأسمائها العربية ووصف موجز — تُعرض في شاشة المشرفين. */
 export const PERMS: { key: AdminPerm; label: string; hint: string }[] = [
   { key: "customize", label: "تخصيص الموقع", hint: "الهوية، الألوان، نصوص الصفحة الرئيسية" },
+  { key: "appearance", label: "المظهر والتخطيط", hint: "ثيمات بوابة الطالب وتخطيطاتها والقوائم وأقسام الرئيسية" },
   { key: "students", label: "الطلاب", hint: "الحسابات، الاشتراكات، السماح بجهاز جديد" },
   { key: "subjects", label: "المواد والصفوف", hint: "إضافة المواد والدروس والفيديوهات" },
   { key: "plans", label: "الخطط", hint: "خطط الاشتراك والأسعار والخصومات" },
@@ -75,10 +77,11 @@ export function permsOf(user: Pick<User, "role" | "owner" | "adminPerms"> | null
 export function permForPath(href: string): AdminPerm | null {
   const map: Record<string, AdminPerm> = {
     "/admin/customize": "customize",
-    "/admin/appearance": "customize",
+    "/admin/appearance": "appearance",
     "/admin/students": "students",
     "/admin/grades": "subjects",
     "/admin/subjects": "subjects",
+    "/admin/courses": "subjects",
     "/admin/plans": "plans",
     "/admin/codes": "codes",
     "/admin/exams": "exams",
