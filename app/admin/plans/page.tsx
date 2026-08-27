@@ -256,9 +256,16 @@ export default function PlansPage() {
                     },
                   };
                   const n = students.filter((u) => planForStudent(draft, u)).length;
-                  const blind = students.length
-                    ? Array.from(new Set(students.flatMap((u) => audienceBlindSpots(draft, u))))
-                    : [];
+                  /*
+                    لا يُنبَّه على حقلٍ إلا إن كان **لا أحد** يملك قيمةً له —
+                    وقتها وحده لا يُضيّق شيئاً. أمّا ما يملكه بعضُهم فهو
+                    تصفيةٌ صحيحة لا خللاً، والتنبيهُ عليه تشويشٌ.
+                  */
+                  const blind = Array.from(
+                    new Set(students.flatMap((u) => audienceBlindSpots(draft, u)))
+                  ).filter((label) =>
+                    students.every((u) => audienceBlindSpots(draft, u).includes(label))
+                  );
                   if (students.length === 0) return null;
                   return (
                     <>
@@ -269,7 +276,7 @@ export default function PlansPage() {
                       </span>
                       {blind.length > 0 && (
                         <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                          لا يُضيّق: {blind.join(" · ")} — لا يملكها الطلاب
+                          لا يُضيّق شيئاً: {blind.join(" · ")} — لا يملكها أيّ طالب
                         </span>
                       )}
                     </>

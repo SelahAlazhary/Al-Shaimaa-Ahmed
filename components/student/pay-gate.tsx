@@ -53,8 +53,11 @@ export function PayGate({
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<PayRequest | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  /* اختيار الطريقة صار إقراراً «حوّلتُ عليها» لا انتقالاً، فالانتقال
+     يحتاج ضغطةً صريحة — وإلا قفزت الشاشة قبل أن يقرأ الأرقام. */
+  const [stepDone, setStepDone] = useState(false);
 
-  const step = done ? 3 : plan ? (method ? 2 : 1) : 0;
+  const step = done ? 3 : plan ? (method && stepDone ? 2 : 1) : 0;
 
   const copy = (v: string) => {
     navigator.clipboard?.writeText(v);
@@ -185,38 +188,93 @@ export function PayGate({
         {/* ---------- ٢ · طريقة الدفع ---------- */}
         {step === 1 && plan && (
           <Step key="method">
-            <Head title={`${plan.name} — ${planPrice(plan).price.toLocaleString("ar-EG")} ج.م`} onBack={() => setPlan(null)} />
+            <Head title={`${plan.name} — ${planPrice(plan).price.toLocaleString("ar-EG")} ج.م`} onBack={() => { setPlan(null); setMethod(null); setStepDone(false); }} />
             {methods.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
                 لم تُضَف طرق دفع بعد — تواصل مع الدعم.
               </p>
             ) : (
-              <div className="pay-methods">
-                {methods.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setMethod(m)}
-                    className="pay-method flex w-full items-center gap-3 p-3.5 text-right"
-                    style={m.color ? ({ "--pg-accent": m.color } as React.CSSProperties) : undefined}
-                  >
-                    <span
-                      className="pay-method-icon grid size-9 shrink-0 place-items-center rounded-xl bg-cover bg-center text-xs font-extrabold text-white"
-                      style={{
-                        background: m.logo ? `center/cover url(${m.logo})` : (m.color || "hsl(var(--primary))"),
-                      }}
+              <>
+                {/*
+                  الطرق كلُّها ببياناتها معاً.
+                  ------------------------------------------------------------
+                  كانت تُعرض أسماءً فقط، فيختار الطالب واحدةً ثم يرى رقمها —
+                  وهو يريد أن يرى الأرقام كلَّها ليقارن ويحوّل من محفظته هو.
+                  فصارت كلُّ طريقة تعرض بياناتها في مكانها، والضغطُ يقول
+                  «حوّلتُ على هذه» لا «أرني هذه».
+                */}
+                <p className="mb-3 text-[11px] font-bold text-muted-foreground">
+                  حوّل المبلغ على أيّ طريقة تناسبك، ثم اختر التي حوّلت عليها:
+                </p>
+
+                <div className="pay-methods">
+                  {methods.map((m) => (
+                    <div
+                      key={m.id}
+                      className="pay-method p-3.5"
+                      data-on={method?.id === m.id ? "1" : "0"}
+                      style={m.color ? ({ "--pg-accent": m.color } as React.CSSProperties) : undefined}
                     >
-                      {!m.logo && m.name.slice(0, 1)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-bold">{m.name}</span>
-                      {m.holder && (
-                        <span className="pay-method-note block text-[11px] text-muted-foreground">{m.holder}</span>
-                      )}
-                    </span>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="pay-method-icon grid size-9 shrink-0 place-items-center rounded-xl bg-cover bg-center text-xs font-extrabold text-white"
+                          style={{
+                            background: m.logo ? `center/cover url(${m.logo})` : (m.color || "hsl(var(--primary))"),
+                          }}
+                        >
+                          {!m.logo && m.name.slice(0, 1)}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-bold">{m.name}</span>
+                          {m.holder && (
+                            <span className="block text-[11px] text-muted-foreground">{m.holder}</span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setMethod(m)}
+                          className={`shrink-0 rounded-xl px-3.5 py-2 text-[11px] font-bold transition ${
+                            method?.id === m.id
+                              ? "btn-glow text-white"
+                              : "border border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                          }`}
+                        >
+                          {method?.id === m.id ? "✓ حوّلت عليها" : "حوّلت عليها"}
+                        </button>
+                      </div>
+
+                      {/* بيانات التحويل — ظاهرة لكل طريقة بلا ضغط */}
+                      <div className="mt-3 grid gap-1.5 border-t border-border pt-2.5">
+                        <Row label={numberLabel(m.kind)} value={m.number} onCopy={copy} copied={copied} big />
+                        {m.extra && <Row label="بيانات إضافية" value={m.extra} onCopy={copy} copied={copied} />}
+                        {m.note && (
+                          <p className="text-[10px] leading-relaxed text-muted-foreground">{m.note}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pay-details mt-4 grid gap-2">
+                  <Row
+                    label="المبلغ المطلوب"
+                    value={`${planPrice(plan).price.toLocaleString("ar-EG")} ج.م`}
+                    onCopy={copy}
+                    copied={copied}
+                    big
+                  />
+                </div>
+
+                {method && (
+                  <button
+                    type="button"
+                    onClick={() => setStepDone(true)}
+                    className="btn-glow mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white"
+                  >
+                    <IconCheckCircle className="size-4" /> تابع — أرفق الإيصال
                   </button>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </Step>
         )}
@@ -224,7 +282,7 @@ export function PayGate({
         {/* ---------- ٣ · التحويل ---------- */}
         {step === 2 && plan && method && (
           <Step key="pay">
-            <Head title={`${method.name} — ${planPrice(plan).price.toLocaleString("ar-EG")} ج.م`} onBack={() => setMethod(null)} />
+            <Head title={`${method.name} — ${planPrice(plan).price.toLocaleString("ar-EG")} ج.م`} onBack={() => setStepDone(false)} />
 
             <div className="pay-details mb-4 grid gap-2">
               <Row label={numberLabel(method.kind)} value={method.number} onCopy={copy} copied={copied} big />
