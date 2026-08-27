@@ -9,6 +9,7 @@ import { SkinOrnament } from "@/components/brand/skin-ornaments";
 import { findDesign } from "@/lib/designs";
 import { findTile, tileClass, tileColorVars, tileArtVars, tileArtClass } from "@/lib/tile-styles";
 import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
+import { findMotion, motionClass, motionVars } from "@/lib/motion-styles";
 import { findSideNav, sideNavClass, findDock, dockClass, navColorVars, DEFAULT_ICON_SET } from "@/lib/nav-styles";
 
 export const dynamic = "force-dynamic";
@@ -45,8 +46,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
           كتلة واحدة للثيم المختار فقط، فلا تُحمَّل عشرون كتلة لا تُعرض. */}
       <style dangerouslySetInnerHTML={{ __html: skinCss(skin) }} />
     <div
-      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${tileClass(tile)} ${tileArtClass(tileArt)} ${toolbarClass(bar)} ${stickClass(pub.content?.toolbarStick)}`}
-      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors), ...tileArtVars(tileArt) }}
+      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${tileClass(tile)} ${tileArtClass(tileArt)} ${toolbarClass(bar)} ${stickClass(pub.content?.toolbarStick)} ${motionClass(findMotion(pub.content?.motionStyle))}`}
+      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors), ...tileArtVars(tileArt), ...motionVars(findMotion(pub.content?.motionStyle)) }}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}

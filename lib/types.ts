@@ -242,6 +242,8 @@ export type SiteContent = {
   navbarStick?: string;
   /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
   mobileHome?: string;
+  /** إيقاع الحركة في المنصّة (lib/motion-styles.ts). */
+  motionStyle?: string;
   /** تثبيت شريط اللوحة. */
   toolbarStick?: string;
   /** تصاميم أقسام الصفحة الرئيسية — كلٌّ مستقلّ. */

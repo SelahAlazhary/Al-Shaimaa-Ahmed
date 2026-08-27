@@ -23,6 +23,7 @@ import type { PayStyle } from "@/lib/pay-styles";
 import type { SectionStyle } from "@/lib/section-styles";
 import type { FaqStyle, CtaStyle, FooterStyle } from "@/lib/block-styles";
 import type { MobileHome } from "@/lib/mobile-home";
+import { motionVars, type MotionStyle } from "@/lib/motion-styles";
 
 const W = 160;
 const H = 108;
@@ -2229,6 +2230,100 @@ export function MobileHomePreview({ mh, skin }: { mh: MobileHome; skin: StudentS
 
       {/* حدّ الهاتف فوق كل شيء ليقصّ ما تجاوزه بصرياً */}
       <rect x={px} y={py} width={PW} height={PH} rx={7} fill="none" stroke={hsl(v.border)} strokeWidth={1.4} />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة الحركة — متحرّكة فعلاً                                       */
+/* ------------------------------------------------------------------ */
+
+export function MotionPreview({ mo, skin }: { mo: MotionStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const uid = useUid("mo");
+
+  /* المدّة والمنحنى من السجلّ نفسه — فالمعاينة تتحرّك كما سيتحرّك الموقع،
+     لا كما نتخيّله. */
+  const vars = motionVars(mo) as Record<string, string>;
+  const dur = vars["--mo-dur"] ?? "0.55s";
+  const ease = vars["--mo-ease"] ?? "ease";
+  const rise = parseFloat(vars["--mo-rise"] ?? "0");
+  const slide = parseFloat(vars["--mo-slide"] ?? "0");
+  const scale = parseFloat(vars["--mo-scale"] ?? "1");
+  const still = mo.enter === "none" || mo.speed === "instant";
+
+  const cards = [0, 1, 2];
+  const cw = 40;
+  const ch = 44;
+  const gap = 6;
+  const x0 = (W - (cw * 3 + gap * 2)) / 2;
+  const y0 = (H - ch) / 2 + 4;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <style>{`
+        @keyframes ${uid}-in {
+          0%   { opacity: 0; transform: translate(${slide}px, ${rise}px) scale(${scale}); }
+          70%  { opacity: 1; }
+          100% { opacity: 1; transform: translate(0,0) scale(1); }
+        }
+        .${uid}-c {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: ${uid}-in ${dur} ${ease} both;
+          animation-iteration-count: infinite;
+          animation-direction: normal;
+          animation-delay: var(--d, 0s);
+          animation-duration: calc(${dur} * 3);
+        }
+        .${uid}-amb { animation: ${uid}-spin 9s linear infinite; transform-box: fill-box; transform-origin: center; }
+        @keyframes ${uid}-spin { to { transform: rotate(360deg); } }
+      `}</style>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* الزخرفة المتحرّكة */}
+      {mo.ambient !== "none" && (
+        <g opacity={mo.ambient === "soft" ? 0.18 : 0.38}>
+          <circle
+            className={mo.ambient === "full" ? `${uid}-amb` : undefined}
+            cx={W / 2} cy={H / 2} r={40} fill="none" stroke={gold} strokeWidth={0.9}
+            strokeDasharray="6 5"
+          />
+        </g>
+      )}
+
+      {/* عنوان صغير */}
+      <rect x={W / 2 - 22} y={10} width={44} height={3.4} rx={1.7} fill={hsl(v.foreground)} opacity={0.45} />
+
+      {cards.map((i) => (
+        <g key={i} className={still ? undefined : `${uid}-c`} style={{ ["--d" as string]: `${i * 0.14}s` }}>
+          <rect
+            x={x0 + i * (cw + gap)} y={y0} width={cw} height={ch} rx={6}
+            fill={hsl(v.card)} stroke={i === 1 && mo.hover !== "none" ? tone : hsl(v.border)}
+            strokeWidth={i === 1 && mo.hover !== "none" ? 1.4 : 0.7}
+          />
+          <rect x={x0 + i * (cw + gap) + 5} y={y0 + 6} width={9} height={9} rx={2.5} fill={tone} opacity={0.5} />
+          <rect x={x0 + i * (cw + gap) + 5} y={y0 + 20} width={cw - 14} height={2.6} rx={1.3} fill={hsl(v.foreground)} opacity={0.45} />
+          <rect x={x0 + i * (cw + gap) + 5} y={y0 + 26} width={cw - 20} height={2} rx={1} fill={hsl(v.foreground)} opacity={0.2} />
+          {/* البطاقة الوسطى تُظهر أثر المرور المختار */}
+          {i === 1 && mo.hover === "glow" && (
+            <rect x={x0 + cw + gap - 1.5} y={y0 - 1.5} width={cw + 3} height={ch + 3} rx={7}
+              fill="none" stroke={gold} strokeWidth={1.2} opacity={0.75} />
+          )}
+        </g>
+      ))}
+
+      {/* أثر المرور: رفع أو ميل يُرسم على الوسطى */}
+      {mo.hover === "lift" && (
+        <rect x={x0 + cw + gap} y={y0 - 5} width={cw} height={ch} rx={6} fill="none" stroke={tone} strokeWidth={1.2} strokeDasharray="3 3" opacity={0.7} />
+      )}
+      {mo.hover === "tilt" && (
+        <rect x={x0 + cw + gap} y={y0} width={cw} height={ch} rx={6} fill="none" stroke={tone} strokeWidth={1.2}
+          strokeDasharray="3 3" opacity={0.7} transform={`rotate(-3 ${x0 + cw + gap + cw / 2} ${y0 + ch / 2})`} />
+      )}
     </svg>
   );
 }

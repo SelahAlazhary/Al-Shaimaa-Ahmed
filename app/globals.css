@@ -2522,3 +2522,82 @@ body {
   .mh-cta-float .mh-dock-inner > a:first-child svg { font-size: 1rem; inline-size: 1.25rem; block-size: 1.25rem; }
   .mh-cta-float main { padding-bottom: 1.5rem; }
 }
+
+/* ============================================================
+   الحركة
+   ------------------------------------------------------------
+   الحركةُ لغةٌ لا زينة: سرعتُها تقول إن كان الموقع رشيقاً أم متمهّلاً،
+   ومنحنى تسارعها يقول إن كان صارماً أم ليّناً.
+
+   القيم تأتي من متغيّرات يحقنها الغلاف (lib/motion-styles.ts)، فيتغيّر
+   الموقع كلّه بقيمة واحدة بدل تعديل عشرات المكوّنات.
+   ============================================================ */
+
+/* دخول العناصر عند التمرير إليها */
+@keyframes mo-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--mo-rise, 0px)) translateX(var(--mo-slide, 0px)) scale(var(--mo-scale, 1));
+  }
+  to { opacity: 1; transform: none; }
+}
+
+[class*="mo-enter-"]:not(.mo-enter-none) .sx-card,
+[class*="mo-enter-"]:not(.mo-enter-none) .plan-card,
+[class*="mo-enter-"]:not(.mo-enter-none) .fq-item,
+[class*="mo-enter-"]:not(.mo-enter-none) .ct-panel {
+  animation: mo-in var(--mo-dur, 0.55s) var(--mo-ease, ease) both;
+}
+
+/* المرور */
+.mo-hover-lift .sx-card,
+.mo-hover-lift .plan-card,
+.mo-hover-lift .pay-method { transition: transform var(--mo-dur, 0.55s) var(--mo-ease, ease), box-shadow var(--mo-dur, 0.55s) var(--mo-ease, ease); }
+.mo-hover-lift .sx-card:hover,
+.mo-hover-lift .plan-card:hover,
+.mo-hover-lift .pay-method:hover { transform: translateY(var(--mo-lift, -4px)); }
+
+.mo-hover-glow .sx-card,
+.mo-hover-glow .plan-card { transition: box-shadow var(--mo-dur, 0.55s) var(--mo-ease, ease); }
+.mo-hover-glow .sx-card:hover,
+.mo-hover-glow .plan-card:hover {
+  box-shadow: 0 0 0 1px hsl(var(--gold) / 0.5), 0 22px 50px -28px hsl(var(--primary) / 0.9);
+}
+
+/* الميل: زاوية صغيرة تكفي — الكبيرة تُشعر بالعطل لا بالحياة */
+.mo-hover-tilt .sx-card,
+.mo-hover-tilt .plan-card { transition: transform var(--mo-dur, 0.55s) var(--mo-ease, ease); }
+.mo-hover-tilt .sx-card:hover,
+.mo-hover-tilt .plan-card:hover { transform: rotate(-0.75deg) translateY(-2px); }
+
+/* حركة الخلفيات والزخارف */
+.mo-amb-soft [data-decor],
+.mo-amb-soft .ambient-mesh { animation-duration: 28s !important; opacity: 0.5; }
+.mo-amb-none [data-decor],
+.mo-amb-none .ambient-mesh,
+.mo-amb-none .hero-decor { animation: none !important; }
+
+/* السكون التامّ */
+.mo-speed-instant *,
+.mo-speed-instant *::before,
+.mo-speed-instant *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/*
+  تفضيل النظام يغلب اختيار اللوحة.
+  من ضبط جهازَه على «تقليل الحركة» فعل ذلك لسببٍ يخصّه — دوارٌ أو صداعٌ
+  أو تشتّت — ولا يصحّ أن يتجاوزه إعدادُ موقع.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -16,6 +16,7 @@ import {
 import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
 import { findMobileHome, mobileHomeClass } from "@/lib/mobile-home";
 import { MobileDock } from "@/components/sections/mobile-dock";
+import { findMotion, motionClass, motionVars } from "@/lib/motion-styles";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,12 @@ export default async function Home() {
   const bar = findToolbar(content.navbarStyle || content.toolbarStyle);
   /* تنسيق الهاتف — قواعده كلّها داخل استعلام وسائط، فلا يمسّ الأوسع. */
   const MH = findMobileHome(content.mobileHome);
+  const MO = findMotion(content.motionStyle);
 
   return (
     <main
-      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)}`}
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)}`}
+      style={motionVars(MO)}
       data-home-layout={L.id}
       data-toolbar={bar.id}
     >
