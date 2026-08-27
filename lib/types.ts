@@ -192,6 +192,13 @@ export type SiteContent = {
   studentLayout?: string;
   studentMobile?: string;
   studentDesign?: string;
+
+  /**
+   * زرّ تبديل الفاتح/الداكن.
+   * مخفيّ افتراضياً: المظهر قرار هوية تضبطه الإدارة، وإظهار الزرّ يجعل
+   * كل زائر يرى نسخة مختلفة قد لا تكون مضبوطة بالعناية نفسها.
+   */
+  showThemeToggle?: boolean;
   /** تخطيط الواجهة الرئيسية (من lib/home-layouts.ts). */
   homeLayout?: string;
 

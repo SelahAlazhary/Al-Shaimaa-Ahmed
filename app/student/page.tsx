@@ -64,6 +64,10 @@ export default function StudentHome() {
 
   /* النمط المضغوط يصغّر البطاقات ليتّسع الصفّ على الجوّال. */
   const tileCls = L.stats === "inline" ? "!p-2.5 sm:!p-3" : "";
+  /* المؤشّرات داخل لوح الحبر تُكتب بالأبيض، وخارجه بألوان الثيم — وإلا
+     ظهر النصّ أبيض على ورق فاتح فاختفى. */
+  const statsTone: "ink" | "surface" =
+    L.header !== "minimal" && L.statsInHeader ? "ink" : "surface";
 
   /* المؤشّرات كتلة واحدة — تُوضع داخل لوح الترحيب أو تحته حسب التخطيط،
      فلا تُكتب مرّتين ولا تختفي حين يُخفى اللوح. */
@@ -76,7 +80,7 @@ export default function StudentHome() {
                   : "sm:grid-cols-3"                                // صفّ متساوٍ
           }`}
         >
-          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} className={tileCls} shape={shapeStyle(D.tile)} />
+          <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} className={tileCls} shape={shapeStyle(D.tile)} tone={statsTone} />
           <StatTile
             index={1}
             value={ar(courses.length)}
@@ -85,6 +89,7 @@ export default function StudentHome() {
             icon={<IconBook className="size-5" />}
             className={tileCls}
             shape={shapeStyle(D.tile)}
+            tone={statsTone}
           />
           {/* الاشتراك الساري — يعرض ما تبقّى حتى الانتهاء */}
           <StatTile
@@ -108,6 +113,7 @@ export default function StudentHome() {
             }
             className={tileCls}
             shape={shapeStyle(D.tile)}
+            tone={statsTone}
           />
         </div>
   );
@@ -146,7 +152,7 @@ export default function StudentHome() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         style={shapeStyle(D.panel)}
-        className={`student-header btn-glow relative mb-6 overflow-hidden text-white ${
+        className={`student-header btn-glow relative mb-6 overflow-hidden text-[hsl(var(--primary-foreground))] ${
           L.header === "compact" ? "p-4 sm:p-5" : L.header === "banner" ? "p-6 sm:p-8" : "p-5 sm:p-6"
         }`}
       >

@@ -424,6 +424,31 @@ export default function CustomizePage() {
       {/* ---------- إظهار/إخفاء وألوان العناصر ---------- */}
       {tab === "elements" && (
         <div className="grid gap-4 lg:grid-cols-2">
+          {/* زرّ تبديل المظهر — مخفيّ افتراضياً عن كل المنصّة */}
+          <Card className="lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-display font-bold">زرّ الوضع الفاتح/الداكن</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  مخفيّ افتراضياً عن الموقع ولوحة الطالب والإدارة. أظهِره ليختار كل زائر
+                  الوضع الذي يريحه — وأخفِه لتبقى هوية المنصّة كما ضبطتها لكل من يزورها.
+                </p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.showThemeToggle)}
+                  onChange={(e) => {
+                    set({ showThemeToggle: e.target.checked });
+                    void saveContent({ showThemeToggle: e.target.checked });
+                  }}
+                  className="size-4 accent-[hsl(var(--primary))]"
+                />
+                {form.showThemeToggle ? "ظاهر" : "مخفيّ"}
+              </label>
+            </div>
+          </Card>
+
           {ELEMENTS.map((elm) => {
             const st = form.ui?.[elm.key] ?? {};
             return (

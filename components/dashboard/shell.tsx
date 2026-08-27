@@ -61,7 +61,7 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { viewLayout, toggleView, logout, db, session } = useContent();
+  const { viewLayout, toggleView, logout, db, session, content } = useContent();
   const [open, setOpen] = useState(false);
   // نقطة الإشعارات: للطالب = إشعارات غير مقروءة، للأدمن = وجود إشعارات
   const notifs = db?.notifications ?? [];
@@ -169,9 +169,11 @@ export function DashboardShell({
           </div>
 
           <div className="mr-auto flex items-center gap-2">
-            <button onClick={toggleView} aria-label="تبديل المظهر" className="btn-foil grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
-              {viewLayout === "dark" ? <IconSun className="size-5" /> : <IconMoon className="size-5" />}
-            </button>
+            {content.showThemeToggle && (
+              <button onClick={toggleView} aria-label="تبديل المظهر" className="btn-foil grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
+                {viewLayout === "dark" ? <IconSun className="size-5" /> : <IconMoon className="size-5" />}
+              </button>
+            )}
             <Link href={role === "admin" ? "/admin/notifications" : "/student/notifications"} aria-label="الإشعارات" className="btn-foil relative grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
               <IconBell anim={hasNotif ? "swing" : undefined} className="size-5" />
               {hasNotif && <span className="absolute right-2 top-2 size-2 rounded-full bg-rose-500" />}

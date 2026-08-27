@@ -30,6 +30,7 @@ export function StatTile({
   index = 0,
   className = "",
   shape,
+  tone = "ink",
 }: {
   value?: ReactNode;
   unit?: string;
@@ -42,7 +43,16 @@ export function StatTile({
   className?: string;
   /** شكل البطاقة من الهيئة المختارة — قصّ أو انحناء. */
   shape?: React.CSSProperties;
+  /**
+   * أين تجلس البطاقة:
+   * ink     = فوق لوح الحبر الداكن (نصّ أبيض).
+   * surface = على خلفية الصفحة (نصّ من الثيم) — وإلا صار النصّ أبيض على
+   *           ورق فاتح فاختفى، وهو ما يقع في التخطيطات التي تُخرج
+   *           المؤشّرات من اللوح.
+   */
+  tone?: "ink" | "surface";
 }) {
+  const ink = tone === "ink";
   const uid = useUid("tile");
   const pct = Math.max(0, Math.min(100, ring ?? 0));
   const r = 26;
@@ -55,7 +65,11 @@ export function StatTile({
       transition={{ delay: index * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4 }}
       style={shape}
-      className={`group relative overflow-hidden bg-white/[0.07] p-4 ring-1 ring-white/15 backdrop-blur-sm transition-shadow hover:ring-white/30 sm:p-5 ${shape ? "" : "rounded-[1.4rem]"} ${className}`}
+      className={`group relative overflow-hidden p-4 backdrop-blur-sm transition-shadow sm:p-5 ${
+        ink
+          ? "bg-white/[0.07] ring-1 ring-white/15 hover:ring-white/30"
+          : "bg-card ring-1 ring-[hsl(var(--gold)/0.35)] hover:ring-[hsl(var(--gold)/0.6)]"
+      } ${shape ? "" : "rounded-[1.4rem]"} ${className}`}
     >
       {/* وهج متدرّج في الركن — يضيء قليلاً عند المرور */}
       <span
@@ -67,14 +81,14 @@ export function StatTile({
       <div className="relative flex items-start justify-between gap-2">
         {icon && (
           <span
-            className="grid size-10 place-items-center rounded-2xl text-[hsl(226_52%_18%)] shadow-sm"
+            className="grid size-10 place-items-center rounded-2xl text-[hsl(var(--accent-foreground))] shadow-sm"
             style={{ background: "linear-gradient(135deg, hsl(var(--gold-light)), hsl(var(--gold)))" }}
           >
             {icon}
           </span>
         )}
         {badge && (
-          <span className="font-kufi rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white/90">
+          <span className={`font-kufi rounded-full px-2.5 py-1 text-[10px] font-bold ${ink ? "bg-[hsl(var(--primary-foreground)/0.15)] text-[hsl(var(--primary-foreground)/0.9)]" : "bg-accent/15 text-accent"}`}>
             {badge}
           </span>
         )}
@@ -91,7 +105,7 @@ export function StatTile({
                   <stop offset="100%" stopColor="hsl(var(--gold))" />
                 </linearGradient>
               </defs>
-              <circle cx="32" cy="32" r={r} stroke="hsl(0 0% 100% / 0.16)" strokeWidth="7" />
+              <circle cx="32" cy="32" r={r} stroke={ink ? "hsl(0 0% 100% / 0.16)" : "hsl(var(--muted))"} strokeWidth="7" />
               <motion.circle
                 cx="32"
                 cy="32"
@@ -105,27 +119,27 @@ export function StatTile({
                 transition={{ duration: 1.1, ease: "easeOut", delay: 0.25 + index * 0.08 }}
               />
             </svg>
-            <span className="font-display absolute text-base font-bold text-white">
+            <span className={`font-display absolute text-base font-bold ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
               {pct.toLocaleString("ar-EG")}٪
             </span>
           </span>
-          <span className="font-kufi min-w-0 text-[0.78rem] font-bold leading-snug text-white/80">
+          <span className={`font-kufi min-w-0 text-[0.78rem] font-bold leading-snug ${ink ? "text-[hsl(var(--primary-foreground)/0.8)]" : "text-muted-foreground"}`}>
             {label}
           </span>
         </div>
       ) : (
         <div className="relative mt-4">
-          <p className="font-display flex items-baseline gap-1.5 leading-none text-white">
+          <p className={`font-display flex items-baseline gap-1.5 leading-none ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
             <span className="text-[2.35rem] font-bold tracking-tight">{value}</span>
-            {unit && <span className="font-kufi text-sm font-bold text-white/70">{unit}</span>}
+            {unit && <span className={`font-kufi text-sm font-bold ${ink ? "text-[hsl(var(--primary-foreground)/0.7)]" : "text-muted-foreground"}`}>{unit}</span>}
           </p>
-          <p className="font-kufi mt-2 text-[0.78rem] font-bold text-white/75">{label}</p>
+          <p className={`font-kufi mt-2 text-[0.78rem] font-bold ${ink ? "text-[hsl(var(--primary-foreground)/0.75)]" : "text-muted-foreground"}`}>{label}</p>
         </div>
       )}
 
       {/* شريط النسبة */}
       {bar !== undefined && (
-        <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-white/15">
+        <div className={`relative mt-4 h-1.5 overflow-hidden rounded-full ${ink ? "bg-white/15" : "bg-muted"}`}>
           <motion.span
             className="block h-full rounded-full"
             style={{ background: "linear-gradient(90deg, hsl(var(--gold)), hsl(var(--gold-light)))" }}

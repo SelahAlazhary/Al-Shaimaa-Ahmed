@@ -193,6 +193,59 @@ function parse(v: string): [number, number, number] {
 const build = (h: number, sat: number, l: number) =>
   `${Math.round(h)} ${Math.round(Math.max(0, Math.min(100, sat)))}% ${Math.round(Math.max(0, Math.min(100, l)))}%`;
 
+/** إضاءة نسبية بمعادلة WCAG — تُستخدم لاختيار لون النصّ لا لتقديره بالعين. */
+function relLum(v: string): number {
+  const [h, sPct, lPct] = parse(v);
+  const S = sPct / 100, L = lPct / 100;
+  const C = (1 - Math.abs(2 * L - 1)) * S;
+  const X = C * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = L - C / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) [r, g, b] = [C, X, 0];
+  else if (h < 120) [r, g, b] = [X, C, 0];
+  else if (h < 180) [r, g, b] = [0, C, X];
+  else if (h < 240) [r, g, b] = [0, X, C];
+  else if (h < 300) [r, g, b] = [X, 0, C];
+  else [r, g, b] = [C, 0, X];
+  const lin = (c: number) => {
+    const x = c + m;
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+const contrast = (a: string, b: string) => {
+  const x = relLum(a), y = relLum(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+};
+
+/**
+ * لون النصّ فوق سطح ملوّن — أبيض أو حبر داكن، أيّهما أوضح.
+ * لا يُكتب الأبيض متحوتاً: بعض الثيمات حبرها فاتح (بحر، نخيل، فيروز)
+ * فيسقط الأبيض فوقه تحت عتبة WCAG ويصير النصّ غير مقروء.
+ */
+export function bestOn(surface: string): string {
+  const white = "0 0% 100%";
+  const ink = "224 44% 10%";
+  return contrast(white, surface) >= contrast(ink, surface) ? white : ink;
+}
+
+/**
+ * يضمن أن سطحاً ملوّناً يحمل نصّاً مقروءاً.
+ * بعض الألوان تقع في «المنطقة الوسطى» حيث لا الأبيض ولا الحبر يجتاز
+ * العتبة (٤٫٥). فبدل قبول نصّ باهت، تُخفَّض إضاءة اللون خطوة خطوة حتى
+ * يجتاز الأبيض — الصبغة تبقى كما هي فلا تتغيّر هويّة الثيم، وحدها
+ * الإضاءة تتحرّك بالقدر اللازم.
+ */
+export function ensureReadable(surface: string, min = 4.6): string {
+  const [h, sat, l] = parse(surface);
+  for (let step = 0; step <= 24; step++) {
+    const cand = build(h, sat, Math.max(8, l - step * 2));
+    if (contrast("0 0% 100%", cand) >= min) return cand;
+  }
+  return build(h, sat, 8);
+}
+
 /** يضبط الإضاءة مع إبقاء الصبغة والتشبّع (مع تعديل طفيف للتشبّع). */
 function at(v: string, l: number, satMul = 1): string {
   const [h, sat] = parse(v);
@@ -213,7 +266,10 @@ export function deriveDark(v: StudentSkin["vars"]): StudentSkin["vars"] {
     muted: at(v.background, 17, 0.9),
     mutedForeground: at(v.mutedForeground, 66, 0.7),
     border: at(v.background, 22, 0.8),
-    primary: at(v.primary, Math.max(52, parse(v.primary)[2] + 22), 1),
+    /* الحبر يُرفع قليلاً ليُرى على الخلفية الداكنة، لكن بسقف: لو ارتفع
+       أكثر سقط تباين النصّ الأبيض فوقه — وهو أهمّ استعمال له (لوح
+       الترحيب والأزرار الأساسية). القيمتان مقيستان بمعادلة WCAG. */
+    primary: at(v.primary, Math.min(42, Math.max(32, parse(v.primary)[2] + 12)), 1),
     accent: at(v.accent, Math.max(58, parse(v.accent)[2] + 8), 1),
     glow: at(v.glow, Math.max(58, parse(v.glow)[2] + 16), 1),
     gold: at(v.gold, Math.max(58, parse(v.gold)[2] + 8), 1),
@@ -250,8 +306,10 @@ export function skinModes(s: StudentSkin): { light: StudentSkin["vars"]; dark: S
 /** يبني كتلة أنماط لثيم واحد بنسختيه — تُحقن كوسم style واحد. */
 export function skinCss(s: StudentSkin): string {
   const { light, dark } = skinModes(s);
-  const decl = (v: StudentSkin["vars"]) =>
-    [
+  const decl = (raw: StudentSkin["vars"]) => {
+    /* الحبر مقروءاً دائماً: هو خلفية لوح الترحيب والأزرار الأساسية. */
+    const v = { ...raw, primary: ensureReadable(raw.primary) };
+    return [
       `--background:${v.background}`,
       `--foreground:${v.foreground}`,
       `--card:${v.card}`,
@@ -260,7 +318,7 @@ export function skinCss(s: StudentSkin): string {
       `--muted-foreground:${v.mutedForeground}`,
       `--border:${v.border}`,
       `--primary:${v.primary}`,
-      `--primary-foreground:0 0% 100%`,
+      `--primary-foreground:${bestOn(v.primary)}`,
       `--accent:${v.accent}`,
       `--accent-foreground:${v.foreground}`,
       `--glow:${v.glow}`,
@@ -268,6 +326,7 @@ export function skinCss(s: StudentSkin): string {
       `--gold-deep:${v.goldDeep}`,
       `--gold-light:${v.goldLight}`,
     ].join(";");
+  };
 
   /* النسخة الفاتحة هي الأساس، والداكنة تُطبَّق حين يختار الزائر الداكن —
      فيبقى تفضيله محترماً مهما كان الثيم الذي اختاره الأدمن. */

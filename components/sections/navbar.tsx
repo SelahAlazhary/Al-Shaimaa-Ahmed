@@ -85,10 +85,12 @@ export function Navbar() {
           </ul>
 
           <div className="flex items-center gap-2">
-            <button onClick={toggleView} aria-label="تبديل المظهر"
-              className="btn-foil grid size-9 place-items-center rounded-full text-muted-foreground transition hover:text-accent">
-              {viewLayout === "dark" ? <IconSun className="size-4" /> : <IconMoon className="size-4" />}
-            </button>
+            {content.showThemeToggle && (
+              <button onClick={toggleView} aria-label="تبديل المظهر"
+                className="btn-foil grid size-9 place-items-center rounded-full text-muted-foreground transition hover:text-accent">
+                {viewLayout === "dark" ? <IconSun className="size-4" /> : <IconMoon className="size-4" />}
+              </button>
+            )}
             <Link href="/login" className="font-kufi hidden rounded-full px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground sm:block">
               دخول
             </Link>
