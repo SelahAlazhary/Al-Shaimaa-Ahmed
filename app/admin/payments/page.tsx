@@ -515,7 +515,7 @@ function MethodsTab({
                   سيراه الطالب — فأولى أن يكون هو نفسُه موضعَ الرفع.
                 */}
                 <label
-                  className="group relative shrink-0 cursor-pointer"
+                  className="group relative inline-flex shrink-0 cursor-pointer"
                   title={m.logo ? "اضغط لتغيير الشعار" : "اضغط لرفع شعار"}
                 >
                   <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-11" />

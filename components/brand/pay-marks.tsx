@@ -120,7 +120,9 @@ export function PayMark({
     return (
       <span
         aria-hidden
-        className={`${className} shrink-0 rounded-xl border border-border bg-white bg-contain bg-center bg-no-repeat`}
+        /* `block` شرطٌ لا زينة: الـspan افتراضياً inline فيتجاهل العرض
+           والارتفاع وينهار إلى شريحة رفيعة — وهو ما أخفى مربّع الرفع. */
+        className={`${className} block shrink-0 rounded-xl border border-border bg-white bg-contain bg-center bg-no-repeat`}
         style={{ backgroundImage: `url(${logo})` }}
       />
     );
