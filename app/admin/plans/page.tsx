@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/primitives";
 import { TRACKS, STAGES, EDU_SYSTEMS, SCIENCE_BRANCHES, TRACK_STAGE, BRANCH_TRACK, AZHAR } from "@/lib/data";
 import { useContent } from "@/components/content/content-provider";
 import { planPrice, audienceLabel } from "@/lib/plans";
+import { TERMS } from "@/lib/signup-rules";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
 
 const KIND_LABEL: Record<PlanKind, string> = {
@@ -295,9 +296,7 @@ export default function PlansPage() {
                 <label><span className="lbl">الفصل الدراسي</span>
                   <select className="inp" value={f.audTerm} onChange={(e) => set({ audTerm: e.target.value })}>
                     <option value="">كل الفصول</option>
-                    {(content.terms ?? [])
-                      .filter((t) => !f.audStage || !t.stage || t.stage === f.audStage)
-                      .map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                    {TERMS.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
                   </select>
                 </label>
 

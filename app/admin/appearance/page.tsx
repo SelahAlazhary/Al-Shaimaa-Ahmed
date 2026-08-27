@@ -1287,6 +1287,24 @@ export default function AppearancePage() {
       )}
 
       {tab === "hero" && (
+        <>
+          {/*
+            تنبيهٌ صادق: أربعة من هذه التصاميم تختلف في شكل الشارة وحدها،
+            فإن كان نصُّها فارغاً لم يظهر بينها فرق — وأولى بالّلوحة أن
+            تقول ذلك من أن تدع المستخدم يجرّب ولا يرى شيئاً.
+          */}
+          {!content.hero?.statusPill?.trim() && (
+            <Card className="mb-5 border-amber-500/40 bg-amber-500/[0.07]">
+              <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                نصّ الشارة فوق العنوان فارغ
+              </p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                التصاميم التي تختلف في شكل الشارة (كبسولة · لوح · نقطة) لن يظهر بينها فرق
+                حتى تكتبي نصّها من «تخصيص الموقع ← الهيرو».
+              </p>
+            </Card>
+          )}
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {HERO_STYLES.map((x) => {
             const on = x.id === heroStyle.id;
@@ -1318,6 +1336,7 @@ export default function AppearancePage() {
             );
           })}
         </div>
+        </>
       )}
 
       {tab === "plans" && (

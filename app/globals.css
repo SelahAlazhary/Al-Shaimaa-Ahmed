@@ -2322,24 +2322,29 @@ body {
 
 /* ============================================================
    الفوتر
+   ------------------------------------------------------------
+   أصنافُ التصميم على عنصر الفوتر نفسه لا على غلافٍ فوقه، فالمحدِّد
+   مركّبٌ بلا فراغ: ‎.ft-fill-ink.site-footer‎ لا ‎.ft-fill-ink .site-footer‎.
+   الفراغُ يعني «سليلاً» فلا يطابق شيئاً — وهي العلّة التي جعلت اختيار
+   تصميم الفوتر لا يُحدث أثراً.
    ============================================================ */
-.ft-fill-muted .site-footer { background: hsl(var(--muted)); }
-.ft-fill-ink .site-footer { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.ft-fill-ink .site-footer a { color: hsl(var(--primary-foreground) / 0.85); }
-.ft-fill-ink .site-footer .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.7) !important; }
-.ft-fill-gradient .site-footer {
+.ft-fill-muted.site-footer { background: hsl(var(--muted)); }
+.ft-fill-ink.site-footer { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.ft-fill-ink.site-footer a { color: hsl(var(--primary-foreground) / 0.85); }
+.ft-fill-ink.site-footer .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.7) !important; }
+.ft-fill-gradient.site-footer {
   background: linear-gradient(to top, hsl(var(--muted)), transparent);
 }
 
 /* الفاصل العلوي */
-.ft-edge-none .site-footer { border-top: 0; }
-.ft-edge-gold .site-footer { border-top: 2px solid hsl(var(--gold) / 0.65); }
-.ft-edge-arch .site-footer {
+.ft-edge-none.site-footer { border-top: 0; }
+.ft-edge-gold.site-footer { border-top: 2px solid hsl(var(--gold) / 0.65); }
+.ft-edge-arch.site-footer {
   border-top: 0;
   border-start-start-radius: 4rem;
   border-start-end-radius: 4rem;
 }
-.ft-edge-zigzag .site-footer {
+.ft-edge-zigzag.site-footer {
   border-top: 0;
   -webkit-mask:
     conic-gradient(from -45deg at 50% 100%, #000 0 90deg, transparent 0) top / 1.4rem 0.7rem repeat-x,

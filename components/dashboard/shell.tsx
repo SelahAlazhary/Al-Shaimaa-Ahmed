@@ -23,6 +23,7 @@ import { BrandLockup } from "@/components/brand/logo";
 import { KuficBackdrop } from "@/components/brand/pattern";
 import { GoldRule } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { navBadges } from "@/lib/admin-insights";
 import type { NavItem } from "@/lib/dashboard-data";
 
 type BrandIcon = ComponentType<IconProps>;
@@ -62,6 +63,8 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const { viewLayout, toggleView, logout, db, session, content } = useContent();
+  /* عدّادات الأقسام — تُحسب مرّة وتُقرأ في القائمتين. */
+  const badges = role === "admin" ? navBadges(db) : {};
   const [open, setOpen] = useState(false);
   // نقطة الإشعارات: للطالب = إشعارات غير مقروءة، للأدمن = وجود إشعارات
   const notifs = db?.notifications ?? [];
@@ -102,6 +105,12 @@ export function DashboardShell({
               <Icon className="size-5" />
             </span>
             <span className="sn-keep relative z-10">{item.label}</span>
+            {/* الشارة تقول «هنا عملٌ ينتظر» — فلا تُوضع إلا حيث ينتظر عمل */}
+            {badges[item.href] ? (
+              <span className="sn-keep relative z-10 mr-auto grid min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
+                {badges[item.href].toLocaleString("ar-EG")}
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -214,6 +223,11 @@ export function DashboardShell({
                     </span>
                     <span className="relative z-10 max-w-full truncate">{item.label}</span>
                   </Link>
+                  {badges[item.href] ? (
+                    <span className="absolute right-1 top-0 grid min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-extrabold text-white">
+                      {badges[item.href].toLocaleString("ar-EG")}
+                    </span>
+                  ) : null}
                 </li>
               );
             })}

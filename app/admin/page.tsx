@@ -5,9 +5,12 @@ import { Users, BadgeCheck, KeyRound, Wallet, Radio, FileCheck2, ChevronLeft, Tr
 import { enrollTrend } from "@/lib/dashboard-data";
 import { StatCard, PageHeader, Card, StatusBadge } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { adminInsights } from "@/lib/admin-insights";
 
 export default function AdminOverview() {
-  const { db } = useContent();
+  const { db, session } = useContent();
+  const me = db?.users?.find((u) => u.id === session?.uid);
+  const insights = adminInsights(db, me);
   const students = (db?.users ?? []).filter((u) => u.role === "student");
   const subjects = db?.subjects ?? [];
   const codes = db?.codes ?? [];
@@ -46,21 +49,52 @@ export default function AdminOverview() {
     <>
       <PageHeader title="نظرة عامة" subtitle="ملخّص أداء المنصّة" />
 
-      {/* تنبيه التحويلات — المال المنتظر مراجعةً لا يُترك في شاشة أخرى */}
-      {pendingPays.length > 0 && (
-        <Link
-          href="/admin/payments"
-          className="mb-5 flex flex-wrap items-center gap-3 rounded-3xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 transition hover:border-amber-500/70"
-        >
-          <span className="font-display text-sm font-extrabold text-amber-700 dark:text-amber-400">
-            {pendingPays.length.toLocaleString("ar-EG")} تحويل ينتظر المراجعة
+      {/*
+        ما يحتاج انتباهك.
+        ------------------------------------------------------------------
+        الأرقام تصف الماضي ولا تقول ما العمل. هذه القائمة تقلب السؤال:
+        ما الذي يعطّل المنصّة الآن، وما الذي ينتظر ردّاً، وما نُصِب ولم
+        يُكمَل — ولا يُعرض منها إلا ما يملك هذا المشرف صلاحيتَه.
+      */}
+      {insights.length > 0 && (
+        <div className="mb-6 grid gap-2.5">
+          {insights.map((x) => {
+            const tone =
+              x.level === "urgent"
+                ? "border-rose-500/40 bg-rose-500/[0.07] hover:border-rose-500/70"
+                : x.level === "warn"
+                  ? "border-amber-500/40 bg-amber-500/[0.07] hover:border-amber-500/70"
+                  : "border-border bg-card hover:border-primary/50";
+            const dot =
+              x.level === "urgent" ? "bg-rose-500" : x.level === "warn" ? "bg-amber-500" : "bg-primary";
+            return (
+              <Link
+                key={x.id}
+                href={x.href}
+                className={`flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 transition ${tone}`}
+              >
+                <span className={`size-2 shrink-0 rounded-full ${dot}`} />
+                <span className="font-display text-sm font-extrabold">{x.label}</span>
+                {x.count ? (
+                  <span className={`grid min-w-6 place-items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold text-white ${dot}`}>
+                    {x.count.toLocaleString("ar-EG")}
+                  </span>
+                ) : null}
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{x.hint}</span>
+                <span className="shrink-0 text-xs font-bold text-muted-foreground">افتح ←</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {insights.length === 0 && (
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-500/35 bg-emerald-500/[0.07] px-4 py-3">
+          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+          <span className="font-display text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
+            لا شيء ينتظرك — المنصّة تعمل
           </span>
-          <span className="text-xs text-muted-foreground">
-            {pendingPays.slice(0, 3).map((p) => p.student).join(" · ")}
-            {pendingPays.length > 3 ? " …" : ""}
-          </span>
-          <span className="mr-auto text-xs font-bold text-amber-700 dark:text-amber-400">راجعها الآن ←</span>
-        </Link>
+        </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
