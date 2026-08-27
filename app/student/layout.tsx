@@ -4,7 +4,7 @@ import { DashboardShell } from "@/components/dashboard/shell";
 import { studentNav } from "@/lib/dashboard-data";
 import { getSession } from "@/lib/session";
 import { getPublicDB, loadDB, sessionUser } from "@/lib/db";
-import { findSkin, findLayout, findMobile, mobileClass, skinVars } from "@/lib/skins";
+import { findSkin, findLayout, findMobile, mobileClass, skinCss } from "@/lib/skins";
 import { SkinOrnament } from "@/components/brand/skin-ornaments";
 import { findDesign } from "@/lib/designs";
 
@@ -31,9 +31,12 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const design = findDesign(pub.content?.studentDesign);
 
   return (
+    <>
+      {/* نسختا الثيم — الفاتحة أساساً والداكنة عند اختيار الزائر الداكن.
+          كتلة واحدة للثيم المختار فقط، فلا تُحمَّل عشرون كتلة لا تُعرض. */}
+      <style dangerouslySetInnerHTML={{ __html: skinCss(skin) }} />
     <div
       className={`student-skin relative min-h-full ${mobileClass(mobile)}`}
-      style={skinVars(skin)}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}
@@ -49,5 +52,6 @@ export default async function StudentLayout({ children }: { children: ReactNode 
         {children}
       </DashboardShell>
     </div>
+    </>
   );
 }

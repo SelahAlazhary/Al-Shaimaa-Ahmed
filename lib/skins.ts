@@ -180,6 +180,103 @@ export function findSkin(id?: string): StudentSkin {
   return STUDENT_SKINS.find((s) => s.id === id) ?? STUDENT_SKINS[0];
 }
 
+/* ------------------------------------------------------------------ */
+/*  اشتقاق النسخة المقابلة (فاتح ↔ داكن)                                */
+/* ------------------------------------------------------------------ */
+
+/** يفكّ "H S% L%" إلى أجزائه. */
+function parse(v: string): [number, number, number] {
+  const m = /^(\d{1,3})\s+(\d{1,3})%\s+(\d{1,3})%$/.exec(v.trim());
+  if (!m) return [0, 0, 50];
+  return [Number(m[1]), Number(m[2]), Number(m[3])];
+}
+const build = (h: number, sat: number, l: number) =>
+  `${Math.round(h)} ${Math.round(Math.max(0, Math.min(100, sat)))}% ${Math.round(Math.max(0, Math.min(100, l)))}%`;
+
+/** يضبط الإضاءة مع إبقاء الصبغة والتشبّع (مع تعديل طفيف للتشبّع). */
+function at(v: string, l: number, satMul = 1): string {
+  const [h, sat] = parse(v);
+  return build(h, sat * satMul, l);
+}
+
+/**
+ * يشتقّ النسخة الداكنة من لوحة فاتحة.
+ * الأسطح تُقلب إضاءتها والألوان الدالّة تُرفع إضاءتها لتبقى مقروءة على
+ * الداكن — رفع الإضاءة ضروري: لون بإضاءة ٣٠٪ يصلح نصّاً على ورق أبيض
+ * ولا يُرى على خلفية بإضاءة ٨٪.
+ */
+export function deriveDark(v: StudentSkin["vars"]): StudentSkin["vars"] {
+  return {
+    background: at(v.background, 8, 1.1),
+    foreground: at(v.foreground, 94, 0.5),
+    card: at(v.background, 12, 1.0),
+    muted: at(v.background, 17, 0.9),
+    mutedForeground: at(v.mutedForeground, 66, 0.7),
+    border: at(v.background, 22, 0.8),
+    primary: at(v.primary, Math.max(52, parse(v.primary)[2] + 22), 1),
+    accent: at(v.accent, Math.max(58, parse(v.accent)[2] + 8), 1),
+    glow: at(v.glow, Math.max(58, parse(v.glow)[2] + 16), 1),
+    gold: at(v.gold, Math.max(58, parse(v.gold)[2] + 8), 1),
+    goldDeep: at(v.goldDeep, Math.max(46, parse(v.goldDeep)[2] + 6), 1),
+    goldLight: at(v.goldLight, Math.max(72, parse(v.goldLight)[2] + 6), 1),
+  };
+}
+
+/** يشتقّ النسخة الفاتحة من لوحة داكنة — العملية المعاكسة. */
+export function deriveLight(v: StudentSkin["vars"]): StudentSkin["vars"] {
+  return {
+    background: at(v.background, 96, 0.8),
+    foreground: at(v.foreground, 14, 2.2),
+    card: at(v.background, 99, 0.6),
+    muted: at(v.background, 92, 0.7),
+    mutedForeground: at(v.mutedForeground, 42, 1.2),
+    border: at(v.background, 86, 0.6),
+    primary: at(v.primary, Math.min(38, parse(v.primary)[2] - 14), 1),
+    accent: at(v.accent, Math.min(52, parse(v.accent)[2] - 6), 1),
+    glow: at(v.glow, Math.min(46, parse(v.glow)[2] - 12), 1),
+    gold: at(v.gold, Math.min(52, parse(v.gold)[2] - 6), 1),
+    goldDeep: at(v.goldDeep, Math.min(42, parse(v.goldDeep)[2] - 4), 1),
+    goldLight: at(v.goldLight, Math.min(68, parse(v.goldLight)[2] - 4), 1),
+  };
+}
+
+/** النسختان معاً — المعرَّفة يدوياً والمشتقّة. */
+export function skinModes(s: StudentSkin): { light: StudentSkin["vars"]; dark: StudentSkin["vars"] } {
+  return s.dark
+    ? { dark: s.vars, light: deriveLight(s.vars) }
+    : { light: s.vars, dark: deriveDark(s.vars) };
+}
+
+/** يبني كتلة أنماط لثيم واحد بنسختيه — تُحقن كوسم style واحد. */
+export function skinCss(s: StudentSkin): string {
+  const { light, dark } = skinModes(s);
+  const decl = (v: StudentSkin["vars"]) =>
+    [
+      `--background:${v.background}`,
+      `--foreground:${v.foreground}`,
+      `--card:${v.card}`,
+      `--card-foreground:${v.foreground}`,
+      `--muted:${v.muted}`,
+      `--muted-foreground:${v.mutedForeground}`,
+      `--border:${v.border}`,
+      `--primary:${v.primary}`,
+      `--primary-foreground:0 0% 100%`,
+      `--accent:${v.accent}`,
+      `--accent-foreground:${v.foreground}`,
+      `--glow:${v.glow}`,
+      `--gold:${v.gold}`,
+      `--gold-deep:${v.goldDeep}`,
+      `--gold-light:${v.goldLight}`,
+    ].join(";");
+
+  /* النسخة الفاتحة هي الأساس، والداكنة تُطبَّق حين يختار الزائر الداكن —
+     فيبقى تفضيله محترماً مهما كان الثيم الذي اختاره الأدمن. */
+  return (
+    `[data-skin="${s.id}"]{${decl(light)}}` +
+    `[data-layout="dark"] [data-skin="${s.id}"]{${decl(dark)}}`
+  );
+}
+
 /** يحوّل الثيم إلى متغيّرات CSS جاهزة للحقن على عنصر واحد. */
 export function skinVars(s: StudentSkin): React.CSSProperties {
   const v = s.vars;

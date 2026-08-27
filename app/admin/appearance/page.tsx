@@ -8,16 +8,17 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
   STUDENT_SKINS, STUDENT_LAYOUTS, MOBILE_LAYOUTS, findSkin, findLayout, findMobile,
+  DEFAULT_SKIN, DEFAULT_LAYOUT, DEFAULT_MOBILE,
   type StudentSkin, type StudentLayout, type MobileLayout,
 } from "@/lib/skins";
 import { SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview } from "@/components/admin/skin-preview";
-import { STUDENT_DESIGNS, findDesign, type StudentDesign } from "@/lib/designs";
-import { HOME_LAYOUTS, findHomeLayout, type HomeLayout } from "@/lib/home-layouts";
+import { STUDENT_DESIGNS, findDesign, DEFAULT_DESIGN, type StudentDesign } from "@/lib/designs";
+import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } from "@/lib/home-layouts";
 
 type Tab = "skin" | "design" | "layout" | "mobile" | "home";
 
@@ -44,6 +45,28 @@ export default function AppearancePage() {
     setBusy(null);
   };
 
+  /** يعيد المظهر كلّه إلى ما تبدأ به المنصّة — الخمسة معاً لا واحداً. */
+  const resetAll = async () => {
+    if (!confirm("إعادة كل إعدادات المظهر إلى التصميم الأصلي؟")) return;
+    setBusy("reset");
+    await saveContent({
+      studentSkin: DEFAULT_SKIN,
+      studentDesign: DEFAULT_DESIGN,
+      studentLayout: DEFAULT_LAYOUT,
+      studentMobile: DEFAULT_MOBILE,
+      homeLayout: DEFAULT_HOME_LAYOUT,
+    });
+    setBusy(null);
+  };
+
+  /** هل كل شيء على الأصل بالفعل؟ عندها لا معنى لزرّ الإعادة. */
+  const isDefault =
+    skin.id === DEFAULT_SKIN &&
+    design.id === DEFAULT_DESIGN &&
+    layout.id === DEFAULT_LAYOUT &&
+    mobile.id === DEFAULT_MOBILE &&
+    home.id === DEFAULT_HOME_LAYOUT;
+
   const pickDesign = async (x: StudentDesign) => {
     setBusy(x.id);
     await saveContent({ studentDesign: x.id });
@@ -67,6 +90,18 @@ export default function AppearancePage() {
       <PageHeader
         title="مظهر المنصّة"
         subtitle={`الثيم: ${skin.name} · الهيئة: ${design.name} · التخطيط: ${layout.name} · الهاتف: ${mobile.name} · الرئيسية: ${home.name}`}
+        action={
+          <button
+            type="button"
+            onClick={resetAll}
+            disabled={busy !== null || isDefault}
+            title={isDefault ? "كل شيء على التصميم الأصلي بالفعل" : "إعادة كل إعدادات المظهر إلى الأصل"}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-bold transition hover:border-primary hover:text-primary disabled:opacity-45"
+          >
+            {busy === "reset" ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
+            إعادة الضبط للتصميم الأصلي
+          </button>
+        }
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
