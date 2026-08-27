@@ -950,6 +950,57 @@ body {
 .ic-filled .app-tab svg { stroke-width: 0; fill: currentColor; }
 .ic-duo .app-tab svg { stroke-width: 1.6; fill: currentColor; fill-opacity: 0.18; }
 
+/* ---------- خطّ القائمة الجانبية: عريض ---------- */
+.student-skin aside nav a { font-weight: 700; }
+.student-skin aside nav a .sn-keep { font-weight: 700; }
+
+/* ============================================================
+   بطاقات المؤشّرات — قسم مستقلّ عن الثيم
+   ------------------------------------------------------------
+   كل لون فارغ لا يُكتب متغيّراً، فتسقط القاعدة وترث البطاقة لون
+   الثيم — فلا يُجبر ضبطُ لون على ضبط البقية.
+   ============================================================ */
+.tl-surface-glass .stat-tile {
+  background: var(--tile-bg, hsl(0 0% 100% / 0.07));
+  box-shadow: inset 0 0 0 1px var(--tile-accent, hsl(0 0% 100% / 0.15));
+}
+.tl-surface-solid .stat-tile {
+  background: var(--tile-bg, hsl(var(--card)));
+  box-shadow: inset 0 0 0 1px var(--tile-accent, hsl(var(--gold) / 0.35));
+}
+.tl-surface-outline .stat-tile {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--tile-accent, hsl(var(--gold) / 0.55));
+}
+.tl-surface-gradient .stat-tile {
+  background: linear-gradient(140deg, var(--tile-bg, hsl(var(--primary))), var(--tile-bg2, hsl(var(--glow))));
+  box-shadow: inset 0 0 0 1px var(--tile-accent, hsl(var(--gold) / 0.4));
+}
+.tl-surface-flat .stat-tile {
+  background: var(--tile-bg, transparent);
+  box-shadow: none;
+}
+
+/* لون النصّ والشارة */
+.student-skin .stat-tile .tile-text { color: var(--tile-text, inherit); }
+.student-skin .stat-tile .tile-badge { background: var(--tile-icon, currentColor); }
+
+/* ترتيب المحتوى */
+.tl-layout-inline .stat-tile .tile-body { display: flex; align-items: center; gap: 0.75rem; }
+.tl-layout-inline .stat-tile .tile-head { order: 2; margin: 0; }
+.tl-layout-centered .stat-tile { text-align: center; }
+.tl-layout-centered .stat-tile .tile-head { justify-content: center; }
+.tl-layout-minimal .stat-tile .tile-head { display: none; }
+
+/* شكل شارة الأيقونة */
+.tl-icon-circle .stat-tile .tile-badge { border-radius: 9999px; }
+.tl-icon-square .stat-tile .tile-badge { border-radius: 0.35rem; }
+.tl-icon-medallion .stat-tile .tile-badge {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0 50%, 15% 15%);
+}
+.tl-icon-none .stat-tile .tile-badge { display: none; }
+
 /* ============================================================
    القائمة السفلية (الهاتف)
    ============================================================ */

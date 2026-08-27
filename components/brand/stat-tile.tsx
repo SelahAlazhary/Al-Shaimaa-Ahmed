@@ -66,7 +66,7 @@ export function StatTile({
       whileHover={{ y: -4 }}
       style={shape}
       /* الحشو = حشو البطاقة + هامش أمان الشكل، فلا يقصّ القصّ النصّ. */
-      className={`group relative overflow-hidden backdrop-blur-sm transition-shadow [padding-block:calc(1rem+var(--shape-pad-y,0px))] [padding-inline:calc(1rem+var(--shape-pad-x,0px))] sm:[padding-block:calc(1.25rem+var(--shape-pad-y,0px))] sm:[padding-inline:calc(1.25rem+var(--shape-pad-x,0px))] ${
+      className={`stat-tile group relative overflow-hidden backdrop-blur-sm transition-shadow [padding-block:calc(1rem+var(--shape-pad-y,0px))] [padding-inline:calc(1rem+var(--shape-pad-x,0px))] sm:[padding-block:calc(1.25rem+var(--shape-pad-y,0px))] sm:[padding-inline:calc(1.25rem+var(--shape-pad-x,0px))] ${
         ink
           ? "bg-white/[0.07] ring-1 ring-white/15 hover:ring-white/30"
           : "bg-card ring-1 ring-[hsl(var(--gold)/0.35)] hover:ring-[hsl(var(--gold)/0.6)]"
@@ -79,10 +79,10 @@ export function StatTile({
         style={{ background: "radial-gradient(circle, hsl(var(--gold-light)) 0%, transparent 70%)" }}
       />
 
-      <div className="relative flex items-start justify-between gap-2">
+      <div className="tile-head relative flex items-start justify-between gap-2">
         {icon && (
           <span
-            className="grid size-10 place-items-center rounded-2xl text-[hsl(var(--accent-foreground))] shadow-sm"
+            className="tile-badge grid size-10 place-items-center rounded-2xl text-[hsl(var(--accent-foreground))] shadow-sm"
             style={{ background: "linear-gradient(135deg, hsl(var(--gold-light)), hsl(var(--gold)))" }}
           >
             {icon}
@@ -97,7 +97,7 @@ export function StatTile({
 
       {/* الجسم: حلقة أو رقم */}
       {ring !== undefined ? (
-        <div className="relative mt-3 flex items-center gap-3">
+        <div className="tile-body relative mt-3 flex items-center gap-3">
           <span className="relative grid size-[4.5rem] shrink-0 place-items-center">
             <svg viewBox="0 0 64 64" className="size-full -rotate-90" fill="none" aria-hidden="true">
               <defs>
@@ -120,21 +120,21 @@ export function StatTile({
                 transition={{ duration: 1.1, ease: "easeOut", delay: 0.25 + index * 0.08 }}
               />
             </svg>
-            <span className={`font-display absolute text-base font-bold ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
+            <span className={`tile-text font-display absolute text-base font-bold ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
               {pct.toLocaleString("ar-EG")}٪
             </span>
           </span>
-          <span className={`font-kufi min-w-0 text-[0.78rem] font-bold leading-snug ${ink ? "text-[hsl(var(--primary-foreground)/0.8)]" : "text-muted-foreground"}`}>
+          <span className={`tile-text font-kufi min-w-0 text-[0.78rem] font-bold leading-snug ${ink ? "text-[hsl(var(--primary-foreground)/0.8)]" : "text-muted-foreground"}`}>
             {label}
           </span>
         </div>
       ) : (
-        <div className="relative mt-4">
-          <p className={`font-display flex items-baseline gap-1.5 leading-none ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
+        <div className="tile-body relative mt-4">
+          <p className={`tile-text font-display flex items-baseline gap-1.5 leading-none ${ink ? "text-[hsl(var(--primary-foreground))]" : "text-foreground"}`}>
             <span className="text-[2.35rem] font-bold tracking-tight">{value}</span>
             {unit && <span className={`font-kufi text-sm font-bold ${ink ? "text-[hsl(var(--primary-foreground)/0.7)]" : "text-muted-foreground"}`}>{unit}</span>}
           </p>
-          <p className={`font-kufi mt-2 text-[0.78rem] font-bold ${ink ? "text-[hsl(var(--primary-foreground)/0.75)]" : "text-muted-foreground"}`}>{label}</p>
+          <p className={`tile-text font-kufi mt-2 text-[0.78rem] font-bold ${ink ? "text-[hsl(var(--primary-foreground)/0.75)]" : "text-muted-foreground"}`}>{label}</p>
         </div>
       )}
 

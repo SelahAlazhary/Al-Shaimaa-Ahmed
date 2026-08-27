@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -18,8 +18,9 @@ import {
 } from "@/lib/skins";
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
-  SideNavPreview, DockPreview, FramePreview,
+  SideNavPreview, DockPreview, FramePreview, TilePreview,
 } from "@/components/admin/skin-preview";
+import { TILE_STYLES, findTile, DEFAULT_TILE, type TileStyle } from "@/lib/tile-styles";
 import { DEFAULT_FRAME } from "@/lib/frame-shapes";
 import {
   SIDE_NAV_STYLES, DOCK_STYLES, findSideNav, findDock,
@@ -32,7 +33,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "layout" | "side" | "dock" | "mobile" | "home";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "dock" | "mobile" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -44,6 +45,8 @@ export default function AppearancePage() {
   const home = findHomeLayout(content.homeLayout);
   const mobile = findMobile(content.studentMobile);
   const design = findDesign(content.studentDesign);
+  const tile = findTile(content.tileStyle);
+  const tileColors = content.tileColors ?? {};
   const side = findSideNav(content.sideNav);
   const dock = findDock(content.dockStyle);
   const iconSet = content.navIcons ?? DEFAULT_ICON_SET;
@@ -62,37 +65,85 @@ export default function AppearancePage() {
   };
 
   /** يعيد المظهر كلّه إلى ما تبدأ به المنصّة — الخمسة معاً لا واحداً. */
-  const resetAll = async () => {
-    if (!confirm("إعادة كل إعدادات المظهر إلى التصميم الأصلي؟")) return;
+  /**
+   * إعادة الضبط لكل قسم على حدة.
+   * الزرّ يعيد القسم المفتوح وحده لا كل المظهر: من يضبط عشرة أقسام ثم
+   * يريد التراجع عن واحد منها لا يصحّ أن يفقد التسعة الباقية.
+   */
+  const SECTIONS: Record<
+    Tab,
+    { label: string; isDefault: boolean; patch: () => Record<string, unknown> }
+  > = {
+    skin: {
+      label: "الثيم",
+      isDefault: skin.id === DEFAULT_SKIN,
+      patch: () => ({ studentSkin: DEFAULT_SKIN }),
+    },
+    tiles: {
+      label: "بطاقات المؤشّرات",
+      isDefault: tile.id === DEFAULT_TILE && Object.values(tileColors).every((v) => !v),
+      patch: () => ({ tileStyle: DEFAULT_TILE, tileColors: {} }),
+    },
+    design: {
+      label: "الهيئة",
+      isDefault: design.id === DEFAULT_DESIGN,
+      patch: () => ({ studentDesign: DEFAULT_DESIGN }),
+    },
+    layout: {
+      label: "التخطيط",
+      isDefault: layout.id === DEFAULT_LAYOUT,
+      patch: () => ({ studentLayout: DEFAULT_LAYOUT }),
+    },
+    side: {
+      label: "القائمة الجانبية",
+      /* القسم يشمل التصميم والأيقونات والألوان معاً — فإعادته تعيدها كلّها. */
+      isDefault:
+        side.id === DEFAULT_SIDE_NAV &&
+        iconSet === DEFAULT_ICON_SET &&
+        Object.values(navColors).every((v) => !v),
+      patch: () => ({ sideNav: DEFAULT_SIDE_NAV, navIcons: DEFAULT_ICON_SET, navColors: {} }),
+    },
+    dock: {
+      label: "القائمة السفلية",
+      isDefault: dock.id === DEFAULT_DOCK,
+      patch: () => ({ dockStyle: DEFAULT_DOCK }),
+    },
+    mobile: {
+      label: "تنسيق الهاتف",
+      isDefault: mobile.id === DEFAULT_MOBILE,
+      patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    home: {
+      label: "الواجهة الرئيسية",
+      isDefault: home.id === DEFAULT_HOME_LAYOUT,
+      patch: () => ({ homeLayout: DEFAULT_HOME_LAYOUT }),
+    },
+  };
+
+  const section = SECTIONS[tab];
+
+  const resetSection = async () => {
+    if (section.isDefault) return;
+    if (!confirm(`إعادة «${section.label}» إلى التصميم الأصلي؟`)) return;
     setBusy("reset");
-    await saveContent({
-      studentSkin: DEFAULT_SKIN,
-      studentDesign: DEFAULT_DESIGN,
-      studentLayout: DEFAULT_LAYOUT,
-      studentMobile: DEFAULT_MOBILE,
-      sideNav: DEFAULT_SIDE_NAV,
-      dockStyle: DEFAULT_DOCK,
-      navIcons: DEFAULT_ICON_SET,
-      navColors: {},
-      hero: { ...content.hero, frameShape: DEFAULT_FRAME, frameColor: "", frameScale: 100 },
-      homeLayout: DEFAULT_HOME_LAYOUT,
-    });
+    await saveContent(section.patch());
     setBusy(null);
   };
 
-  /** هل كل شيء على الأصل بالفعل؟ عندها لا معنى لزرّ الإعادة. */
-  const isDefault =
-    skin.id === DEFAULT_SKIN &&
-    design.id === DEFAULT_DESIGN &&
-    layout.id === DEFAULT_LAYOUT &&
-    mobile.id === DEFAULT_MOBILE &&
-    side.id === DEFAULT_SIDE_NAV &&
-    dock.id === DEFAULT_DOCK &&
-    home.id === DEFAULT_HOME_LAYOUT;
+  /** إعادة كل الأقسام — فعل منفصل بتأكيده الخاص. */
+  const resetAll = async () => {
+    if (!confirm("إعادة كل أقسام المظهر إلى التصميم الأصلي؟")) return;
+    setBusy("resetAll");
+    await saveContent(
+      (Object.values(SECTIONS) as { patch: () => Record<string, unknown> }[]).reduce(
+        (acc, x) => ({ ...acc, ...x.patch() }),
+        {} as Record<string, unknown>
+      )
+    );
+    setBusy(null);
+  };
 
-  /** إعدادات الإطار تعيش داخل hero، فتُدمج معه لا تستبدله. */
-  const setHero = (patch: Record<string, unknown>) =>
-    saveContent({ hero: { ...content.hero, ...patch } });
+  const allDefault = Object.values(SECTIONS).every((x) => x.isDefault);
 
   /** ألوان القائمة تُدمج فلا يمحو ضبطُ لونٍ لونًا آخر. */
   const setNavColor = (patch: Record<string, string>) =>
@@ -109,6 +160,16 @@ export default function AppearancePage() {
     await saveContent({ dockStyle: x.id });
     setBusy(null);
   };
+
+  const pickTile = async (x: TileStyle) => {
+    setBusy(x.id);
+    await saveContent({ tileStyle: x.id });
+    setBusy(null);
+  };
+
+  /** ألوان البطاقة تُدمج فلا يمحو ضبطُ لونٍ لونًا آخر. */
+  const setTileColor = (patch: Record<string, string>) =>
+    saveContent({ tileColors: { ...tileColors, ...patch } });
 
   const pickDesign = async (x: StudentDesign) => {
     setBusy(x.id);
@@ -134,16 +195,28 @@ export default function AppearancePage() {
         title="مظهر المنصّة"
         subtitle={`الثيم: ${skin.name} · الهيئة: ${design.name} · القائمة: ${side.name} · السفلية: ${dock.name} · الرئيسية: ${home.name}`}
         action={
-          <button
-            type="button"
-            onClick={resetAll}
-            disabled={busy !== null || isDefault}
-            title={isDefault ? "كل شيء على التصميم الأصلي بالفعل" : "إعادة كل إعدادات المظهر إلى الأصل"}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-bold transition hover:border-primary hover:text-primary disabled:opacity-45"
-          >
-            {busy === "reset" ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
-            إعادة الضبط للتصميم الأصلي
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={resetSection}
+              disabled={busy !== null || section.isDefault}
+              title={section.isDefault ? `«${section.label}» على الأصل بالفعل` : `إعادة «${section.label}» وحده`}
+              className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/5 px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-45"
+            >
+              {busy === "reset" ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
+              إعادة ضبط «{section.label}»
+            </button>
+            <button
+              type="button"
+              onClick={resetAll}
+              disabled={busy !== null || allDefault}
+              title={allDefault ? "كل الأقسام على الأصل بالفعل" : "إعادة كل الأقسام"}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-bold transition hover:border-rose-500 hover:text-rose-500 disabled:opacity-45"
+            >
+              {busy === "resetAll" ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
+              الكل
+            </button>
+          </div>
         }
       />
 
@@ -153,6 +226,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "design"} onClick={() => setTab("design")} icon={<Shapes className="size-4" />}>
           الهيئة والشكل ({STUDENT_DESIGNS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "tiles"} onClick={() => setTab("tiles")} icon={<LayoutPanelTop className="size-4" />}>
+          بطاقات المؤشّرات ({TILE_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "layout"} onClick={() => setTab("layout")} icon={<LayoutGrid className="size-4" />}>
           تخطيط بوابة الطالب ({STUDENT_LAYOUTS.length.toLocaleString("ar-EG")})
@@ -237,6 +313,96 @@ export default function AppearancePage() {
             );
           })}
         </div>
+      )}
+
+      {tab === "tiles" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">ألوان البطاقات</p>
+            <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+              مستقلّة عن الثيم تماماً — تغيّر لون البطاقات وحدها دون أن تمسّ هوية المنصّة.
+              اللون الفارغ يرث لون الثيم.
+            </p>
+            <div className="grid gap-3">
+              {([
+                { key: "bg", label: "خلفية البطاقة" },
+                { key: "bg2", label: "اللون الثاني (للتدرّج)" },
+                { key: "text", label: "الرقم والعنوان" },
+                { key: "icon", label: "شارة الأيقونة" },
+                { key: "accent", label: "الحدّ والحلقة" },
+              ] as const).map((row) => (
+                <div key={row.key} className="flex flex-wrap items-center gap-2">
+                  <span className="w-40 shrink-0 text-xs font-semibold text-muted-foreground">{row.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => void setTileColor({ [row.key]: "" })}
+                    className={`rounded-full border px-3 py-1 text-[10px] font-bold transition ${
+                      !tileColors[row.key] ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    الثيم
+                  </button>
+                  {SWATCH.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-label={c}
+                      onClick={() => void setTileColor({ [row.key]: c })}
+                      className={`size-7 rounded-lg border transition ${
+                        tileColors[row.key]?.toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
+                      }`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                  <label
+                    className="grid size-7 cursor-pointer place-items-center rounded-lg border border-dashed border-border"
+                    style={{ background: tileColors[row.key] || "transparent" }}
+                    title="لون مخصّص"
+                  >
+                    <input
+                      type="color"
+                      className="size-0 opacity-0"
+                      value={tileColors[row.key] || "#233b8b"}
+                      onChange={(e) => void setTileColor({ [row.key]: e.target.value })}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {TILE_STYLES.map((x) => {
+              const on = x.id === tile.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickTile(x)}
+                  disabled={busy !== null}
+                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <TilePreview tile={x} colors={tileColors} skin={skin} />
+                  <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {tab === "layout" && (

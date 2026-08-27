@@ -15,6 +15,7 @@ import { shapeStyle, type StudentDesign } from "@/lib/designs";
 import { EdgeArtLayer } from "@/components/brand/edge-art";
 import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
 import type { FrameShape } from "@/lib/frame-shapes";
+import type { TileStyle, TileColors } from "@/lib/tile-styles";
 
 const W = 160;
 const H = 108;
@@ -816,5 +817,94 @@ export function FramePreview({
         <path d={inner} fill="none" stroke={stroke} strokeWidth={0.8} strokeOpacity={0.35} strokeLinejoin="round" />
       )}
     </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة بطاقة المؤشّر                                               */
+/* ------------------------------------------------------------------ */
+
+export function TilePreview({
+  tile,
+  colors,
+  skin,
+}: {
+  tile: TileStyle;
+  colors?: TileColors;
+  skin: StudentSkin;
+}) {
+  const v = skin.vars;
+  const bg =
+    colors?.bg ||
+    (tile.surface === "solid" ? hsl(v.card)
+      : tile.surface === "gradient" ? hsl(v.primary)
+        : tile.surface === "glass" ? hsl(v.card, 0.5)
+          : "transparent");
+  const bg2 = colors?.bg2 || hsl(v.glow);
+  const text = colors?.text || hsl(v.foreground);
+  const badge = colors?.icon || hsl(v.gold);
+  const accent = colors?.accent || hsl(v.gold, 0.5);
+
+  const fill =
+    tile.surface === "gradient" ? `linear-gradient(140deg, ${bg}, ${bg2})` : bg;
+  const ring = tile.surface === "flat" ? "none" : `inset 0 0 0 ${tile.surface === "outline" ? 1.6 : 1}px ${accent}`;
+
+  const badgeShape =
+    tile.icon === "circle" ? "9999px"
+      : tile.icon === "square" ? "3px"
+        : "7px";
+
+  const centered = tile.layout === "centered";
+  const inline = tile.layout === "inline";
+
+  return (
+    <div
+      className="grid w-full place-items-center rounded-2xl p-3"
+      style={{ background: hsl(v.background), aspectRatio: "160 / 108" }}
+    >
+      <div
+        className="w-full max-w-[9rem] p-3"
+        style={{
+          background: fill,
+          boxShadow: ring,
+          borderRadius: "0.9rem",
+          textAlign: centered ? "center" : "right",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            justifyContent: centered ? "center" : "space-between",
+            flexDirection: inline ? "row-reverse" : "row",
+          }}
+        >
+          {tile.icon !== "none" && (
+            <span
+              style={{
+                width: 22,
+                height: 22,
+                background: badge,
+                borderRadius: tile.icon === "medallion" ? 0 : badgeShape,
+                clipPath:
+                  tile.icon === "medallion"
+                    ? "polygon(50% 0, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0 50%, 15% 15%)"
+                    : undefined,
+                flexShrink: 0,
+              }}
+            />
+          )}
+          {inline && (
+            <span style={{ color: text, fontWeight: 700, fontSize: "1.1rem", lineHeight: 1 }}>٧٥٪</span>
+          )}
+        </div>
+
+        {!inline && (
+          <p style={{ color: text, fontWeight: 700, fontSize: "1.35rem", lineHeight: 1, marginTop: 10 }}>٧٥٪</p>
+        )}
+        <p style={{ color: text, opacity: 0.7, fontSize: "0.6rem", marginTop: 6 }}>متوسّط تقدّمك</p>
+      </div>
+    </div>
   );
 }

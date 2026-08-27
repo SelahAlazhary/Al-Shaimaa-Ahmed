@@ -215,6 +215,9 @@ export type SiteContent = {
   dockStyle?: string;
   navIcons?: string;
   navColors?: { panel?: string; icon?: string; text?: string; active?: string };
+  /** تصميم بطاقات المؤشّرات وألوانها — مستقلّ عن الثيم. */
+  tileStyle?: string;
+  tileColors?: { bg?: string; bg2?: string; text?: string; icon?: string; accent?: string };
 
   /**
    * زرّ تبديل الفاتح/الداكن.
