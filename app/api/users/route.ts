@@ -3,7 +3,7 @@ import { createUser, setUserActive, setUserCredentials, deleteUser, bindDevice, 
 import { getSession } from "@/lib/session";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, sameOrigin, passwordProblem, invalidUsername } from "@/lib/guard";
-import { signupProblem, showsTrack, showsBranch, normalizePhone } from "@/lib/signup-rules";
+import { signupProblem, showsTrack, showsBranch, showsTerm, normalizePhone } from "@/lib/signup-rules";
 import { recordEvent, bannedUntil } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
    * الأدمن مستثنى: هو ينشئ حسابات مشرفين أيضاً ولا تلزمها بيانات الطالب.
    */
   if (!isAdmin) {
-    const problem = signupProblem(body, getDB().grades.map((g) => g.name));
+    const db = getDB();
+    const problem = signupProblem(body, db.grades.map((g) => g.name), db.content.terms ?? []);
     if (problem) return NextResponse.json({ error: problem }, { status: 400 });
   }
 
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
       grade: body.grade,
       stage: body.stage,
       eduSystem: body.eduSystem,
+      termName: showsTerm(body, getDB().content.terms ?? []) ? body.termName : undefined,
       // الشعبة والفرع لا معنى لهما خارج شرطيهما — لا يُحفظان إلا معهما
       track: showsTrack(body) ? body.track : undefined,
       branch: showsBranch(body) ? body.branch : undefined,

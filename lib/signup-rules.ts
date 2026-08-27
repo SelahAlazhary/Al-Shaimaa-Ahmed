@@ -12,6 +12,7 @@ import {
 } from "./data";
 
 export type SignupInput = {
+  termName?: string;
   name?: string;
   phone?: string;
   eduSystem?: string;
@@ -27,6 +28,28 @@ export type SignupInput = {
 const s = (v: unknown) => String(v ?? "").trim();
 
 /* ---------------- الحقول المشروطة ---------------- */
+
+/**
+ * الفصول المتاحة لمرحلة بعينها.
+ * الفصل بلا مرحلة يظهر لكل المراحل، فلا يُجبَر صاحب المنصّة على تكرار
+ * الفصل المشترك لكل مرحلة.
+ */
+export function termsForStage(
+  terms: readonly { id: string; name: string; stage?: string }[] | undefined,
+  stage?: string
+) {
+  const st = s(stage);
+  if (!st) return [];
+  return (terms ?? []).filter((t) => !t.stage || t.stage === st);
+}
+
+/** هل يظهر حقل الفصل الدراسي؟ عند اختيار مرحلة لها فصول معرّفة. */
+export function showsTerm(
+  f: SignupInput,
+  terms: readonly { id: string; name: string; stage?: string }[] | undefined
+) {
+  return termsForStage(terms, f.stage).length > 0;
+}
 
 /** الشعبة (علمي/أدبي) — في المرحلة الثانوية وحدها. */
 export function showsTrack(f: SignupInput): boolean {
@@ -96,7 +119,11 @@ function oneOf(raw: unknown, allowed: readonly string[], missing: string, invali
  * يعيد أول خطأ يقابله، أو null إن كان كل شيء سليماً.
  * (البريد وكلمة المرور يتحقّق منهما lib/guard.ts.)
  */
-export function signupProblem(f: SignupInput, gradeNames: readonly string[]): string | null {
+export function signupProblem(
+  f: SignupInput,
+  gradeNames: readonly string[],
+  terms: readonly { id: string; name: string; stage?: string }[] = []
+): string | null {
   return (
     nameProblem(f.name) ??
     phoneProblem(f.phone) ??
@@ -104,6 +131,15 @@ export function signupProblem(f: SignupInput, gradeNames: readonly string[]): st
     oneOf(f.stage, STAGES, "المرحلة الدراسية مطلوبة", "المرحلة الدراسية غير صحيحة") ??
     // الصفوف يضبطها الأدمن، فتُقارن بالموجود فعلاً وقت التسجيل
     oneOf(f.grade, gradeNames, "الصف الدراسي مطلوب", "الصف الدراسي غير صحيح") ??
+    // الفصل يُطلب فقط إن كانت لمرحلة الطالب فصول معرّفة في اللوحة
+    (showsTerm(f, terms)
+      ? oneOf(
+          f.termName,
+          termsForStage(terms, f.stage).map((t) => t.name),
+          "الفصل الدراسي مطلوب",
+          "الفصل الدراسي غير صحيح"
+        )
+      : null) ??
     (showsTrack(f) ? oneOf(f.track, TRACKS, "الشعبة مطلوبة", "الشعبة غير صحيحة") : null) ??
     (showsBranch(f)
       ? oneOf(f.branch, SCIENCE_BRANCHES, "فرع الشعبة العلمية مطلوب", "فرع الشعبة العلمية غير صحيح")

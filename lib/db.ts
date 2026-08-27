@@ -190,7 +190,7 @@ export function findUserByUsername(username: string): User | undefined {
 
 export function createUser(input: {
   name: string; username: string; password: string; role: Role;
-  phone?: string; grade?: string; stage?: string; eduSystem?: string; track?: string; branch?: string;
+  phone?: string; grade?: string; stage?: string; eduSystem?: string; termName?: string; track?: string; branch?: string;
   gender?: "male" | "female"; school?: string; governorate?: string; active?: boolean;
 }): PublicUser {
   const db = getDB();
@@ -210,6 +210,7 @@ export function createUser(input: {
     grade: input.grade,
     stage: input.stage,
     eduSystem: input.eduSystem,
+    termName: input.termName,
     track: input.track,
     branch: input.branch,
     gender: input.gender,

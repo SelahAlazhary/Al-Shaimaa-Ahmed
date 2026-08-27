@@ -185,6 +185,9 @@ export type SiteContent = {
     image?: ImageFit;
   };
   /** مظهر بوابة الطالب — الثيم والتخطيط (من lib/skins.ts). */
+  /** الفصول الدراسية — تُدار من «الصفوف والفصول» وتظهر في التسجيل. */
+  terms?: TermRow[];
+
   studentSkin?: string;
   studentLayout?: string;
   /** تخطيط الواجهة الرئيسية (من lib/home-layouts.ts). */
@@ -306,6 +309,17 @@ export type Subject = {
   status: "منشورة" | "مسودّة";
 };
 export type GradeRow = { id: string; name: string; students: number; subjects: number; color: string };
+
+/**
+ * الفصل الدراسي — يُضاف من اللوحة لا يُكتب في الكود.
+ * `stage` يربط الفصل بمرحلة بعينها؛ الفصل بلا مرحلة يظهر لكل المراحل.
+ */
+export type TermRow = {
+  id: string;
+  name: string;
+  stage?: string;
+  order?: number;
+};
 export type SubPlan = "ترم" | "شهر";
 export type Code = {
   code: string;
@@ -434,6 +448,7 @@ export type User = {
   grade?: string;
   stage?: string;        // المرحلة: ابتدائية/إعدادية/ثانوية
   eduSystem?: string;    // النظام التعليمي: تربية وتعليم/أزهر
+  termName?: string;     // الفصل الدراسي المختار عند التسجيل
   track?: string;        // الشعبة: علمي/أدبي — للمرحلة الثانوية وحدها
   branch?: string;       // فرع الشعبة العلمية: علوم/رياضة — لتربية وتعليم وحدها
   gender?: "male" | "female"; // النوع — لصيغة المخاطبة في النصوص

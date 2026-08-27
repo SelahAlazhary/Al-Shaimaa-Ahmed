@@ -2,24 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { UserPlus, Loader2, CheckCircle2 } from "lucide-react";
+import { UserPlus, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { AuthShell, inputCls } from "@/components/auth/auth-shell";
 import { useContent } from "@/components/content/content-provider";
 import {
   EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE,
   EDU_SYSTEMS, AZHAR, BRANCH_TRACK, SCIENCE_BRANCHES,
 } from "@/lib/data";
-import { showsTrack, showsBranch, signupProblem, normalizePhone } from "@/lib/signup-rules";
+import { showsTrack, showsBranch, showsTerm, termsForStage, signupProblem, normalizePhone } from "@/lib/signup-rules";
 
 export default function RegisterPage() {
-  const { db } = useContent();
+  const { db, content } = useContent();
   const grades = db?.grades ?? [];
-  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", termName: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
+  const [confirm, setConfirm] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  /* الفصول تُدار من اللوحة، فقد لا تكون هناك فصول أصلاً — عندها لا يظهر
+     الحقل ولا يُطلب، فلا يتعطّل التسجيل على منصّة لم تُعرّف فصولها بعد. */
+  const terms = content.terms ?? [];
+  const stageTerms = termsForStage(terms, form.stage);
+  const needsTerm = showsTerm(form, terms);
 
   const needsTrack = showsTrack(form);
   const needsBranch = showsBranch(form);
@@ -30,7 +38,12 @@ export default function RegisterPage() {
     setForm((f) => ({ ...f, eduSystem: v, branch: v === AZHAR ? "" : f.branch }));
 
   const setStage = (v: string) =>
-    setForm((f) => ({ ...f, stage: v, ...(v === TRACK_STAGE ? {} : { track: "", branch: "" }) }));
+    setForm((f) => ({
+      ...f,
+      stage: v,
+      termName: "", // فصول المرحلة السابقة لا تصلح للجديدة
+      ...(v === TRACK_STAGE ? {} : { track: "", branch: "" }),
+    }));
 
   const setTrack = (v: string) =>
     setForm((f) => ({ ...f, track: v, branch: v === BRANCH_TRACK ? f.branch : "" }));
@@ -40,10 +53,12 @@ export default function RegisterPage() {
     setErr(null);
     if (!form.username.trim()) { setErr("البريد الإلكتروني مطلوب"); return; }
     if (!form.password) { setErr("كلمة المرور مطلوبة"); return; }
+    if (form.password !== confirm) { setErr("كلمتا المرور غير متطابقتين"); return; }
     // نفس القواعد التي يفرضها الخادم — مصدرها ملف واحد فلا يختلفان
     const problem = signupProblem(
       { ...form, grade: form.grade || grades[0]?.name },
-      grades.map((g) => g.name)
+      grades.map((g) => g.name),
+      terms
     );
     if (problem) { setErr(problem); return; }
     setBusy(true);
@@ -53,6 +68,7 @@ export default function RegisterPage() {
         ...form,
         phone: normalizePhone(form.phone),
         grade: form.grade || grades[0]?.name,
+        termName: needsTerm ? form.termName : "",
         track: needsTrack ? form.track : "",
         branch: needsBranch ? form.branch : "",
       }),
@@ -86,8 +102,32 @@ export default function RegisterPage() {
         <Field label="الاسم الكامل"><input required className={inputCls} value={form.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="البريد الإلكتروني"><input type="email" required dir="ltr" className={`${inputCls} text-right`} value={form.username} onChange={(e) => set("username", e.target.value)} placeholder="you@example.com" /></Field>
-          <Field label="كلمة المرور"><input type="password" required className={inputCls} value={form.password} onChange={(e) => set("password", e.target.value)} /></Field>
+          <Field label="كلمة المرور">
+            <PasswordInput
+              value={form.password}
+              onChange={(v) => set("password", v)}
+              show={showPass}
+              onToggle={() => setShowPass((v) => !v)}
+              autoComplete="new-password"
+            />
+          </Field>
         </div>
+        <Field label="تأكيد كلمة المرور">
+          <PasswordInput
+            value={confirm}
+            onChange={setConfirm}
+            show={showPass}
+            onToggle={() => setShowPass((v) => !v)}
+            autoComplete="new-password"
+          />
+          {/* تنبيه فوري بمجرّد الكتابة — لا ينتظر الضغط على «إنشاء الحساب» */}
+          {confirm.length > 0 && confirm !== form.password && (
+            <span className="mt-1 block text-[11px] font-bold text-rose-500">كلمتا المرور غير متطابقتين</span>
+          )}
+          {confirm.length > 0 && confirm === form.password && (
+            <span className="mt-1 block text-[11px] font-bold text-emerald-600">متطابقتان</span>
+          )}
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="رقم الموبايل">
             <input
@@ -118,13 +158,21 @@ export default function RegisterPage() {
           </Field>
         </div>
         {/* الصف — ومعه الشعبة إن كانت المرحلة ثانوية، وإلا يتمدّد الصف وحده */}
-        <div className={`grid gap-3 ${needsTrack ? "grid-cols-2" : ""}`}>
+        <div className={`grid gap-3 ${needsTerm || needsTrack ? "grid-cols-2" : ""}`}>
           <Field label="الصف الدراسي">
             <select required className={inputCls} value={form.grade} onChange={(e) => set("grade", e.target.value)}>
               <option value="">اختر الصف الدراسي…</option>
               {grades.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
             </select>
           </Field>
+          {needsTerm && (
+            <Field label="الفصل الدراسي">
+              <select required className={inputCls} value={form.termName} onChange={(e) => set("termName", e.target.value)}>
+                <option value="">اختر الفصل…</option>
+                {stageTerms.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+              </select>
+            </Field>
+          )}
           {needsTrack && (
             <Field label="الشعبة">
               <select required className={inputCls} value={form.track} onChange={(e) => setTrack(e.target.value)}>
@@ -178,5 +226,50 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </span>
       {children}
     </label>
+  );
+}
+
+/**
+ * حقل كلمة مرور بزرّ معاينة.
+ * الزرّ داخل الحقل لا بجانبه، فلا يزحزح التخطيط عند ظهوره، ومقاسه
+ * ٤٤px على اللمس ليبقى هدفاً مريحاً. `aria-pressed` يخبر قارئ الشاشة
+ * بحالة الإظهار، والزرّ خارج تسلسل التبويب حتى لا يعترض تنقّل الكيبورد
+ * بين الحقول.
+ */
+function PasswordInput({
+  value,
+  onChange,
+  show,
+  onToggle,
+  autoComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  onToggle: () => void;
+  autoComplete?: string;
+}) {
+  return (
+    <span className="relative block">
+      <input
+        type={show ? "text" : "password"}
+        required
+        autoComplete={autoComplete}
+        className={`${inputCls} pl-11`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={onToggle}
+        aria-pressed={show}
+        aria-label={show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+        title={show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+        className="absolute inset-y-0 left-0 grid w-11 place-items-center text-muted-foreground transition hover:text-primary"
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </span>
   );
 }

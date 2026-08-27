@@ -21,6 +21,7 @@ import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { CourseArt } from "@/components/brand/course-art";
 import { StatTile } from "@/components/brand/stat-tile";
 import { EmptyCourses } from "@/components/brand/illustrations";
+import { StudentHomeSkeleton } from "@/components/ui/skeleton";
 import { InstallApp } from "@/components/pwa/install-app";
 import { EnableNotifications } from "@/components/pwa/enable-notifications";
 import { Card, Progress, StatusBadge, Medallion, GoldRule } from "@/components/dashboard/ui";
@@ -31,7 +32,7 @@ import { subjectActive, activeSubs, daysLeft } from "@/lib/access";
 const ar = (n: number) => n.toLocaleString("ar-EG");
 
 export default function StudentHome() {
-  const { db, session, content } = useContent();
+  const { db, session, content, loading } = useContent();
   /* التخطيط المختار من اللوحة — يحكم شكل الترحيب والمؤشّرات والبطاقات. */
   const L = findLayout(content.studentLayout);
   const me = db?.users.find((u) => u.id === session?.uid);
@@ -102,6 +103,18 @@ export default function StudentHome() {
 
   const showHeader = L.header !== "minimal";
   const statsInside = showHeader && L.statsInHeader;
+
+  /* هيكل عظمي حتى تكتمل البيانات — بنفس التخطيط المختار فلا تقفز الصفحة
+     عند وصولها. (db قد يكون فارغاً لحظة الانتقال أو بعد تحديث المحتوى.) */
+  if (loading || !db) {
+    return (
+      <StudentHomeSkeleton
+        header={showHeader}
+        statsInHeader={statsInside}
+        cards={L.cards === "list" ? 1 : L.cards === "grid3" || L.cards === "compact" ? 3 : 2}
+      />
+    );
+  }
 
   return (
     <>
