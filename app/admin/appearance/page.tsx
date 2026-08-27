@@ -33,7 +33,7 @@ import {
   type FaqStyle, type CtaStyle, type FooterStyle,
 } from "@/lib/block-styles";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
-import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, type ToolbarStyle } from "@/lib/toolbar-styles";
+import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, BAR_STICKS, type ToolbarStyle } from "@/lib/toolbar-styles";
 import {
   TILE_STYLES, findTile, DEFAULT_TILE, TILE_ART_MODES, DEFAULT_TILE_ART,
   type TileStyle, type TileArt, type TileArtMode,
@@ -50,7 +50,43 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar";
+
+
+/** اختيار تثبيت الشريط — إعدادٌ لا هيئة، فله صفُّه الخاصّ. */
+function StickPicker({
+  value, onPick, label,
+}: {
+  value?: string; onPick: (v: string) => void; label: string;
+}) {
+  return (
+    <Card className="mb-5">
+      <p className="font-display mb-1 font-bold">{label}</p>
+      <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+        سلوك الشريط عند التمرير — مستقلّ عن شكله، فأيّ تصميم يقبل أيّ سلوك.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {BAR_STICKS.map((x) => {
+          const on = (value || "float") === x.id;
+          return (
+            <button
+              key={x.id}
+              type="button"
+              onClick={() => onPick(x.id)}
+              title={x.hint}
+              className={`rounded-2xl border px-4 py-2.5 text-xs font-bold transition ${
+                on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              {x.label}
+              <span className="ms-2 text-[10px] font-semibold opacity-70">{x.hint}</span>
+            </button>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
 
 export default function AppearancePage() {
   const { content, saveContent, uploadImage } = useContent();
@@ -64,6 +100,8 @@ export default function AppearancePage() {
   const design = findDesign(content.studentDesign);
   const tile = findTile(content.tileStyle);
   const bar = findToolbar(content.toolbarStyle);
+  /* شريط الواجهة مستقلّ؛ وفارغاً يتبع شريط اللوحة كما كان. */
+  const navBar = findToolbar(content.navbarStyle || content.toolbarStyle);
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
   /* كل قسم بطاقات يحمل اختياره بمفتاحه — فلا يُجبَر قسمٌ على شكل جاره. */
@@ -147,6 +185,11 @@ export default function AppearancePage() {
       label: "تنسيق الهاتف",
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    navbar: {
+      label: "شريط الواجهة",
+      isDefault: !content.navbarStyle,
+      patch: () => ({ navbarStyle: "" }),
     },
     faq: {
       label: "قسم الأسئلة",
@@ -255,6 +298,12 @@ export default function AppearancePage() {
     setBusy(null);
   };
 
+  const pickNavbar = async (x: ToolbarStyle) => {
+    setBusy(x.id);
+    await saveContent({ navbarStyle: x.id });
+    setBusy(null);
+  };
+
   const pickBar = async (x: ToolbarStyle) => {
     setBusy(x.id);
     await saveContent({ toolbarStyle: x.id });
@@ -350,7 +399,7 @@ export default function AppearancePage() {
           القائمة الجانبية ({SIDE_NAV_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "bar"} onClick={() => setTab("bar")} icon={<PanelTop className="size-4" />}>
-          شريط الأدوات ({TOOLBAR_STYLES.length.toLocaleString("ar-EG")})
+          شريط أدوات اللوحة ({TOOLBAR_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "dock"} onClick={() => setTab("dock")} icon={<Menu className="size-4" />}>
           القائمة السفلية ({DOCK_STYLES.length.toLocaleString("ar-EG")})
@@ -360,6 +409,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<LayoutList className="size-4" />}>
           أقسام البطاقات ({SECTION_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "navbar"} onClick={() => setTab("navbar")} icon={<PanelTop className="size-4" />}>
+          شريط الواجهة ({TOOLBAR_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "faq"} onClick={() => setTab("faq")} icon={<MessageCircleQuestion className="size-4" />}>
           قسم الأسئلة ({FAQ_STYLES.length.toLocaleString("ar-EG")})
@@ -779,6 +831,12 @@ export default function AppearancePage() {
       )}
 
       {tab === "bar" && (
+        <>
+        <StickPicker
+          label="تثبيت شريط اللوحة"
+          value={content.toolbarStick}
+          onPick={(v) => void saveContent({ toolbarStick: v })}
+        />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {TOOLBAR_STYLES.map((x) => {
             const on = x.id === bar.id;
@@ -810,6 +868,7 @@ export default function AppearancePage() {
             );
           })}
         </div>
+        </>
       )}
 
       {tab === "dock" && (
@@ -923,6 +982,62 @@ export default function AppearancePage() {
                   }`}
                 >
                   <SectionPreview style={x} skin={skin} />
+                  <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {tab === "navbar" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">شريط الواجهة الرئيسية</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              هذا شريط الصفحة التي يراها الزائر — مستقلّ عن «شريط الأدوات» الذي يظهر
+              داخل لوحة الطالب والإدارة. كانا مفتاحاً واحداً فكان تغييرُ أحدهما يغيّر
+              الآخر، وهما شاشتان مختلفتان تماماً.
+            </p>
+            {!content.navbarStyle && (
+              <p className="mt-3 rounded-2xl border border-border px-4 py-2.5 text-[11px] text-muted-foreground">
+                لم يُضبط بعد — يتبع حالياً شريط الأدوات ({bar.name}). اختر تصميماً ليصير مستقلّاً.
+              </p>
+            )}
+          </Card>
+
+          <StickPicker
+            label="تثبيت شريط الواجهة"
+            value={content.navbarStick}
+            onPick={(v) => void saveContent({ navbarStick: v })}
+          />
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {TOOLBAR_STYLES.map((x) => {
+              const on = Boolean(content.navbarStyle) && x.id === navBar.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickNavbar(x)}
+                  disabled={busy !== null}
+                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <ToolbarPreview bar={x} skin={skin} />
                   <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{x.name}</p>

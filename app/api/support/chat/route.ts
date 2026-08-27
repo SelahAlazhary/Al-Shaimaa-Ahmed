@@ -7,6 +7,7 @@ import { clientIp } from "@/lib/guard";
 import { can } from "@/lib/perms";
 import { sendToUsers } from "@/lib/push";
 import type { Ticket, ChatMessage } from "@/lib/types";
+import { forwardStudentMessage } from "@/lib/support-bridge";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -157,6 +158,8 @@ export async function POST(req: Request) {
     if (t.status === "مغلقة") t.status = "مفتوحة"; // رسالة جديدة تُعيد فتحها
     saveDB(db);
     await flushDB();
+    /* الجسر تنبيهٌ لا شرط: فشلُه لا يمنع وصولَ الرسالة إلى اللوحة. */
+    void forwardStudentMessage(t, text).catch(() => { /* تجاهل */ });
     return NextResponse.json({ ok: true, messages: t.messages });
   }
 

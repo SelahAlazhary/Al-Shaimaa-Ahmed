@@ -42,6 +42,8 @@ export async function GET() {
     chatId: c.chatId || "",
     username: t?.username || "",
     allowedIds: c.allowedIds,
+    supportChatId: t?.supportChatId || "",
+    supportOff: Boolean(t?.supportOff),
     webhookSetAt: t?.webhookSetAt || "",
     /* التوكن من متغيّر البيئة لا يُعدَّل من اللوحة — مصدره خارجها. */
     fromEnv: Boolean(process.env.TELEGRAM_BOT_TOKEN),
@@ -153,6 +155,22 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: checks.every((x) => x.ok), checks });
+  }
+
+  /* ---- وجهة محادثات الدعم ---- */
+  if (action === "support") {
+    db.integrations.telegram = {
+      ...current,
+      supportChatId: cleanTgId(String(body.supportChatId ?? "")),
+      supportOff: body.supportOff === true,
+    };
+    saveDB(db);
+    await flushDB();
+    return NextResponse.json({
+      ok: true,
+      supportChatId: db.integrations.telegram.supportChatId ?? "",
+      supportOff: Boolean(db.integrations.telegram.supportOff),
+    });
   }
 
   /* ---- المعرّفات المسموح لها ---- */

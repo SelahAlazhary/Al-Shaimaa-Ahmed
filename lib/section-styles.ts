@@ -111,10 +111,13 @@ export function sectionClass(x: SectionStyle): string {
 export function sxGridClass(grid: SxGrid, count: number): string {
   switch (grid) {
     case "two": return "sm:grid-cols-2";
-    case "three": return "sm:grid-cols-2 lg:grid-cols-3";
+    /* ثلاثةٌ من أوّل نقطة توقّف — لا مرحلةَ عمودين قبلها، وإلا صار
+       نسخةً حرفية من «المتكيّفة» فبدا التصميمان واحداً. */
+    case "three": return "sm:grid-cols-3";
     case "list": return "grid-cols-1";
     case "wide": return "sm:grid-cols-2 lg:mx-auto lg:max-w-5xl";
-    case "stagger": return "sm:grid-cols-2 lg:grid-cols-3";
+    /* المتعرّجة تحتاج عمودين ليظهر التعرّج — بثلاثة يختفي الإيقاع. */
+    case "stagger": return "sm:grid-cols-2";
     default:
       return count <= 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3";
   }

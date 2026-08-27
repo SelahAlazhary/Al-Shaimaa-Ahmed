@@ -539,6 +539,8 @@ type BotState = {
   chatId: string;
   username: string;
   allowedIds: string[];
+  supportChatId: string;
+  supportOff: boolean;
   webhookSetAt: string;
   fromEnv: boolean;
 };
@@ -548,6 +550,7 @@ function BotTab() {
   const [token, setToken] = useState("");
   const [chatId, setChatId] = useState("");
   const [newId, setNewId] = useState("");
+  const [supportChat, setSupportChat] = useState("");
   const [checks, setChecks] = useState<{ key: string; ok: boolean; label: string; detail?: string }[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "warn" | "err"; text: string } | null>(null);
@@ -558,6 +561,7 @@ function BotTab() {
     const data = (await res.json()) as BotState;
     setState(data);
     setChatId(data.chatId ?? "");
+    setSupportChat(data.supportChatId ?? "");
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -793,12 +797,61 @@ function BotTab() {
         )}
       </Card>
 
+      {/* جسر الدعم */}
+      <Card className="mb-5">
+        <p className="font-display mb-1 font-bold">محادثات الدعم على تليجرام</p>
+        <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+          رسالة الطالب تصلك على تليجرام، و<b>ردُّك عليها هناك</b> يصل الطالبَ داخل المنصّة
+          كأيّ ردّ من الدعم — لا يرى فرقاً بين ردٍّ كُتب في اللوحة وردٍّ كُتب في تليجرام،
+          ولا يُكشف له حسابُك.
+        </p>
+
+        <ol className="mb-4 grid gap-1.5 text-[12px] leading-relaxed text-muted-foreground">
+          <li>١. اترك المعرّف فارغاً لتصل المحادثات إلى محادثة التنبيهات نفسها، أو ضع معرّف مجموعة خاصّة بالدعم.</li>
+          <li>٢. حين تصلك رسالة، اضغط «رد/Reply» عليها في تليجرام واكتب ردّك — هذا كل شيء.</li>
+          <li>٣. <code className="rounded bg-muted px-1">/support</code> يعرض المحادثات التي تنتظر ردّاً.</li>
+        </ol>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-muted-foreground">معرّف محادثة الدعم (اختياري)</span>
+            <input
+              value={supportChat}
+              onChange={(e) => setSupportChat(e.target.value)}
+              dir="ltr"
+              inputMode="numeric"
+              placeholder="-1001234567890"
+              className="w-56 rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-right font-mono text-sm outline-none focus:border-primary/50"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={() => void call({ action: "support", supportChatId: supportChat, supportOff: state?.supportOff === true }, "support")}
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60"
+          >
+            {busy === "support" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+            حفظ
+          </button>
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={() => void call({ action: "support", supportChatId: supportChat, supportOff: !(state?.supportOff === true) }, "support")}
+            className="rounded-2xl border border-border px-4 py-2.5 text-xs font-bold disabled:opacity-60"
+          >
+            {state?.supportOff ? "تشغيل جسر الدعم" : "إيقاف جسر الدعم"}
+          </button>
+        </div>
+      </Card>
+
       <Card>
         <p className="font-display mb-2 font-bold">أوامر البوت</p>
         <ul className="grid gap-1.5 text-xs text-muted-foreground">
           <li><code className="rounded bg-muted px-1.5 py-0.5">/start</code> — يردّ بمعرّف المحادثة.</li>
           <li><code className="rounded bg-muted px-1.5 py-0.5">/id</code> — المعرّف نفسه.</li>
           <li><code className="rounded bg-muted px-1.5 py-0.5">/pending</code> — الطلبات المعلّقة.</li>
+          <li><code className="rounded bg-muted px-1.5 py-0.5">/support</code> — محادثات الدعم التي تنتظر ردّاً.</li>
+          <li><b>الردّ على رسالة دعم</b> — يصل الطالبَ داخل المنصّة مباشرة.</li>
         </ul>
       </Card>
     </>

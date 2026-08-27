@@ -61,6 +61,16 @@ export type BarEdge = "line" | "shadow" | "gold" | "none";
 /** ارتفاع الشريط. */
 export type BarHeight = "compact" | "normal" | "tall";
 
+/**
+ * تثبيت الشريط.
+ * ------------------------------------------------------------------
+ * محورٌ مستقلّ عن الهيئة: الهيئة شكلُه، وهذا سلوكُه عند التمرير.
+ *   pinned  = ملتصق بأعلى الشاشة يبقى ظاهراً.
+ *   float   = يطفو بهامش عن الحوافّ ويبقى ظاهراً.
+ *   static  = يمشي مع الصفحة فيختفي عند النزول.
+ */
+export type BarStick = "pinned" | "float" | "static";
+
 export type ToolbarStyle = {
   id: string;
   name: string;
@@ -148,6 +158,20 @@ export const DEFAULT_TOOLBAR = TOOLBAR_STYLES[0].id;
 export function findToolbar(id?: string): ToolbarStyle {
   return TOOLBAR_STYLES.find((x) => x.id === id) ?? TOOLBAR_STYLES[0];
 }
+
+/**
+ * صنف التثبيت — يُمرَّر مستقلّاً عن التصميم لأنه إعدادٌ لا هيئة.
+ * فارغاً يبقى السلوك الأصلي (عائم كما كان).
+ */
+export function stickClass(v?: string): string {
+  return v === "pinned" || v === "static" || v === "float" ? `tb-stick-${v}` : "";
+}
+
+export const BAR_STICKS: { id: BarStick; label: string; hint: string }[] = [
+  { id: "float", label: "عائم", hint: "يطفو بهامش عن الحوافّ ويبقى ظاهراً" },
+  { id: "pinned", label: "مثبّت", hint: "ملتصق بأعلى الشاشة بعرضها" },
+  { id: "static", label: "يمشي مع الصفحة", hint: "يختفي عند النزول" },
+];
 
 export function toolbarClass(x: ToolbarStyle): string {
   return [

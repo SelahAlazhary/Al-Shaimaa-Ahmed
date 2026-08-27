@@ -4,6 +4,7 @@ import {
   tgConfig, tgAllowed, tgAnswer, tgEdit, tgEditCaption, tgSend, payVerdictText, esc,
 } from "@/lib/telegram";
 import { decide, notifyStudent } from "@/lib/pay-decide";
+import { ticketIdFrom, replyFromTelegram, notifySupportReply } from "@/lib/support-bridge";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -178,7 +179,10 @@ function claimChat(chatId: string, fromId?: number): boolean {
 type Message = {
   text: string;
   chat: { id: number; title?: string; first_name?: string };
-  from?: { id?: number };
+  from?: { id?: number; first_name?: string; username?: string };
+  /* الردّ على رسالة: تليجرام يعيد نصَّ المردود عليه، ومنه يُستخرج
+     معرّفُ المحادثة — فلا حاجة لحفظ معرّفات رسائل تليجرام. */
+  reply_to_message?: { text?: string; caption?: string };
 };
 
 /**
@@ -221,7 +225,7 @@ async function onMessage(m: Message) {
           "",
           "ستصلك كل طلبات التحويل هنا بصورة الإيصال وبيانات الطالب وزرَّي قبول ورفض.",
           "",
-          "الأوامر: /pending لعرض الطلبات المعلّقة.",
+          "الأوامر: /pending للطلبات المعلّقة · /support للمحادثات المفتوحة.",
         ].join("\n")
         : [
           "👋 <b>بوت بوّابة الدفع</b>",
@@ -238,6 +242,25 @@ async function onMessage(m: Message) {
     return;
   }
 
+  /* ---- ردّ الدعم: ردٌّ على رسالة تحمل معرّف المحادثة ---- */
+  if (allowed && m.reply_to_message && !text.startsWith("/")) {
+    const src = m.reply_to_message.text || m.reply_to_message.caption || "";
+    const ticketId = ticketIdFrom(src);
+    if (ticketId) {
+      const db2 = getDB();
+      const t = replyFromTelegram(ticketId, text, "الدعم");
+      if (!t) {
+        await tgSend("المحادثة غير موجودة — ربما حُذف حساب الطالب.", { chatId });
+        return;
+      }
+      saveDB(db2);
+      await flushDB();
+      void notifySupportReply(t, text);
+      await tgSend(`✅ وصل ردُّك إلى ${esc(t.student)}.`, { chatId });
+      return;
+    }
+  }
+
   if (!allowed) {
     await tgSend(
       "هذا البوت خاصّ بإدارة المنصّة. إن كنتَ المشرف فأضف معرّف هذه المحادثة في «بوّابة الدفع ← بوت تليجرام».",
@@ -245,6 +268,33 @@ async function onMessage(m: Message) {
     );
     return;
   }
+
+  if (/^\/support\b/.test(text)) {
+    const open = (db.tickets ?? []).filter((t) =>
+      (t.messages ?? []).some((x) => x.from === "student" && !x.readByAdmin)
+    );
+    if (open.length === 0) {
+      await tgSend("لا محادثات دعم تنتظر ردّاً ✅", { chatId });
+      return;
+    }
+    const lines = open.slice(0, 15).map((t) => {
+      const msgs = t.messages ?? [];
+      const last = msgs[msgs.length - 1];
+      return `• <b>${esc(t.student)}</b> — ${esc((last?.text ?? "").slice(0, 60))}\n  🆔 <code>${esc(t.id)}</code>`;
+    });
+    await tgSend(
+      [
+        `💬 <b>محادثات تنتظر ردّاً: ${open.length}</b>`,
+        "",
+        ...lines,
+        "",
+        "<i>ردّ على أيّ رسالة تحمل المعرّف ليصل ردُّك الطالبَ.</i>",
+      ].join("\n"),
+      { chatId }
+    );
+    return;
+  }
+
 
   if (/^\/pending\b/.test(text)) {
     if (pending.length === 0) {

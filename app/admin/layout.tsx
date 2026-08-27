@@ -6,7 +6,7 @@ import { adminNav } from "@/lib/dashboard-data";
 import { getSession } from "@/lib/session";
 import { loadDB, getDB } from "@/lib/db";
 import { can, isOwner, permForPath } from "@/lib/perms";
-import { findToolbar, toolbarClass } from "@/lib/toolbar-styles";
+import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "لوحة الإدارة", robots: { index: false } };
@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     // admin-skin: هوية بصرية خاصة بلوحة الإدارة (تصميم فقط — لا يمسّ الموقع أو بوابة الطالب)
-    <div className={`admin-skin ${toolbarClass(bar)}`} data-toolbar={bar.id}>
+    <div className={`admin-skin ${toolbarClass(bar)} ${stickClass(getDB().content.toolbarStick)}`} data-toolbar={bar.id}>
       <DashboardShell
         nav={nav}
         role="admin"
