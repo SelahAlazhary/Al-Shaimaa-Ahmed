@@ -78,22 +78,31 @@ export default function MySubjects() {
   const y = (v: string) => `${v}${fem ? "ي" : ""}`;
   const [buy, setBuy] = useState<Subject | null>(null);
   const payOn = gatewayOn(content.payments);
-  const [term, setTerm] = useState<1 | 2>(1);
-  const termSubjects = subjects.filter((c) => (c.term ?? 1) === term);
+  /*
+    الفصول: تُعرض ألسنتُها حين تكون هناك حاجةٌ إليها فعلاً.
+    ------------------------------------------------------------------
+    لسانٌ فارغ يدعو للضغط ثم يعرض لا شيء، ولسانٌ وحيد ليس اختياراً.
+    والافتراضُ يقع على أوّل فصلٍ فيه كورسات — كان يقع على الأوّل دائماً،
+    فمن كانت كورساتُه في الثاني رأى شاشةً فارغة عند الدخول.
+  */
+  const termsWithCourses = ([1, 2] as const).filter(
+    (t) => subjects.some((c) => (c.term ?? 1) === t)
+  );
+  const [term, setTerm] = useState<1 | 2 | null>(null);
+  const activeTerm = term ?? termsWithCourses[0] ?? 1;
+  const termSubjects = subjects.filter((c) => (c.term ?? 1) === activeTerm);
 
   return (
     <>
       <PageHeader title="الكورسات" subtitle={`${fem ? "اختاري" : "اختر"} الكورس الذي تريد${fem ? "ين" : ""} دراسته — ${y("فعّل")}ه بكود التفعيل بعد الشراء`} />
 
-      {/* تقسيم الفصلين الدراسيين */}
-      {subjects.length > 0 && (
+      {/* تقسيم الفصلين — لا يظهر إلا حين يكون في الفصلين كورسات */}
+      {termsWithCourses.length > 1 && (
         <div className="mb-5 flex flex-wrap gap-2">
-          {([
-            { id: 1 as const, label: "الفصل الدراسي الأول" },
-            { id: 2 as const, label: "الفصل الدراسي الثاني" },
-          ]).map((t) => {
+          {termsWithCourses.map((id) => {
+            const t = { id, label: id === 1 ? "الفصل الدراسي الأول" : "الفصل الدراسي الثاني" };
             const count = subjects.filter((x) => (x.term ?? 1) === t.id).length;
-            const active = term === t.id;
+            const active = activeTerm === t.id;
             return (
               <button key={t.id} onClick={() => setTerm(t.id)}
                 className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition ${
@@ -120,7 +129,7 @@ export default function MySubjects() {
       {subjects.length > 0 && termSubjects.length === 0 && (
         <Card className="flex flex-col items-center gap-3 py-12 text-center">
           <EmptyCourses className="text-primary" width={160} />
-          <p className="font-display font-extrabold">لا توجد كورسات في {termLabel(term)}</p>
+          <p className="font-display font-extrabold">لا توجد كورسات في {termLabel(activeTerm)}</p>
           <p className="text-sm text-muted-foreground">جرّب الفصل الآخر من الأعلى.</p>
         </Card>
       )}

@@ -130,8 +130,10 @@ function TermsCard({
       <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-display font-extrabold">الفصول الدراسية</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            تظهر للطالب عند اختيار مرحلته في نموذج التسجيل.
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+            <b className="text-foreground">الفصلان مبنيّان في المنصّة</b> — «الأول» و«الثاني»
+            يظهران للطالب عند التسجيل بلا أي إضافة منك. أضف هنا فقط إن أردت أسماءً أخرى
+            أو فصولاً تخصّ مرحلةً بعينها، فتحلّ محلّ المبنيَّين.
           </p>
         </div>
         <Button className="px-4 py-2" onClick={() => setOpen((v) => !v)}>
