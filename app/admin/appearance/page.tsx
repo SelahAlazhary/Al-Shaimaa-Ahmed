@@ -8,16 +8,17 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
   STUDENT_SKINS, STUDENT_LAYOUTS, findSkin, findLayout,
   type StudentSkin, type StudentLayout,
 } from "@/lib/skins";
-import { SkinPreview, LayoutPreview } from "@/components/admin/skin-preview";
+import { SkinPreview, LayoutPreview, HomeLayoutPreview } from "@/components/admin/skin-preview";
+import { HOME_LAYOUTS, findHomeLayout, type HomeLayout } from "@/lib/home-layouts";
 
-type Tab = "skin" | "layout";
+type Tab = "skin" | "layout" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -26,6 +27,7 @@ export default function AppearancePage() {
 
   const skin = findSkin(content.studentSkin);
   const layout = findLayout(content.studentLayout);
+  const home = findHomeLayout(content.homeLayout);
 
   const pickSkin = async (s: StudentSkin) => {
     setBusy(s.id);
@@ -39,11 +41,17 @@ export default function AppearancePage() {
     setBusy(null);
   };
 
+  const pickHome = async (l: HomeLayout) => {
+    setBusy(l.id);
+    await saveContent({ homeLayout: l.id });
+    setBusy(null);
+  };
+
   return (
     <>
       <PageHeader
-        title="مظهر بوابة الطالب"
-        subtitle={`الثيم الحالي: ${skin.name} · التخطيط: ${layout.name} — الاختيار يسري على كل الطلاب فوراً`}
+        title="مظهر المنصّة"
+        subtitle={`ثيم الطالب: ${skin.name} · تخطيطه: ${layout.name} · الواجهة الرئيسية: ${home.name}`}
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
@@ -51,7 +59,10 @@ export default function AppearancePage() {
           الثيم واللون ({STUDENT_SKINS.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "layout"} onClick={() => setTab("layout")} icon={<LayoutGrid className="size-4" />}>
-          التخطيط والتنسيق ({STUDENT_LAYOUTS.length.toLocaleString("ar-EG")})
+          تخطيط بوابة الطالب ({STUDENT_LAYOUTS.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "home"} onClick={() => setTab("home")} icon={<Home className="size-4" />}>
+          تخطيط الواجهة الرئيسية ({HOME_LAYOUTS.length.toLocaleString("ar-EG")})
         </TabBtn>
       </div>
 
@@ -124,10 +135,45 @@ export default function AppearancePage() {
         </div>
       )}
 
+      {tab === "home" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {HOME_LAYOUTS.map((l) => {
+            const on = l.id === home.id;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => pickHome(l)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <HomeLayoutPreview layout={l} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{l.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{l.hint}</p>
+                  </div>
+                  {busy === l.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <Card className="mt-6">
         <p className="text-xs leading-relaxed text-muted-foreground">
-          الثيم يحدّد الألوان والزخرفة وأسلوب البطاقات، والتخطيط يحدّد ترتيب لوح الترحيب
-          والمؤشّرات وبطاقات الكورسات. الاثنان مستقلّان — أي ثيم يعمل مع أي تخطيط.
+          ثيم الطالب يحدّد الألوان والزخرفة وأسلوب البطاقات، وتخطيطه يحدّد ترتيب لوح الترحيب
+          والمؤشّرات وبطاقات الكورسات، وتخطيط الواجهة الرئيسية يحدّد شكل الهيرو وترتيب الأقسام
+          وعرض الحاوية وكثافة التباعد والفاصل بينها. الثلاثة مستقلّة — أي تركيبة تعمل.
         </p>
       </Card>
     </>

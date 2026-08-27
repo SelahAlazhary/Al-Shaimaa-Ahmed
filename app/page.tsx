@@ -8,24 +8,50 @@ import { Plans } from "@/components/sections/plans";
 import { Testimonials } from "@/components/sections/testimonials";
 import { Faq } from "@/components/sections/faq";
 import { CtaFooter } from "@/components/sections/cta-footer";
+import { SectionDivider } from "@/components/sections/section-divider";
+import { getPublicDB, loadDB } from "@/lib/db";
+import {
+  findHomeLayout, WIDTH_CLASS, DENSITY_CLASS, type HomeSection,
+} from "@/lib/home-layouts";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+/** كل قسم قابل للترتيب مربوط بمكوّنه — الترتيب بيانات، والرسم هنا. */
+const SECTIONS: Record<HomeSection, React.ComponentType> = {
+  freeLive: FreeLive,
+  stages: Stages,
+  features: Features,
+  plans: Plans,
+  testimonials: Testimonials,
+  faq: Faq,
+};
+
+export default async function Home() {
+  await loadDB();
+  const { content } = getPublicDB();
+  const L = findHomeLayout(content.homeLayout);
+
   return (
-    <main className="relative min-h-screen overflow-x-hidden">
+    <main
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]}`}
+      data-home-layout={L.id}
+    >
       {/* خلفية الصفحة — تُضبط من «تخصيص الموقع ← الصور» */}
       <SiteBackground />
       <Navbar />
-      <Hero />
-      {/* بث مجاني مفتوح للجميع — يظهر فقط عند وجود جلسة مجانية */}
-      <FreeLive />
-      {/* المراحل والفروع — إعدادي وثانوي */}
-      <Stages />
-      <Features />
-      {/* الخطط بدل قائمة المواد — المواد لا تظهر للزائر على الصفحة الرئيسية */}
-      <Plans />
-      {/* شهادات الطلاب — تظهر فقط عند إضافتها من اللوحة */}
-      <Testimonials />
-      <Faq />
+      <Hero shape={L.hero} />
+
+      {L.order.map((id, i) => {
+        const Section = SECTIONS[id];
+        return (
+          <div key={id}>
+            {/* الفاصل بين الأقسام لا قبل أوّلها */}
+            {i > 0 && <SectionDivider kind={L.divider} />}
+            <Section />
+          </div>
+        );
+      })}
+
       <CtaFooter />
     </main>
   );

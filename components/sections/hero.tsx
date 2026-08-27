@@ -25,6 +25,7 @@ import { VideoModal } from "@/components/ui/video-modal";
 import { HeroFrame } from "@/components/sections/hero-frames";
 import { useContent } from "@/components/content/content-provider";
 import { el, isHidden, btnStyle, textStyle } from "@/lib/ui-style";
+import type { HeroShape } from "@/lib/home-layouts";
 
 /** يحوّل رابط يوتيوب إلى صيغة تضمين للنافذة المنبثقة. */
 function toEmbedSrc(url?: string): string | undefined {
@@ -34,7 +35,7 @@ function toEmbedSrc(url?: string): string | undefined {
   return url;
 }
 
-export function Hero() {
+export function Hero({ shape = "split" }: { shape?: HeroShape }) {
   const { content, session } = useContent();
   const router = useRouter();
   const t = content.teacher;
@@ -79,13 +80,22 @@ export function Hero() {
       <KuficBackdrop density={42} opacity={0.2} fade="top" tone="text-primary/10" />
       <HarakatField count={14} seed={11} tone="text-accent/30" />
 
-      <div className="container grid items-center gap-14 lg:grid-cols-2">
+      <div
+        className={`container grid items-center gap-14 ${
+          shape === "split" || shape === "reversed" ? "lg:grid-cols-2" : "grid-cols-1"
+        }`}
+      >
         {/* ---------------- العمود النصّي ---------------- */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative order-2 text-center lg:order-1 lg:text-right"
+          className={`relative ${
+            shape === "reversed" ? "order-2 text-center lg:order-2 lg:text-right"
+              : shape === "stacked" ? "order-2 text-center"
+                : shape === "centered" || shape === "compact" ? "order-1 mx-auto max-w-3xl text-center"
+                  : "order-2 text-center lg:order-1 lg:text-right"
+          }`}
         >
           {/* علامة مائية: حرف الضاد خلف النص */}
           <DaadGlyph
@@ -111,7 +121,7 @@ export function Hero() {
           </h1>
 
           {/* فاصل مذهّب تحت العنوان */}
-          <div className="mt-4 flex justify-center lg:justify-start">
+          <div className={`mt-4 flex justify-center ${shape === "split" ? "lg:justify-start" : shape === "reversed" ? "lg:justify-start" : ""}`}>
             <ElegantRule width={300} className="max-w-full text-accent" />
           </div>
 
@@ -124,7 +134,9 @@ export function Hero() {
             whileHover="hover"
             /* items-stretch: الزرّان يتساويان في الارتفاع رغم اختلاف
                ارتفاع محتواهما (الأيقونة أطول من سطر النصّ) */
-            className="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start"
+            className={`mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center ${
+              shape === "centered" || shape === "compact" || shape === "stacked" ? "" : "lg:justify-start"
+            }`}
           >
             {!isHidden(content, "hero.primary") && (
               <PlaqueButton
@@ -190,7 +202,15 @@ export function Hero() {
         </motion.div>
 
         {/* ---------------- عمود الصورة ---------------- */}
-        <div className="order-1 flex justify-center lg:order-2">
+        {shape !== "compact" && (
+        <div
+          className={`flex justify-center ${
+            shape === "reversed" ? "order-1 lg:order-1"
+              : shape === "stacked" ? "order-1"
+                : shape === "centered" ? "order-2 mt-4"
+                  : "order-1 lg:order-2"
+          }`}
+        >
           <div className="relative w-full max-w-md">
             {/* شمسة مذهّبة تدور ببطء خلف اللوحة */}
             <Shamsa
@@ -242,6 +262,7 @@ export function Hero() {
             )}
           </div>
         </div>
+        )}
       </div>
 
       <VideoModal open={videoOpen} onClose={() => setVideoOpen(false)} src={freeSrc} />

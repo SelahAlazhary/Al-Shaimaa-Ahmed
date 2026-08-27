@@ -9,6 +9,7 @@
  */
 import { useUid } from "@/components/brand/use-uid";
 import type { StudentSkin, StudentLayout, OrnamentId } from "@/lib/skins";
+import type { HomeLayout } from "@/lib/home-layouts";
 
 const W = 160;
 const H = 108;
@@ -267,6 +268,146 @@ export function LayoutPreview({ layout, skin }: { layout: StudentLayout; skin: S
           );
         })
       )}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة تخطيط الواجهة الرئيسية                                      */
+/* ------------------------------------------------------------------ */
+
+/** ألوان المعاينة من ثيم المنصّة نفسه لا من مظهر الطالب. */
+const SITE = {
+  bg: "38 42% 96%",
+  card: "40 56% 99%",
+  fg: "224 44% 13%",
+  primary: "226 60% 34%",
+  accent: "38 76% 50%",
+  border: "36 24% 85%",
+};
+
+/** لون تمثيلي لكل قسم — يجعل الترتيب مقروءاً من المصغّرة. */
+const SECTION_TONE: Record<string, string> = {
+  freeLive: "356 62% 52%",
+  stages: "199 70% 42%",
+  features: "226 60% 44%",
+  plans: "38 76% 50%",
+  testimonials: "266 50% 52%",
+  faq: "162 44% 38%",
+};
+
+export function HomeLayoutPreview({ layout }: { layout: HomeLayout }) {
+  const uid = useUid("hp");
+  const pad = layout.width === "narrow" ? 26 : layout.width === "wide" ? 6 : 14;
+  const gap = layout.density === "tight" ? 2 : layout.density === "airy" ? 6 : 4;
+  const innerW = W - pad * 2;
+
+  /* --- الهيرو --- */
+  const heroH = layout.hero === "compact" ? 16 : layout.hero === "stacked" ? 30 : 26;
+  const heroY = 10;
+
+  /* --- الأقسام --- */
+  let y = heroY + heroH + gap + 3;
+  const bars: { id: string; y: number; h: number }[] = [];
+  for (const id of layout.order) {
+    const h = 7;
+    if (y + h > H - 3) break;
+    bars.push({ id, y, h });
+    y += h + gap;
+  }
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(SITE.bg)} />
+
+      {/* شريط علوي */}
+      <rect x={pad} y={3} width={innerW} height={5} rx={2.5} fill={hsl(SITE.card)} />
+      <rect x={pad + 2} y={4.6} width={12} height={2} rx={1} fill={hsl(SITE.primary, 0.8)} />
+      <rect x={pad + innerW - 14} y={4.4} width={12} height={2.4} rx={1.2} fill={hsl(SITE.accent)} />
+
+      {/* الهيرو بأشكاله */}
+      {layout.hero === "compact" ? (
+        <>
+          <rect x={pad + innerW * 0.2} y={heroY + 3} width={innerW * 0.6} height={4} rx={2} fill={hsl(SITE.fg, 0.75)} />
+          <rect x={pad + innerW * 0.3} y={heroY + 10} width={innerW * 0.4} height={3} rx={1.5} fill={hsl(SITE.accent)} />
+        </>
+      ) : layout.hero === "centered" ? (
+        <>
+          <rect x={pad + innerW * 0.2} y={heroY} width={innerW * 0.6} height={4} rx={2} fill={hsl(SITE.fg, 0.75)} />
+          <rect x={pad + innerW * 0.32} y={heroY + 7} width={innerW * 0.36} height={3} rx={1.5} fill={hsl(SITE.accent)} />
+          <rect x={pad + innerW * 0.3} y={heroY + 13} width={innerW * 0.4} height={heroH - 14} rx={3} fill={hsl(SITE.primary, 0.75)} />
+        </>
+      ) : layout.hero === "stacked" ? (
+        <>
+          <rect x={pad + innerW * 0.25} y={heroY} width={innerW * 0.5} height={16} rx={3} fill={hsl(SITE.primary, 0.75)} />
+          <rect x={pad + innerW * 0.15} y={heroY + 19} width={innerW * 0.7} height={4} rx={2} fill={hsl(SITE.fg, 0.7)} />
+          <rect x={pad + innerW * 0.3} y={heroY + 25} width={innerW * 0.4} height={3} rx={1.5} fill={hsl(SITE.accent)} />
+        </>
+      ) : (
+        // منقسم أو معكوس — الصورة على أحد الجانبين
+        <>
+          <rect
+            x={layout.hero === "reversed" ? pad : pad + innerW * 0.55}
+            y={heroY}
+            width={innerW * 0.45}
+            height={heroH}
+            rx={4}
+            fill={hsl(SITE.primary, 0.75)}
+          />
+          <rect
+            x={layout.hero === "reversed" ? pad + innerW * 0.5 : pad}
+            y={heroY + 3}
+            width={innerW * 0.4}
+            height={4}
+            rx={2}
+            fill={hsl(SITE.fg, 0.75)}
+          />
+          <rect
+            x={layout.hero === "reversed" ? pad + innerW * 0.5 : pad}
+            y={heroY + 10}
+            width={innerW * 0.28}
+            height={3}
+            rx={1.5}
+            fill={hsl(SITE.accent)}
+          />
+          <rect
+            x={layout.hero === "reversed" ? pad + innerW * 0.5 : pad}
+            y={heroY + 17}
+            width={innerW * 0.22}
+            height={5}
+            rx={2.5}
+            fill={hsl(SITE.primary)}
+          />
+        </>
+      )}
+
+      {/* الأقسام بترتيبها — لكل قسم لونه فيُقرأ الترتيب من المصغّرة */}
+      {bars.map((b, i) => (
+        <g key={b.id}>
+          {i > 0 && layout.divider !== "none" && (
+            layout.divider === "wave" ? (
+              <path
+                d={`M${pad} ${b.y - gap / 2} q${innerW / 6} -2 ${innerW / 3} 0 t${innerW / 3} 0 t${innerW / 3} 0`}
+                fill="none" stroke={hsl(SITE.accent, 0.5)} strokeWidth={0.7}
+              />
+            ) : layout.divider === "rule" ? (
+              <path d={`M${pad + 8} ${b.y - gap / 2} H${pad + innerW - 8}`} stroke={hsl(SITE.accent, 0.45)} strokeWidth={0.7} />
+            ) : (
+              <g stroke={hsl(SITE.accent, 0.6)} strokeWidth={0.7} fill="none">
+                <path d={`M${pad + 18} ${b.y - gap / 2} H${W / 2 - 4}`} opacity={0.5} />
+                <path d={`M${W / 2 + 4} ${b.y - gap / 2} H${pad + innerW - 18}`} opacity={0.5} />
+                <path d={`M${W / 2} ${b.y - gap / 2 - 2.2} l2.2 2.2 -2.2 2.2 -2.2 -2.2Z`} />
+              </g>
+            )
+          )}
+          <rect x={pad} y={b.y} width={innerW} height={b.h} rx={2.5} fill={hsl(SITE.card)} />
+          <rect x={pad} y={b.y} width={3} height={b.h} rx={1.5} fill={hsl(SECTION_TONE[b.id] ?? SITE.primary)} />
+          <rect x={pad + 7} y={b.y + 2} width={innerW * 0.35} height={2} rx={1} fill={hsl(SITE.fg, 0.28)} />
+        </g>
+      ))}
+
+      <rect x={0} y={H - 4} width={W} height={4} fill={hsl(SITE.primary, 0.85)} />
+      <rect id={uid} width={0} height={0} />
     </svg>
   );
 }

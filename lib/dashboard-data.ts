@@ -4,7 +4,7 @@ export type NavItem = { href: string; label: string; icon: string };
 
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "نظرة عامة", icon: "LayoutDashboard" },
-  { href: "/admin/appearance", label: "مظهر بوابة الطالب", icon: "Palette" },
+  { href: "/admin/appearance", label: "المظهر والتخطيط", icon: "Palette" },
   { href: "/admin/customize", label: "تخصيص الموقع", icon: "Palette" },
   { href: "/admin/students", label: "الطلاب", icon: "Users" },
   { href: "/admin/grades", label: "الصفوف", icon: "Layers" },

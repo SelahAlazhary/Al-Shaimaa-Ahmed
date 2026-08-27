@@ -187,6 +187,8 @@ export type SiteContent = {
   /** مظهر بوابة الطالب — الثيم والتخطيط (من lib/skins.ts). */
   studentSkin?: string;
   studentLayout?: string;
+  /** تخطيط الواجهة الرئيسية (من lib/home-layouts.ts). */
+  homeLayout?: string;
 
   /** خلفية الصفحة الرئيسية — صورة اختيارية خلف كل الأقسام. */
   background?: {
