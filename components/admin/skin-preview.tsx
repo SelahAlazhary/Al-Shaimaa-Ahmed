@@ -21,6 +21,7 @@ import type { PlansStyle } from "@/lib/plans-styles";
 import type { HeroStyle } from "@/lib/hero-styles";
 import type { PayStyle } from "@/lib/pay-styles";
 import type { SectionStyle } from "@/lib/section-styles";
+import type { FaqStyle, CtaStyle, FooterStyle } from "@/lib/block-styles";
 
 const W = 160;
 const H = 108;
@@ -1757,6 +1758,345 @@ export function SectionPreview({ style, skin }: { style: SectionStyle; skin: Stu
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة قسم الأسئلة                                                 */
+/* ------------------------------------------------------------------ */
+
+export function FaqPreview({ style, skin }: { style: FaqStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const text = hsl(v.foreground);
+
+  const pad = 10;
+  const two = style.flow === "two";
+  const cols = two ? 2 : 1;
+  const gap = style.flow === "spaced" ? 5 : style.flow === "joined" ? 0 : 3;
+  const inner = W - pad * 2;
+  const iw = (inner - (two ? 4 : 0)) / cols;
+  const n = two ? 4 : 3;
+  const top = 24;
+  const ih = two ? 13 : 16;
+
+  const fill =
+    style.surface === "outline" || style.surface === "flat" ? "none"
+      : style.surface === "glass" ? hsl(v.card, 0.55)
+        : hsl(v.card);
+  const stroke =
+    style.surface === "flat" ? "none"
+      : style.surface === "plaque" ? gold
+        : hsl(v.border);
+
+  const plaque = (x: number, y: number, w: number, h: number) => {
+    const c = 3;
+    return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* العنوان */}
+      <rect x={W / 2 - 24} y={8} width={48} height={4.5} rx={2.2} fill={text} opacity={0.6} />
+      <rect x={W / 2 - 34} y={16} width={68} height={2.6} rx={1.3} fill={text} opacity={0.22} />
+
+      {/* إطار الملتحم */}
+      {style.flow === "joined" && (
+        <rect x={pad} y={top} width={inner} height={Math.min(n, 3) * ih} rx={4} fill="none" stroke={hsl(v.border)} strokeWidth={0.9} />
+      )}
+
+      {Array.from({ length: n }).map((_, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = pad + col * (iw + 4);
+        const y = top + row * (ih + gap);
+        if (y + ih > H - 3) return null;
+        const open = i === 0;
+        const d = style.surface === "plaque" && style.flow !== "joined" ? plaque(x, y, iw, ih) : null;
+
+        return (
+          <g key={i}>
+            {style.flow === "joined" ? (
+              i > 0 && <rect x={pad} y={y} width={inner} height={0.7} fill={hsl(v.border)} />
+            ) : d ? (
+              <path d={d} fill={open && style.open === "tint" ? tone : fill} fillOpacity={open && style.open === "tint" ? 0.09 : 1}
+                stroke={open && style.open === "border" ? tone : stroke} strokeWidth={open ? 1.3 : 0.8} />
+            ) : (
+              <rect x={x} y={y - (open && style.open === "lift" ? 1.5 : 0)} width={iw} height={ih} rx={4}
+                fill={open && style.open === "tint" ? tone : fill} fillOpacity={open && style.open === "tint" ? 0.09 : 1}
+                stroke={open && style.open === "border" ? tone : stroke} strokeWidth={open ? 1.3 : 0.8} />
+            )}
+
+            {open && style.open === "rule" && (
+              <rect x={x} y={y + ih - 1.4} width={iw} height={1.4} fill={gold} />
+            )}
+
+            {/* السؤال */}
+            <rect x={x + 4} y={y + 5} width={iw - 20} height={2.8} rx={1.4} fill={text} opacity={0.6} />
+
+            {/* العلامة */}
+            {style.mark !== "none" && (
+              style.mark === "dot" ? (
+                <circle cx={x + iw - 7} cy={y + 6.4} r={open ? 2.4 : 1.7} fill={open ? gold : hsl(v.border)} />
+              ) : (
+                <g stroke={open ? tone : text} strokeOpacity={open ? 1 : 0.45} strokeWidth={1.1} fill="none" strokeLinecap="round">
+                  {style.mark === "plus" ? (
+                    <>
+                      <path d={`M${x + iw - 10} ${y + 6.4} H${x + iw - 4}`} />
+                      {!open && <path d={`M${x + iw - 7} ${y + 3.4} V${y + 9.4}`} />}
+                    </>
+                  ) : style.mark === "arrow" ? (
+                    <path d={open ? `M${x + iw - 10} ${y + 5} L${x + iw - 7} ${y + 8} L${x + iw - 4} ${y + 5}` : `M${x + iw - 8.5} ${y + 3.6} L${x + iw - 5.5} ${y + 6.4} L${x + iw - 8.5} ${y + 9.2}`} />
+                  ) : (
+                    <path d={open ? `M${x + iw - 10} ${y + 8} L${x + iw - 7} ${y + 5} L${x + iw - 4} ${y + 8}` : `M${x + iw - 10} ${y + 5} L${x + iw - 7} ${y + 8} L${x + iw - 4} ${y + 5}`} />
+                  )}
+                </g>
+              )
+            )}
+
+            {/* الجواب — للمفتوحة وحدها */}
+            {open && ih > 14 && (
+              <>
+                <rect x={x + 4} y={y + 10.5} width={iw - 10} height={1.8} rx={0.9} fill={text} opacity={0.18} />
+                <rect x={x + 4} y={y + 13.5} width={iw - 22} height={1.8} rx={0.9} fill={text} opacity={0.18} />
+              </>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة قسم الدعوة                                                  */
+/* ------------------------------------------------------------------ */
+
+export function CtaPreview({ style, skin }: { style: CtaStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const uid = useUid("ct");
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+
+  const band = style.shape === "band";
+  const pad = band ? 0 : 11;
+  const x = pad;
+  const y = 16;
+  const w = W - pad * 2;
+  const h = H - y - (band ? 0 : 14);
+
+  const ink = style.fill === "ink" || style.fill === "gradient" || style.fill === "shamsa";
+  const fg = ink ? "#fff" : hsl(v.foreground);
+
+  const fill =
+    style.fill === "gradient" ? `url(#${uid}-g)`
+      : style.fill === "glass" ? hsl(v.card, 0.6)
+        : style.fill === "outline" ? "none"
+          : tone;
+
+  const shape = () => {
+    if (style.shape === "plaque") {
+      const c = 7;
+      return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+    }
+    if (style.shape === "ticket") {
+      const m = y + h / 2;
+      return `M${x} ${y} H${x + w} V${m - 5} L${x + w - 3} ${m} L${x + w} ${m + 5} V${y + h} H${x} V${m + 5} L${x + 3} ${m} L${x} ${m - 5} Z`;
+    }
+    if (style.shape === "split") {
+      return `M${x} ${y} H${x + w} V${y + h} L${x} ${y + h - 8} Z`;
+    }
+    return null;
+  };
+
+  const d = shape();
+  const rx = style.shape === "arch" ? 0 : band ? 0 : 9;
+
+  const split = style.layout === "split";
+  const stack = style.layout === "stack";
+  const cx = split ? x + 8 : x + w / 2;
+  const anchor = (bw: number) => (split ? x + 8 : x + w / 2 - bw / 2);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={`${uid}-g`} x1={x} y1={y} x2={x + w} y2={y + h} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={tone} />
+          <stop offset="100%" stopColor={hsl(v.glow)} />
+        </linearGradient>
+        <clipPath id={`${uid}-arch`}>
+          <path d={`M${x} ${y + h} V${y + 20} A${w / 2} 20 0 0 1 ${x + w} ${y + 20} V${y + h} Z`} />
+        </clipPath>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* اللوح */}
+      {style.shape === "arch" ? (
+        <path d={`M${x} ${y + h} V${y + 20} A${w / 2} 20 0 0 1 ${x + w} ${y + 20} V${y + h} Z`}
+          fill={fill} stroke={style.fill === "outline" ? tone : "none"} strokeWidth={1.3} />
+      ) : d ? (
+        <path d={d} fill={fill} stroke={style.fill === "outline" ? tone : "none"} strokeWidth={1.3} />
+      ) : (
+        <rect x={x} y={y} width={w} height={h} rx={rx} fill={fill}
+          stroke={style.fill === "outline" ? tone : "none"} strokeWidth={1.3} />
+      )}
+
+      {/* الشمسة */}
+      {style.fill === "shamsa" && (
+        <ellipse cx={x + w / 2} cy={y} rx={w * 0.45} ry={h * 0.55} fill={gold} opacity={0.32}
+          clipPath={style.shape === "arch" ? `url(#${uid}-arch)` : undefined} />
+      )}
+
+      {/* الزخرفة */}
+      {style.decor !== "none" && (
+        <g opacity={style.decor === "soft" ? 0.16 : 0.32}>
+          {Array.from({ length: 7 }).map((_, i) => (
+            <path key={i} d={`M${x + 6 + i * (w / 7)} ${y + h - 6} v-5 h4 v3`} fill="none"
+              stroke={ink ? "#fff" : tone} strokeWidth={0.7} />
+          ))}
+        </g>
+      )}
+
+      {/* المحتوى */}
+      <rect x={anchor(52)} y={y + h * 0.3} width={52} height={4.5} rx={2.2} fill={fg} opacity={0.9} />
+      <rect x={anchor(38)} y={y + h * 0.3 + 8} width={38} height={2.6} rx={1.3} fill={fg} opacity={0.55} />
+
+      {/* الأزرار */}
+      {stack ? (
+        <>
+          <rect x={anchor(40)} y={y + h - 16} width={40} height={6} rx={3} fill={ink ? "#fff" : tone} />
+          <rect x={anchor(40)} y={y + h - 8} width={40} height={6} rx={3} fill="none" stroke={ink ? "#fff" : tone} strokeWidth={0.9} opacity={0.8} />
+        </>
+      ) : split ? (
+        <>
+          <rect x={x + w - 60} y={y + h / 2 - 3} width={26} height={6.5} rx={3.2} fill={ink ? "#fff" : tone} />
+          <rect x={x + w - 31} y={y + h / 2 - 3} width={24} height={6.5} rx={3.2} fill="none" stroke={ink ? "#fff" : tone} strokeWidth={0.9} opacity={0.8} />
+        </>
+      ) : (
+        <>
+          <rect x={x + w / 2 - 29} y={y + h - 12} width={27} height={6.5} rx={3.2} fill={ink ? "#fff" : tone} />
+          <rect x={x + w / 2 + 2} y={y + h - 12} width={27} height={6.5} rx={3.2} fill="none" stroke={ink ? "#fff" : tone} strokeWidth={0.9} opacity={0.8} />
+        </>
+      )}
+      {cx < 0 && null}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة الفوتر                                                      */
+/* ------------------------------------------------------------------ */
+
+export function FooterPreview({ style, skin }: { style: FooterStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const uid = useUid("ft");
+  const gold = hsl(v.gold);
+  const ink = style.fill === "ink";
+  const fg = ink ? "#fff" : hsl(v.foreground);
+
+  const top = 30;
+  const h = H - top;
+  const pad = 9;
+  const inner = W - pad * 2;
+
+  const fill =
+    style.fill === "ink" ? hsl(v.primary)
+      : style.fill === "muted" ? hsl(v.muted)
+        : style.fill === "gradient" ? `url(#${uid}-g)`
+          : hsl(v.background);
+
+  /* توزيع الأعمدة */
+  const center = style.cols === "center";
+  const stack = style.cols === "stack";
+  const cols = center || stack ? 1 : style.cols === "two" ? 2 : style.cols === "even" ? 4 : 3;
+  const widths =
+    style.cols === "wide" ? [0.44, 0.28, 0.28] : Array.from({ length: cols }, () => 1 / cols);
+
+  /* الحافّة العلوية */
+  const edge = () => {
+    if (style.edge === "arch") {
+      return `M0 ${H} V${top + 12} A${W / 2} 12 0 0 1 ${W} ${top + 12} V${H} Z`;
+    }
+    if (style.edge === "zigzag") {
+      const step = 9;
+      let d = `M0 ${H} V${top + 4} `;
+      let up = true;
+      for (let x = 0; x < W; x += step / 2) {
+        d += `L${Math.min(W, x + step / 2)} ${up ? top : top + 4} `;
+        up = !up;
+      }
+      return d + `V${H} Z`;
+    }
+    return null;
+  };
+  const ed = edge();
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={`${uid}-g`} x1="0" y1={H} x2="0" y2={top} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={hsl(v.muted)} />
+          <stop offset="100%" stopColor={hsl(v.background)} />
+        </linearGradient>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* محتوى الصفحة فوق الفوتر — سياق */}
+      <rect x={pad} y={7} width={W - pad * 2} height={14} rx={4} fill={hsl(v.card)} />
+
+      {/* جسم الفوتر */}
+      {ed ? (
+        <path d={ed} fill={fill} />
+      ) : (
+        <rect x={0} y={top} width={W} height={h} fill={fill} />
+      )}
+
+      {/* الفاصل */}
+      {style.edge === "line" && <rect x={0} y={top} width={W} height={0.8} fill={hsl(v.border)} />}
+      {style.edge === "gold" && <rect x={0} y={top} width={W} height={1.6} fill={gold} opacity={0.75} />}
+
+      {/* الأعمدة */}
+      {(() => {
+        const y0 = top + (ed ? 16 : 8);
+        let x = pad;
+        return widths.map((frac, i) => {
+          const cw = inner * frac - (i < widths.length - 1 ? 3 : 0);
+          const cx = center ? W / 2 : x;
+          const at = (w: number) => (center ? W / 2 - w / 2 : x);
+          const g = (
+            <g key={i}>
+              {i === 0 && (
+                <>
+                  <circle cx={center ? W / 2 : x + 4} cy={y0 + 3} r={3.2} fill={ink ? "#fff" : hsl(v.primary)} opacity={0.85} />
+                  {!center && <rect x={x + 10} y={y0 + 1.6} width={22} height={3} rx={1.5} fill={fg} opacity={0.7} />}
+                </>
+              )}
+              {i > 0 && <rect x={at(18)} y={y0} width={18} height={2.6} rx={1.3} fill={gold} opacity={0.8} />}
+              {[0, 1, 2].map((k) => (
+                <rect
+                  key={k}
+                  x={at(Math.min(cw, 34) - k * 4)}
+                  y={y0 + (i === 0 ? 10 : 7) + k * 5}
+                  width={Math.min(cw, 34) - k * 4}
+                  height={2}
+                  rx={1}
+                  fill={fg}
+                  opacity={0.22}
+                />
+              ))}
+              {cx < 0 && null}
+            </g>
+          );
+          x += inner * frac;
+          return g;
+        });
+      })()}
     </svg>
   );
 }

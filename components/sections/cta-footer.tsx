@@ -10,22 +10,27 @@ import { IconWhatsapp, IconFacebook, IconYoutube, IconTelegram } from "@/compone
 import { BrandLockup } from "@/components/brand/logo";
 import { KuficBackdrop, RuleOrnament, Shamsa, ElegantRule } from "@/components/brand/pattern";
 import { useContent } from "@/components/content/content-provider";
+import { findCtaStyle, ctaClass, findFooterStyle, footerClass } from "@/lib/block-styles";
 import { el, isHidden, btnStyle } from "@/lib/ui-style";
 
 export function CtaFooter() {
   const { content, wa } = useContent();
+  const CT = findCtaStyle(content.ctaStyle);
+  const FT = findFooterStyle(content.footerStyle);
   const showCta = !isHidden(content, "section.cta");
 
   return (
     <>
       {showCta && (
-      <section className="relative py-24">
+      <section className={`relative py-24 ${ctaClass(CT)}`} data-cta-style={CT.id}>
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
-            className="btn-glow relative overflow-hidden rounded-[2.5rem] px-8 py-16 text-center text-white shadow-glow-lg">
-            <KuficBackdrop density={40} opacity={0.4} fade="center" tone="text-white/45" className="!z-0" />
-            <Shamsa size={520} rays={32} className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-25" />
-            <div className="relative">
+            className="ct-panel btn-glow relative overflow-hidden rounded-[2.5rem] px-8 py-16 text-center text-white shadow-glow-lg">
+            <span className="ct-decor">
+              <KuficBackdrop density={40} opacity={0.4} fade="center" tone="text-white/45" className="!z-0" />
+              <Shamsa size={520} rays={32} className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-25" />
+            </span>
+            <div className="ct-body relative">
               <h2 className="mx-auto max-w-2xl font-display text-3xl font-bold leading-[1.5] [text-wrap:balance] sm:text-4xl">
                 جاهز تبدأ رحلتك مع {content.teacher.subject}؟
               </h2>
@@ -33,7 +38,7 @@ export function CtaFooter() {
                 <ElegantRule width={280} className="text-white/60" />
               </div>
               <p className="mx-auto mt-4 max-w-xl text-white/85">أنشئ حسابك في أقل من دقيقة، فعّل باقتك، وابدأ من الدرس الأول.</p>
-              <motion.div initial="rest" whileHover="hover" className="mt-8 flex flex-wrap justify-center gap-3">
+              <motion.div initial="rest" whileHover="hover" className="ct-actions mt-8 flex flex-wrap justify-center gap-3">
                 <Button as="a" href={content.cta?.registerUrl || "/register"} style={btnStyle(el(content, "cta.primary"))} variant="outline" className="border-white/40 bg-white px-8 py-3.5 text-primary hover:bg-white">
                   {content.cta?.heroPrimaryLabel || "أنشئ حساب طالب"} <SpringArrow />
                 </Button>
@@ -47,8 +52,8 @@ export function CtaFooter() {
       </section>
       )}
 
-      <footer className="border-t border-border py-12">
-        <div className="container grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+      <footer className={`site-footer border-t border-border py-12 ${footerClass(FT)}`} data-footer-style={FT.id}>
+        <div className="ft-grid container grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <BrandLockup brand={content.brand} subtitle={content.platformSubtitle} logo={content.teacher.logo} size={44} />
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">

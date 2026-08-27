@@ -17,7 +17,7 @@ import { useContent } from "@/components/content/content-provider";
 import { PAY_STYLES, findPayStyle, DEFAULT_PAY_STYLE, PAY_KINDS, type PayStyle } from "@/lib/pay-styles";
 import { PayPreview } from "@/components/admin/skin-preview";
 import { findSkin } from "@/lib/skins";
-import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods } from "@/lib/payments";
+import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods, cleanPrefix } from "@/lib/payments";
 import type { PayMethod, PayRequest, PayMethodKind } from "@/lib/types";
 
 type Tab = "inbox" | "methods" | "bot" | "design";
@@ -67,6 +67,7 @@ export default function PaymentsAdmin() {
   const skin = findSkin(content.studentSkin);
   const style = findPayStyle(cfg.style);
   const on = gatewayOn(cfg);
+  const prefix = cleanPrefix(content.codePrefix);
 
   const setCfg = (patch: Record<string, unknown>) => saveContent({ payments: { ...cfg, ...patch } });
   const setMethods = (list: PayMethod[]) => setCfg({ methods: list });
@@ -114,6 +115,8 @@ export default function PaymentsAdmin() {
           setCfg={setCfg}
           setMethods={setMethods}
           uploadImage={uploadImage}
+          prefix={prefix}
+          saveContent={saveContent}
         />
       )}
 
@@ -346,13 +349,15 @@ function Inbox_({
 /* ================================================================== */
 
 function MethodsTab({
-  cfg, methods, setCfg, setMethods, uploadImage,
+  cfg, methods, setCfg, setMethods, uploadImage, prefix, saveContent,
 }: {
   cfg: Record<string, unknown> & { enabled?: boolean; requireReceipt?: boolean; requireSender?: boolean; autoCode?: boolean; title?: string; desc?: string; note?: string };
   methods: PayMethod[];
   setCfg: (p: Record<string, unknown>) => void;
   setMethods: (l: PayMethod[]) => void;
   uploadImage: (f: File) => Promise<string | null>;
+  prefix: string;
+  saveContent: (p: Record<string, unknown>) => Promise<boolean>;
 }) {
   const [busyLogo, setBusyLogo] = useState<string | null>(null);
 
@@ -412,6 +417,22 @@ function MethodsTab({
         </div>
         <div className="mt-3">
           <Field label="تنبيه أسفل البوّابة" value={cfg.note ?? ""} placeholder="تُراجَع التحويلات خلال ٢٤ ساعة" onChange={(v) => setCfg({ note: v })} />
+        </div>
+
+        {/* بادئة الكود — هنا وفي شاشة الأكواد، والمصدر واحد */}
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border p-3.5">
+          <span className="text-xs font-semibold text-muted-foreground">أوّل حروف كود التفعيل</span>
+          <input
+            defaultValue={prefix}
+            maxLength={10}
+            dir="ltr"
+            onBlur={(e) => void saveContent({ codePrefix: cleanPrefix(e.target.value) })}
+            className="w-28 rounded-2xl border border-border bg-card/60 px-3 py-2 text-center font-mono text-sm uppercase outline-none focus:border-primary/50"
+          />
+          <span className="font-mono text-xs text-muted-foreground">-XXXX-XXXX</span>
+          <span className="text-[11px] text-muted-foreground">
+            حروف وأرقام لاتينية وشرطة. كل كود يُستخدَم مرّة واحدة فقط ثم يُعلَّم مستخدَماً.
+          </span>
         </div>
       </Card>
 

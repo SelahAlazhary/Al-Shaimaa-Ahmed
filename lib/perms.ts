@@ -139,6 +139,7 @@ const APPEARANCE_KEYS = new Set([
   "tileStyle", "tileColors", "tileArt",
   "toolbarStyle", "heroStyle", "plansStyle", "homeLayout",
   "stagesStyle", "featuresStyle", "testimonialsStyle",
+  "faqStyle", "ctaStyle", "footerStyle",
   "showThemeToggle",
 ]);
 

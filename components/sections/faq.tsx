@@ -6,16 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { IconPlus } from "@/components/brand/icons";
 import { SectionHeading, Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
+import { findFaqStyle, faqClass } from "@/lib/block-styles";
 import { KuficBackdrop } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 
 export function Faq() {
   const { content, wa } = useContent();
   const [open, setOpen] = useState<number | null>(0);
+  const FQ = findFaqStyle(content.faqStyle);
   if (content.ui?.["section.faq"]?.hidden) return null;
 
   return (
-    <section id="faq" className="relative py-24">
+    <section id="faq" className={`relative py-24 ${faqClass(FQ)}`} data-faq-style={FQ.id}>
       <ArabicTextBackdrop count={18} seed={37} fade="center" opacity={0.34} tone="text-accent/20" />
       <KuficBackdrop density={46} opacity={0.12} fade="center" tone="text-primary/8" />
       <div className="container max-w-3xl">
@@ -24,18 +26,20 @@ export function Faq() {
           title={<>كل ما تحتاج <span className="text-gradient">معرفته</span> قبل البدء</>}
           desc="ولو عندك سؤال آخر، الدعم موجود على واتساب طوال الأسبوع."
         />
-        <div className="space-y-3">
+        <div className="fq-list">
           {content.faqs.map((f, i) => {
             const isOpen = open === i;
             return (
               <motion.div key={f.q} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.4, delay: i * 0.05 }}
-                className={`glass overflow-hidden rounded-3xl border transition ${isOpen ? "border-accent/55 shadow-bento" : "border-border"}`}>
+                data-open={isOpen ? "1" : "0"}
+                className={`fq-item glass overflow-hidden rounded-3xl border transition ${isOpen ? "border-accent/55 shadow-bento" : "border-border"}`}>
                 <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 p-5 text-right">
                   <span className="font-display text-base font-bold leading-relaxed sm:text-lg">{f.q}</span>
-                  <motion.span animate={{ rotate: isOpen ? 45 : 0 }} className={`grid size-8 shrink-0 place-items-center rounded-full transition ${isOpen ? "btn-glow text-white" : "btn-foil text-accent"}`}>
+                  {/* العلامة: دورانها من CSS بحسب التصميم، فلا يفرضه المكوّن */}
+                  <span className={`fq-mark grid size-8 shrink-0 place-items-center rounded-full transition ${isOpen ? "btn-glow text-white" : "btn-foil text-accent"}`}>
                     <IconPlus className="size-4" />
-                  </motion.span>
+                  </span>
                 </button>
                 <AnimatePresence initial={false}>
                   {isOpen && (

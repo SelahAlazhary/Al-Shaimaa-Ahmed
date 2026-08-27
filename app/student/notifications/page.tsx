@@ -10,6 +10,13 @@ import { useContent } from "@/components/content/content-provider";
 
 export default function StudentNotifications() {
   const { db, session, refresh } = useContent();
+  /* الأكواد المستعمَلة فعلاً — تُشتقّ من طلبات الطالب نفسه لا من حالة
+     مؤقّتة في المكوّن، فتبقى «مُفعَّل» بعد تحديث الصفحة. */
+  const usedCodes = new Set(
+    (db?.payments ?? [])
+      .filter((p) => p.userId === session?.uid && p.code && p.redeemedAt)
+      .map((p) => p.code as string)
+  );
   const me = db?.users.find((u) => u.id === session?.uid);
   // الإشعارات تصل مفلترة من السيرفر (للجميع / لصفّه / لشعبته / له وحده)
   const items = db?.notifications ?? [];
@@ -55,7 +62,14 @@ export default function StudentNotifications() {
                         {isNew && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">جديد</span>}
                       </p>
                       <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>
-                      {n.code && <CodeBlock code={n.code} subjectId={n.codeSubjectId} onDone={refresh} />}
+                      {n.code && (
+                        <CodeBlock
+                          code={n.code}
+                          subjectId={n.codeSubjectId}
+                          used={usedCodes.has(n.code)}
+                          onDone={refresh}
+                        />
+                      )}
                       <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.createdAt).toLocaleString("ar-EG")}</p>
                     </div>
                   </div>
@@ -77,12 +91,12 @@ export default function StudentNotifications() {
  * ينادي نفس مسار التفعيل الذي تناديه صفحة الكورسات — لا منطق ثانٍ.
  */
 function CodeBlock({
-  code, subjectId, onDone,
+  code, subjectId, used, onDone,
 }: {
-  code: string; subjectId?: string; onDone: () => Promise<void>;
+  code: string; subjectId?: string; used?: boolean; onDone: () => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
-  const [state, setState] = useState<"idle" | "done" | "used">("idle");
+  const [state, setState] = useState<"idle" | "done" | "used">(used ? "used" : "idle");
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
