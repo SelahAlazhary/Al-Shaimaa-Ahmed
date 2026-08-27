@@ -75,6 +75,7 @@ export function permsOf(user: Pick<User, "role" | "owner" | "adminPerms"> | null
 export function permForPath(href: string): AdminPerm | null {
   const map: Record<string, AdminPerm> = {
     "/admin/customize": "customize",
+    "/admin/appearance": "customize",
     "/admin/students": "students",
     "/admin/grades": "subjects",
     "/admin/subjects": "subjects",

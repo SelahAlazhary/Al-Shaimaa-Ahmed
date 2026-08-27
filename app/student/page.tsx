@@ -25,12 +25,15 @@ import { InstallApp } from "@/components/pwa/install-app";
 import { EnableNotifications } from "@/components/pwa/enable-notifications";
 import { Card, Progress, StatusBadge, Medallion, GoldRule } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { findLayout } from "@/lib/skins";
 import { subjectActive, activeSubs, daysLeft } from "@/lib/access";
 
 const ar = (n: number) => n.toLocaleString("ar-EG");
 
 export default function StudentHome() {
-  const { db, session } = useContent();
+  const { db, session, content } = useContent();
+  /* التخطيط المختار من اللوحة — يحكم شكل الترحيب والمؤشّرات والبطاقات. */
+  const L = findLayout(content.studentLayout);
   const me = db?.users.find((u) => u.id === session?.uid);
   const subjects = (db?.subjects ?? []).filter((s) => s.status === "منشورة");
   const live = db?.live ?? [];
@@ -54,41 +57,17 @@ export default function StudentHome() {
     .sort((a, b) => (a.left as number) - (b.left as number))[0];
   const permanent = subs.some((sb) => daysLeft(sb.expiresAt) === null);
 
-  return (
-    <>
-      {/* ---------------- لوح الترحيب ---------------- */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] p-6 text-white sm:p-8"
-      >
-        <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />
-        <KuficBackdrop density={38} opacity={0.28} fade="center" tone="text-white/30" className="!z-0" />
-        <Shamsa
-          size={340}
-          rays={24}
-          className="pointer-events-none absolute -left-16 -top-20 z-0 opacity-25"
-        />
-
-        <div className="relative flex flex-wrap items-center justify-between gap-5">
-          <div className="min-w-0">
-            <p className="font-kufi text-base font-bold tracking-[0.04em] text-white/90 drop-shadow-sm sm:text-lg">
-              أهلاً {fem ? "بكِ" : "بك"}
-            </p>
-            <h1 className="font-display mt-2 truncate text-3xl font-bold tracking-tight drop-shadow-sm sm:text-4xl">
-              {session?.name}
-            </h1>
-            <ElegantRule width={220} className="mt-2.5 text-white/70" />
-            {me?.grade && (
-              <p className="font-kufi mt-1.5 text-xs font-semibold text-white/80">{me.grade}</p>
-            )}
-          </div>
-
-        </div>
-
-        {/* شريط المؤشّرات — ألواح SVG، وأرقام حقيقية فقط */}
-        {/* المؤشّرات — ثلاث بطاقات: التقدّم · الكورسات · الاشتراك الساري */}
-        <div className="relative mt-7 grid gap-3 sm:grid-cols-3 sm:gap-4">
+  /* المؤشّرات كتلة واحدة — تُوضع داخل لوح الترحيب أو تحته حسب التخطيط،
+     فلا تُكتب مرّتين ولا تختفي حين يُخفى اللوح. */
+  const statsBlock = (
+        <div
+          className={`relative mt-7 grid gap-3 sm:gap-4 ${
+            L.stats === "inline" ? "sm:grid-cols-3"
+              : L.stats === "grid" ? "grid-cols-2 sm:grid-cols-3"
+                : L.stats === "rail" ? "sm:grid-cols-1 lg:max-w-xs"
+                  : "sm:grid-cols-3"
+          }`}
+        >
           <StatTile index={0} ring={avg} label="متوسّط تقدّمك" icon={<IconChart className="size-5" />} />
           <StatTile
             index={1}
@@ -119,7 +98,62 @@ export default function StudentHome() {
             }
           />
         </div>
+  );
+
+  const showHeader = L.header !== "minimal";
+  const statsInside = showHeader && L.statsInHeader;
+
+  return (
+    <>
+      {/* ---------------- لوح الترحيب ---------------- */}
+      {!showHeader && (
+        <div className="mb-5">
+          <p className="font-kufi text-sm font-bold text-muted-foreground">
+            أهلاً {fem ? "بكِ" : "بك"}
+          </p>
+          <h1 className="font-display mt-1 truncate text-2xl font-bold sm:text-3xl">{session?.name}</h1>
+          <div className="mt-3 max-w-[12rem] text-accent"><GoldRule /></div>
+        </div>
+      )}
+
+      {showHeader && (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`btn-glow relative mb-6 overflow-hidden rounded-[1.75rem] text-white ${
+          L.header === "compact" ? "p-4 sm:p-5" : L.header === "banner" ? "p-6 sm:p-8" : "p-5 sm:p-6"
+        }`}
+      >
+        <ArabicTextBackdrop count={20} seed={17} fade="center" opacity={0.5} tone="text-white/30" className="!z-0" />
+        <KuficBackdrop density={38} opacity={0.28} fade="center" tone="text-white/30" className="!z-0" />
+        <Shamsa
+          size={340}
+          rays={24}
+          className="pointer-events-none absolute -left-16 -top-20 z-0 opacity-25"
+        />
+
+        <div className="relative flex flex-wrap items-center justify-between gap-5">
+          <div className="min-w-0">
+            <p className="font-kufi text-base font-bold tracking-[0.04em] text-white/90 drop-shadow-sm sm:text-lg">
+              أهلاً {fem ? "بكِ" : "بك"}
+            </p>
+            <h1 className="font-display mt-2 truncate text-3xl font-bold tracking-tight drop-shadow-sm sm:text-4xl">
+              {session?.name}
+            </h1>
+            <ElegantRule width={220} className="mt-2.5 text-white/70" />
+            {me?.grade && (
+              <p className="font-kufi mt-1.5 text-xs font-semibold text-white/80">{me.grade}</p>
+            )}
+          </div>
+
+        </div>
+
+        {statsInside && statsBlock}
       </motion.div>
+      )}
+
+      {/* المؤشّرات خارج اللوح — حين لا يضعها التخطيط بداخله */}
+      {!statsInside && <div className="mb-6">{statsBlock}</div>}
 
       {/* ---------------- الاشتراكات السارية ---------------- */}
       {subs.length > 0 && (
@@ -225,7 +259,14 @@ export default function StudentHome() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div
+        className={`grid gap-4 ${
+          L.cards === "list" ? "grid-cols-1"
+            : L.cards === "grid3" ? "sm:grid-cols-2 xl:grid-cols-3"
+              : L.cards === "compact" ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                : "sm:grid-cols-2"
+        }`}
+      >
         {courses.map((c, i) => (
           <motion.div key={c.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
             <Link href={`/student/course/${c.id}`} className="group block">
