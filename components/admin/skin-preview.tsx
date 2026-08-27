@@ -1650,13 +1650,13 @@ export function SectionPreview({ style, skin }: { style: SectionStyle; skin: Stu
 
   const cardFill =
     style.card === "outline" ? "none"
-      : style.card === "glass" ? hsl(v.card, 0.55)
+      : style.card === "glass" || style.card === "brand" ? hsl(v.card, 0.55)
         : style.card === "tint" ? tone
           : hsl(v.card);
   const cardOpacity = style.card === "tint" ? 0.12 : 1;
   const cardStroke =
     style.card === "soft" ? "none"
-      : style.card === "plaque" ? gold
+      : style.card === "plaque" || style.card === "brand" ? gold
         : style.card === "tint" ? tone
           : hsl(v.border);
 
@@ -1784,11 +1784,11 @@ export function FaqPreview({ style, skin }: { style: FaqStyle; skin: StudentSkin
 
   const fill =
     style.surface === "outline" || style.surface === "flat" ? "none"
-      : style.surface === "glass" ? hsl(v.card, 0.55)
+      : style.surface === "glass" || style.surface === "brand" ? hsl(v.card, 0.55)
         : hsl(v.card);
   const stroke =
     style.surface === "flat" ? "none"
-      : style.surface === "plaque" ? gold
+      : style.surface === "plaque" || style.surface === "brand" ? gold
         : hsl(v.border);
 
   const plaque = (x: number, y: number, w: number, h: number) => {
@@ -1889,11 +1889,11 @@ export function CtaPreview({ style, skin }: { style: CtaStyle; skin: StudentSkin
   const w = W - pad * 2;
   const h = H - y - (band ? 0 : 14);
 
-  const ink = style.fill === "ink" || style.fill === "gradient" || style.fill === "shamsa";
+  const ink = style.fill !== "glass" && style.fill !== "outline";
   const fg = ink ? "#fff" : hsl(v.foreground);
 
   const fill =
-    style.fill === "gradient" ? `url(#${uid}-g)`
+    style.fill === "gradient" || style.fill === "brand" ? `url(#${uid}-g)`
       : style.fill === "glass" ? hsl(v.card, 0.6)
         : style.fill === "outline" ? "none"
           : tone;

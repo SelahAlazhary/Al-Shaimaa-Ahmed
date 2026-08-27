@@ -15,7 +15,7 @@ import { PageHeader, Card, Progress } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import { subjectActive, subscriptionFor, daysLeft, eligibleFor, termLabel } from "@/lib/access";
 import { planDuration, planScopeLabel } from "@/components/sections/plans";
-import { planPrice, planColor, planForStudent, planWaLink, coursePricePlans } from "@/lib/plans";
+import { planPrice, planColor, planWaLink, plansFor } from "@/lib/plans";
 import type { Subject, SitePlan } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 import { cleanPrefix, gatewayOn } from "@/lib/payments";
@@ -232,17 +232,7 @@ function PurchasePanel({
     خيارات سعر الكورس تُعرض أوّلاً ثم خطط المنصّة — الأقرب للكورس قبل
     الأعمّ، وكلاهما بشكل الخطة نفسه فلا يفترق مسار الشراء.
   */
-  const plans = [
-    ...coursePricePlans(subject),
-    ...(db?.plans ?? [])
-      .filter((p) =>
-        planForStudent(p, me) &&
-        (p.scope === "all" ||
-          (p.scope === "term" && p.termNo === (subject.term ?? 1)) ||
-          p.subjectId === subject.id)
-      )
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.price - b.price),
-  ];
+  const plans = plansFor(subject, db?.plans ?? [], me);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

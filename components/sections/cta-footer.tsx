@@ -16,6 +16,12 @@ import { el, isHidden, btnStyle } from "@/lib/ui-style";
 export function CtaFooter() {
   const { content, wa } = useContent();
   const CT = findCtaStyle(content.ctaStyle);
+  /*
+    أصناف الهوية (glass/foil/الظلّ) تُكتب فقط في التصميم «الأصلي».
+    محاولةُ إلغائها بقاعدة CSS أقوى تجعل كل سطح جديد يخوض حرب أولويات
+    مع الهوية — والأنظف ألّا تُكتب أصلاً حين لا تُراد.
+  */
+  const ctBrand = CT.fill === "brand" ? "btn-glow shadow-glow-lg" : "";
   const FT = findFooterStyle(content.footerStyle);
   const showCta = !isHidden(content, "section.cta");
 
@@ -25,7 +31,7 @@ export function CtaFooter() {
       <section className={`relative py-24 ${ctaClass(CT)}`} data-cta-style={CT.id}>
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
-            className="ct-panel btn-glow relative overflow-hidden rounded-[2.5rem] px-8 py-16 text-center text-white shadow-glow-lg">
+            className={`ct-panel relative overflow-hidden rounded-[2.5rem] px-8 py-16 text-center text-white ${ctBrand}`}>
             <span className="ct-decor">
               <KuficBackdrop density={40} opacity={0.4} fade="center" tone="text-white/45" className="!z-0" />
               <Shamsa size={520} rays={32} className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-25" />

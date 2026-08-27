@@ -14,6 +14,12 @@ export function Faq() {
   const { content, wa } = useContent();
   const [open, setOpen] = useState<number | null>(0);
   const FQ = findFaqStyle(content.faqStyle);
+  /*
+    أصناف الهوية (glass/foil/الظلّ) تُكتب فقط في التصميم «الأصلي».
+    محاولةُ إلغائها بقاعدة CSS أقوى تجعل كل سطح جديد يخوض حرب أولويات
+    مع الهوية — والأنظف ألّا تُكتب أصلاً حين لا تُراد.
+  */
+  const brand = FQ.surface === "brand";
   if (content.ui?.["section.faq"]?.hidden) return null;
 
   return (
@@ -33,7 +39,9 @@ export function Faq() {
               <motion.div key={f.q} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.4, delay: i * 0.05 }}
                 data-open={isOpen ? "1" : "0"}
-                className={`fq-item glass overflow-hidden rounded-3xl border transition ${isOpen ? "border-accent/55 shadow-bento" : "border-border"}`}>
+                className={`fq-item overflow-hidden rounded-3xl transition ${
+                  brand ? `glass border ${isOpen ? "border-accent/55 shadow-bento" : "border-border"}` : ""
+                }`}>
                 <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 p-5 text-right">
                   <span className="font-display text-base font-bold leading-relaxed sm:text-lg">{f.q}</span>
                   {/* العلامة: دورانها من CSS بحسب التصميم، فلا يفرضه المكوّن */}

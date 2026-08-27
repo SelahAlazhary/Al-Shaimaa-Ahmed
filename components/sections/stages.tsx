@@ -38,6 +38,12 @@ const FALLBACK: StageCard[] = [
 export function Stages() {
   const { content } = useContent();
   const SX = findSectionStyle(content.stagesStyle);
+  /*
+    أصناف الهوية (glass/foil/الظلّ) تُكتب فقط في التصميم «الأصلي».
+    محاولةُ إلغائها بقاعدة CSS أقوى تجعل كل سطح جديد يخوض حرب أولويات
+    مع الهوية — والأنظف ألّا تُكتب أصلاً حين لا تُراد.
+  */
+  const brand = SX.card === "brand" ? "glass foil shadow-bento" : "";
   if (content.ui?.["section.stages"]?.hidden) return null;
 
   const stages = (content.stages ?? FALLBACK).filter((s) => s?.name && s.branches?.length);
@@ -65,7 +71,7 @@ export function Stages() {
               <motion.article
                 whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="sx-card group glass foil relative h-full overflow-hidden rounded-4xl p-7 shadow-bento"
+                className={`sx-card group relative h-full overflow-hidden rounded-4xl p-7 ${brand}`}
               >
                 <CornerKnot size={72} className="sx-knot pointer-events-none absolute right-0 top-0 text-accent/40" />
 

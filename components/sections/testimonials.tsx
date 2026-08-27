@@ -23,6 +23,12 @@ export function Testimonials() {
 
   const all = (content.testimonials ?? []).filter((t) => !t.hidden);
   const SX = findSectionStyle(content.testimonialsStyle);
+  /*
+    أصناف الهوية (glass/foil/الظلّ) تُكتب فقط في التصميم «الأصلي».
+    محاولةُ إلغائها بقاعدة CSS أقوى تجعل كل سطح جديد يخوض حرب أولويات
+    مع الهوية — والأنظف ألّا تُكتب أصلاً حين لا تُراد.
+  */
+  const brand = SX.card === "brand";
   if (!all.length) return null;
 
   const featured = all.find((t) => t.featured);
@@ -37,7 +43,7 @@ export function Testimonials() {
           desc="كلمات من طلابنا ومن تصدّروا دفعاتهم."
         />
 
-        {featured && <FeaturedCard t={featured} />}
+        {featured && <FeaturedCard t={featured} brand={brand} />}
 
         {rest.length > 0 && (
           <div className={`sx-grid grid items-stretch gap-4 ${sxGridClass(SX.grid, rest.length)} ${featured ? "mt-4" : ""}`}>
@@ -49,7 +55,7 @@ export function Testimonials() {
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: i * 0.05 }}
               >
-                <Card t={t} />
+                <Card t={t} brand={brand} />
               </motion.div>
             ))}
           </div>
@@ -60,14 +66,14 @@ export function Testimonials() {
 }
 
 /** بطاقة الطالب الأول — عريضة بإطار وزخرفة ركنية. */
-function FeaturedCard({ t }: { t: Testimonial }) {
+function FeaturedCard({ t, brand }: { t: Testimonial; brand?: boolean }) {
   return (
     <motion.figure
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5 }}
-      className="sx-card glass relative overflow-hidden rounded-3xl border border-primary/30 p-5 sm:p-7"
+      className={`sx-card relative overflow-hidden rounded-3xl p-5 sm:p-7 ${brand ? "glass border border-primary/30" : ""}`}
     >
       <CornerKnot size={84} className="sx-knot pointer-events-none absolute bottom-0 left-0 hidden text-primary/25 sm:block" />
 
@@ -95,9 +101,9 @@ function FeaturedCard({ t }: { t: Testimonial }) {
 }
 
 /** بطاقة شهادة عادية. */
-function Card({ t }: { t: Testimonial }) {
+function Card({ t, brand }: { t: Testimonial; brand?: boolean }) {
   return (
-    <figure className="sx-card glass flex h-full flex-col gap-3 rounded-3xl p-4 sm:p-5">
+    <figure className={`sx-card flex h-full flex-col gap-3 rounded-3xl p-4 sm:p-5 ${brand ? "glass" : ""}`}>
       <blockquote className="flex-1 text-sm leading-relaxed text-muted-foreground">«{t.text}»</blockquote>
       <figcaption className="flex items-center gap-3 border-t border-border pt-3">
         <Avatar t={t} size={40} className="size-10" />

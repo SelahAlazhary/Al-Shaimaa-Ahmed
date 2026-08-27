@@ -22,6 +22,12 @@ export function Features() {
 
   const subject = content.teacher?.subject || "اللغة العربية";
   const SX = findSectionStyle(content.featuresStyle);
+  /*
+    أصناف الهوية (glass/foil/الظلّ) تُكتب فقط في التصميم «الأصلي».
+    محاولةُ إلغائها بقاعدة CSS أقوى تجعل كل سطح جديد يخوض حرب أولويات
+    مع الهوية — والأنظف ألّا تُكتب أصلاً حين لا تُراد.
+  */
+  const brand = SX.card === "brand" ? "glass shadow-bento" : "";
 
   return (
     <section id="features" className={`relative py-24 ${sectionClass(SX)}`} data-section-style={SX.id}>
@@ -47,7 +53,7 @@ export function Features() {
                 <motion.article
                   whileHover={{ y: -6 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="sx-card group glass relative h-full overflow-hidden rounded-4xl p-6 shadow-bento"
+                  className={`sx-card group relative h-full overflow-hidden rounded-4xl p-6 ${brand}`}
                 >
                   {/* منمنمة الزاوية */}
                   <CornerKnot

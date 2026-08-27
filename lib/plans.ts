@@ -196,8 +196,15 @@ export function plansFor(
   const own = subject ? coursePricePlans(subject) : [];
   const site = plans
     .filter((p) => {
+      /* الخطة المخفيّة مخفيّة عن الطالب أيضاً — لا عن الموقع وحده.
+         كانت حمولةُ الطالب تحمل الخطط كلَّها، والصفحةُ لا تفحص الظهور،
+         فكان يرى في شاشة الشراء ما أُخفي عمداً. */
+      if (!p.visible) return false;
       if (!planForStudent(p, student)) return false;
-      if (!subject) return p.scope === "all" || p.scope === "term";
+      /* بلا كورس — كصفحة الدفع العامّة — تُعرض كلُّ خططه المتاحة.
+         قصرُها على «كل المواد» والفصول كان يُفرغ الصفحة تماماً في منصّة
+         خططُها كلُّها مرتبطة بكورسات. */
+      if (!subject) return true;
       return (
         p.scope === "all" ||
         (p.scope === "term" && p.termNo === (subject.term ?? 1)) ||

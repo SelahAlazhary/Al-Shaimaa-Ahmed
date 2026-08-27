@@ -12,7 +12,8 @@
 /* ================================================================== */
 
 /** سطح الطيّة. */
-export type FaqSurface = "card" | "glass" | "outline" | "flat" | "plaque";
+/** «brand» = هوية المنصّة كما هي؛ الافتراضي لا يُغيّر الشكل القائم. */
+export type FaqSurface = "brand" | "card" | "glass" | "outline" | "flat" | "plaque";
 /** علامة الفتح. */
 export type FaqMark = "chevron" | "plus" | "arrow" | "dot" | "none";
 /** ترتيب الطيّات. */
@@ -33,7 +34,7 @@ function fq(
 }
 
 export const FAQ_STYLES: FaqStyle[] = [
-  fq("classic", "الكلاسيكي", "بطاقات متتالية وسهم ينقلب", "card", "chevron", "stack", "tint"),
+  fq("classic", "الأصلي", "هوية المنصّة كما هي وسهم ينقلب", "brand", "chevron", "stack", "tint"),
   fq("classicPlus", "الكلاسيكي بعلامة", "علامة زائد تصير ناقصاً", "card", "plus", "stack", "border"),
   fq("classicSpaced", "الكلاسيكي المتباعد", "فراغ أوسع بين الطيّات", "card", "chevron", "spaced", "lift"),
   fq("glassJoined", "الزجاجي الملتحم", "طيّات ملتصقة بحدّ فاصل", "glass", "chevron", "joined", "tint"),
@@ -70,7 +71,8 @@ export function faqClass(x: FaqStyle): string {
 /** شكل لوح الدعوة. */
 export type CtaShape = "round" | "plaque" | "arch" | "ticket" | "band" | "split";
 /** خلفية اللوح. */
-export type CtaFill = "ink" | "gradient" | "glass" | "outline" | "shamsa";
+/** «brand» = لوح الهوية المتوهّج كما هو. */
+export type CtaFill = "brand" | "ink" | "gradient" | "glass" | "outline" | "shamsa";
 /** ترتيب المحتوى. */
 export type CtaLayout = "center" | "split" | "stack";
 /** كثافة الزخرفة. */
@@ -89,7 +91,7 @@ function ct(
 }
 
 export const CTA_STYLES: CtaStyle[] = [
-  ct("classic", "الكلاسيكي", "لوح حبر مستدير وزخرفة كاملة", "round", "ink", "center", "full"),
+  ct("classic", "الأصلي", "لوح الهوية المتوهّج كما هو", "round", "brand", "center", "full"),
   ct("classicSoft", "الكلاسيكي الهادئ", "زخرفة أخفّ", "round", "ink", "center", "soft"),
   ct("classicSplit", "الكلاسيكي المنقسم", "النصّ يمين والأزرار يسار", "round", "ink", "split", "full"),
   ct("gradientCenter", "المتدرّج", "تدرّج بين لونين", "round", "gradient", "center", "full"),
