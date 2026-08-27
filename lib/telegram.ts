@@ -1,6 +1,7 @@
 import "server-only";
 import crypto from "crypto";
 import { getDB } from "./db";
+import { sameNumber } from "./payments";
 import type { PayRequest } from "./types";
 
 /**
@@ -193,6 +194,13 @@ export async function tgDeleteWebhook(token?: string) {
 /*  صياغة رسالة طلب الدفع                                              */
 /* ------------------------------------------------------------------ */
 
+/** حكمُ المطابقة بين رقم التحويل ورقم الحساب — أو فراغٌ إن تعذّر. */
+function matchNote(r: PayRequest): string {
+  const same = sameNumber(r.senderAccount, r.phone);
+  if (same === null) return "";
+  return same ? "  ✅ مطابق" : "  ⚠️ مختلف عن رقم التحويل";
+}
+
 /** رسالة الطلب — بيانات الطالب والخطة والتحويل في نظرة واحدة. */
 export function payRequestText(r: PayRequest, siteUrl?: string): string {
   const lines = [
@@ -209,6 +217,8 @@ export function payRequestText(r: PayRequest, siteUrl?: string): string {
     r.methodNumber ? `🎯 <b>حُوِّل إلى:</b> <code>${esc(r.methodNumber)}</code>${r.methodHolder ? ` — ${esc(r.methodHolder)}` : ""}` : "",
     r.senderName ? `↩️ <b>المُحوِّل:</b> ${esc(r.senderName)}` : "",
     r.senderAccount ? `💳 <b>حوّل من:</b> <code>${esc(r.senderAccount)}</code>` : "",
+    /* رقمُ حسابه بجوار رقم التحويل، وبينهما الحكم — فالمقارنة هي القرار. */
+    r.phone ? `📇 <b>رقم حسابه:</b> <code>${esc(r.phone)}</code>${matchNote(r)}` : "",
     r.senderRef ? `#️⃣ <b>رقم العملية:</b> ${esc(r.senderRef)}` : "",
     r.note ? `📝 <b>ملاحظة:</b> ${esc(r.note)}` : "",
     "",

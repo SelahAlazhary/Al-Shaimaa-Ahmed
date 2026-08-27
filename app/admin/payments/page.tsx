@@ -17,7 +17,7 @@ import { useContent } from "@/components/content/content-provider";
 import { PAY_STYLES, findPayStyle, DEFAULT_PAY_STYLE, PAY_KINDS, type PayStyle } from "@/lib/pay-styles";
 import { PayPreview } from "@/components/admin/skin-preview";
 import { findSkin } from "@/lib/skins";
-import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods, cleanPrefix } from "@/lib/payments";
+import { numberLabel, STATUS_LABEL, gatewayOn, activeMethods, cleanPrefix, sameNumber } from "@/lib/payments";
 import type { PayMethod, PayRequest, PayMethodKind } from "@/lib/types";
 
 type Tab = "inbox" | "methods" | "bot" | "design";
@@ -242,9 +242,27 @@ function Inbox_({
                     </p>
                   )}
                   {r.senderName && <p><span className="text-muted-foreground">المُحوِّل:</span> {r.senderName}</p>}
-                  {r.senderAccount && (
-                    <p><span className="text-muted-foreground">حوّل من:</span> <b className="font-mono">{r.senderAccount}</b></p>
-                  )}
+                  {r.senderAccount && (() => {
+                    const same = sameNumber(r.senderAccount, r.phone);
+                    return (
+                      <p className="flex flex-wrap items-center gap-2">
+                        <span className="text-muted-foreground">حوّل من:</span>
+                        <b className="font-mono">{r.senderAccount}</b>
+                        {r.phone && (
+                          <>
+                            <span className="text-muted-foreground">· رقم حسابه:</span>
+                            <b className="font-mono">{r.phone}</b>
+                          </>
+                        )}
+                        {same === true && (
+                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-600">مطابق</span>
+                        )}
+                        {same === false && (
+                          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600">رقم مختلف</span>
+                        )}
+                      </p>
+                    );
+                  })()}
                   {r.senderRef && <p><span className="text-muted-foreground">رقم العملية:</span> {r.senderRef}</p>}
                   {r.note && <p><span className="text-muted-foreground">ملاحظة:</span> {r.note}</p>}
                   <p className="text-[11px] text-muted-foreground">

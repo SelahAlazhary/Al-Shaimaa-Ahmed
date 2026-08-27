@@ -63,13 +63,16 @@ export function decide(
     r.handledBy = by;
     r.readByAdmin = true;
 
+    /* كودٌ لكورس بعينه يقود إليه مباشرة، والعامُّ يقود إلى الكورسات —
+       فلا يفترق الرابطُ عمّا يفتحه زرُّ «فعّل الآن» في الإشعار. */
+    const scoped = target !== "*" && !/^T[12]$/.test(target) ? target : "";
     pushNotification(db, {
       title: "تم قبول تحويلك ✅",
       body: `تم قبول تحويلك لخطة «${r.planName}». هذا كود التفعيل — فعّله بضغطة واحدة.`,
       userId: r.userId,
-      link: "/student/subjects",
+      link: scoped ? `/student/course/${scoped}` : "/student/subjects",
       code,
-      codeSubjectId: target === "*" || /^T[12]$/.test(target) ? undefined : target,
+      codeSubjectId: scoped || undefined,
     });
     return { ok: true, status: "approved" };
   }

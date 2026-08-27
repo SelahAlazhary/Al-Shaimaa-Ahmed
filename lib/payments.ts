@@ -134,6 +134,20 @@ export function newActivationCode(taken: Set<string>, prefix?: string): string {
   return `${p}-${Date.now().toString(36).toUpperCase().slice(-8)}`;
 }
 
+/**
+ * هل حوّل الطالب من الرقم المسجَّل في حسابه؟
+ * ------------------------------------------------------------------
+ * هذا هو الفحصُ الذي يجريه المشرف بعينه في كل طلب، فأولى أن يُجرى له.
+ * تُقارَن آخرُ تسعة أرقام: الصيغُ تختلف بمقدّمات دولية وأصفار وفواصل،
+ * والمقارنةُ الحرفية ترفض رقمين متطابقين لاختلاف كتابتهما.
+ */
+export function sameNumber(a?: string, b?: string): boolean | null {
+  const tail = (v?: string) => normalizeDigits(v ?? "").replace(/\D/g, "").slice(-9);
+  const x = tail(a), y = tail(b);
+  if (x.length < 9 || y.length < 9) return null;   // لا يكفي للحكم
+  return x === y;
+}
+
 export const STATUS_LABEL: Record<PayRequest["status"], string> = {
   pending: "قيد المراجعة",
   approved: "مقبول",
