@@ -925,8 +925,9 @@ body {
 .sn-panel-glass aside,
 .sn-panel-outline aside { background-color: var(--nav-panel, transparent); }
 
-.student-skin aside .sn-icon svg,
-.student-skin aside nav a { color: var(--nav-icon, inherit); }
+.student-skin aside .sn-icon svg { color: var(--nav-icon, inherit); }
+.student-skin aside nav a { color: var(--nav-text, var(--nav-icon, inherit)); }
+.student-skin aside nav a .sn-keep { color: var(--nav-text, inherit); }
 
 .student-skin aside .sn-mark {
   background-color: var(--nav-active, hsl(var(--gold) / 0.16));

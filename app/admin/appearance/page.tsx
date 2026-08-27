@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, Frame } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -20,7 +20,7 @@ import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview,
 } from "@/components/admin/skin-preview";
-import { FRAME_SHAPES, findFrame, DEFAULT_FRAME } from "@/lib/frame-shapes";
+import { DEFAULT_FRAME } from "@/lib/frame-shapes";
 import {
   SIDE_NAV_STYLES, DOCK_STYLES, findSideNav, findDock,
   DEFAULT_SIDE_NAV, DEFAULT_DOCK, ICON_SETS, DEFAULT_ICON_SET,
@@ -32,7 +32,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "layout" | "side" | "dock" | "frame" | "mobile" | "home";
+type Tab = "skin" | "design" | "layout" | "side" | "dock" | "mobile" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -48,9 +48,6 @@ export default function AppearancePage() {
   const dock = findDock(content.dockStyle);
   const iconSet = content.navIcons ?? DEFAULT_ICON_SET;
   const navColors = content.navColors ?? {};
-  const frameShape = findFrame(content.hero?.frameShape ?? content.hero?.frame ?? 1);
-  const frameColor = content.hero?.frameColor ?? "";
-  const frameScale = content.hero?.frameScale ?? 100;
 
   const pickSkin = async (s: StudentSkin) => {
     setBusy(s.id);
@@ -165,9 +162,6 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "dock"} onClick={() => setTab("dock")} icon={<Menu className="size-4" />}>
           القائمة السفلية ({DOCK_STYLES.length.toLocaleString("ar-EG")})
-        </TabBtn>
-        <TabBtn active={tab === "frame"} onClick={() => setTab("frame")} icon={<Frame className="size-4" />}>
-          إطار الصورة ({FRAME_SHAPES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "mobile"} onClick={() => setTab("mobile")} icon={<Smartphone className="size-4" />}>
           تنسيق الهاتف ({MOBILE_LAYOUTS.length.toLocaleString("ar-EG")})
@@ -309,7 +303,8 @@ export default function AppearancePage() {
             <div className="grid gap-3">
               {([
                 { key: "panel", label: "خلفية اللوح" },
-                { key: "icon", label: "الأيقونات والعناوين" },
+                { key: "icon", label: "الأيقونات" },
+                { key: "text", label: "نصّ العناوين" },
                 { key: "active", label: "العنصر النشط" },
               ] as const).map((row) => (
                 <div key={row.key} className="flex flex-wrap items-center gap-2">
@@ -420,98 +415,6 @@ export default function AppearancePage() {
             );
           })}
         </div>
-      )}
-
-      {tab === "frame" && (
-        <>
-          <div className="mb-5 grid gap-4 lg:grid-cols-2">
-            <Card>
-              <p className="font-display mb-3 font-bold">لون الإطار</p>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void setHero({ frameColor: "" })}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
-                    !frameColor ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  لون الثيم
-                </button>
-                {["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#6b3a1e"].map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => void setHero({ frameColor: c })}
-                    aria-label={c}
-                    className={`size-8 rounded-xl border transition ${
-                      frameColor.toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
-                    }`}
-                    style={{ background: c }}
-                  />
-                ))}
-                <label
-                  className="grid size-8 cursor-pointer place-items-center rounded-xl border border-dashed border-border"
-                  style={{ background: frameColor || "transparent" }}
-                  title="لون مخصّص"
-                >
-                  <input
-                    type="color"
-                    className="size-0 opacity-0"
-                    value={frameColor || "#233b8b"}
-                    onChange={(e) => void setHero({ frameColor: e.target.value })}
-                  />
-                </label>
-              </div>
-            </Card>
-
-            <Card>
-              <label className="block">
-                <span className="mb-1 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-                  <span>حجم الإطار</span>
-                  <span className="font-bold text-foreground">{frameScale.toLocaleString("ar-EG")}٪</span>
-                </span>
-                <input
-                  type="range"
-                  min={60}
-                  max={140}
-                  step={1}
-                  value={frameScale}
-                  onChange={(e) => void setHero({ frameScale: Number(e.target.value) })}
-                  className="w-full accent-[hsl(var(--primary))]"
-                />
-              </label>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                يكبّر الإطار أو يصغّره داخل عموده بلا تغيير نسبة أبعاده — فلا تتشوّه الصورة.
-              </p>
-            </Card>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-            {FRAME_SHAPES.map((x) => {
-              const on = x.id === frameShape.id;
-              return (
-                <button
-                  key={x.id}
-                  type="button"
-                  onClick={() => void setHero({ frameShape: x.id })}
-                  disabled={busy !== null}
-                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-center transition disabled:opacity-60 ${
-                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <FramePreview shape={x} color={frameColor || undefined} skin={skin} />
-                  <p className="mt-2 truncate text-xs font-bold">{x.name}</p>
-                  <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
-                  {on && (
-                    <span className="absolute left-2 top-2 grid size-5 place-items-center rounded-full bg-primary text-white">
-                      <Check className="size-3" />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </>
       )}
 
       {tab === "mobile" && (

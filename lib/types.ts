@@ -48,6 +48,19 @@ export type CoverText = {
  */
 export type CoverPattern = "auto" | "none" | "knot" | "squares" | "arches" | "weave";
 
+/**
+ * مرحلة دراسية في قسم «المراحل» بالصفحة الرئيسية.
+ * الصورة اختيارية وتملأ الفراغ بجانب قائمة الفروع — وتقبل GIF متحرّكة
+ * كما تقبل صورة ساكنة، فالمتصفّح يعرض الاثنتين بالوسم نفسه.
+ */
+export type StageCard = {
+  id: string;
+  name: string;
+  note?: string;
+  branches: string[];
+  image?: string;
+};
+
 /** شكل حواف الإطار. */
 export type FrameShape = "arch" | "rounded" | "square";
 
@@ -194,11 +207,14 @@ export type SiteContent = {
   studentSkin?: string;
   studentLayout?: string;
   studentMobile?: string;
+  /** بطاقات المراحل في الصفحة الرئيسية. */
+  stages?: StageCard[];
+
   studentDesign?: string;
   sideNav?: string;
   dockStyle?: string;
   navIcons?: string;
-  navColors?: { panel?: string; icon?: string; active?: string };
+  navColors?: { panel?: string; icon?: string; text?: string; active?: string };
 
   /**
    * زرّ تبديل الفاتح/الداكن.

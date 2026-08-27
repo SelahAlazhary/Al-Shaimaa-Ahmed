@@ -14,18 +14,20 @@ import { SectionHeading, Reveal } from "@/components/ui/primitives";
 import { KuficBackdrop, ArchTile, CornerKnot, ElegantRule } from "@/components/brand/pattern";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { useContent } from "@/components/content/content-provider";
+import { mediaSrc } from "@/lib/media";
+import type { StageCard } from "@/lib/types";
 
 const ar = (n: number) => n.toLocaleString("ar-EG");
 
-type Stage = { name: string; note?: string; branches: string[] };
-
-const FALLBACK: Stage[] = [
+const FALLBACK: StageCard[] = [
   {
+    id: "prep",
     name: "المرحلة الإعدادية",
     note: "منهج اللغة العربية كاملاً",
     branches: ["القراءة والنصوص", "النحو", "القصة", "التعبير", "الإملاء والخطّ"],
   },
   {
+    id: "sec",
     name: "المرحلة الثانوية",
     note: "الفروع الأربعة بالتفصيل",
     branches: ["النحو", "الصرف", "البلاغة", "الأدب والنصوص"],
@@ -36,9 +38,7 @@ export function Stages() {
   const { content } = useContent();
   if (content.ui?.["section.stages"]?.hidden) return null;
 
-  const stages = ((content as { stages?: Stage[] }).stages ?? FALLBACK).filter(
-    (s) => s?.name && s.branches?.length
-  );
+  const stages = (content.stages ?? FALLBACK).filter((s) => s?.name && s.branches?.length);
   if (!stages.length) return null;
 
   return (
@@ -86,19 +86,36 @@ export function Stages() {
 
                 <ElegantRule width={200} className="mt-4 text-accent" />
 
-                {/* الفروع */}
-                <ul className="mt-5 space-y-2.5">
-                  {s.branches.map((b) => (
-                    <li key={b} className="flex items-center gap-3 text-sm">
-                      {/* نقطة إعجام مذهّبة */}
-                      <svg viewBox="0 0 14 14" className="size-3.5 shrink-0 text-accent" fill="none" aria-hidden="true">
-                        <path d="M7 1 12 7 7 13 2 7Z" stroke="currentColor" strokeWidth="1.2" />
-                        <circle cx="7" cy="7" r="1.6" fill="currentColor" />
-                      </svg>
-                      <span className="font-medium">{b}</span>
-                    </li>
-                  ))}
-                </ul>
+                {/* الفروع — ومعها الصورة إن وُجدت، فتملأ الفراغ بجانبها */}
+                <div className={`mt-5 ${s.image ? "flex items-center gap-5" : ""}`}>
+                  <ul className="flex-1 space-y-2.5">
+                    {s.branches.map((b) => (
+                      <li key={b} className="flex items-center gap-3 text-sm">
+                        {/* نقطة إعجام مذهّبة */}
+                        <svg viewBox="0 0 14 14" className="size-3.5 shrink-0 text-accent" fill="none" aria-hidden="true">
+                          <path d="M7 1 12 7 7 13 2 7Z" stroke="currentColor" strokeWidth="1.2" />
+                          <circle cx="7" cy="7" r="1.6" fill="currentColor" />
+                        </svg>
+                        <span className="font-medium">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {s.image && (
+                    <span className="relative hidden w-[42%] shrink-0 sm:block">
+                      {/* وسم img عادي لا next/image: الأخير يعيد ترميز الصورة
+                          فيُفقد GIF حركته. والصورة زخرفية فلا نصّ بديل لها. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={mediaSrc(s.image)}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        className="h-auto w-full rounded-2xl object-contain"
+                      />
+                    </span>
+                  )}
+                </div>
 
                 {/* خيط مذهّب يمتدّ عند التمرير */}
                 <span className="mt-6 block h-px w-12 origin-right bg-gradient-to-l from-accent to-transparent transition-all duration-500 group-hover:w-28" />

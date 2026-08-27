@@ -4,12 +4,14 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Moon, Sun, Check, Upload, Save, ExternalLink, Palette, Type, ImageIcon, Frame, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Moon, Sun, Check, Upload, Save, ExternalLink, Palette, Type, ImageIcon, Frame, SlidersHorizontal, Trash2, Layers, Plus } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
 import { ImageStudio } from "@/components/admin/image-studio";
-import { HeroFrame, FRAME_COUNT, FRAME_NAMES } from "@/components/sections/hero-frames";
+import type { StageCard } from "@/lib/types";
+import { HeroFrame } from "@/components/sections/hero-frame";
+import { FRAME_SHAPES, findFrame, DEFAULT_FRAME } from "@/lib/frame-shapes";
 import type { SiteContent, Preset, ColorSpec, ElementStyle } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 
@@ -34,12 +36,27 @@ const PRESETS: { id: Preset; label: string; swatch: string }[] = [
   { id: "rumman", label: "رُمّاني — عنّابي", swatch: "#87263a" },
 ];
 
-type Tab = "identity" | "theme" | "images" | "frame" | "links" | "elements";
+type Tab = "identity" | "theme" | "images" | "frame" | "stages" | "links" | "elements";
+
+/** ألوان جاهزة لإطار الصورة. */
+const FRAME_SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#6b3a1e"];
 
 export default function CustomizePage() {
   /* الصورة تمرّ باستوديو القصّ وإزالة الخلفية قبل الرفع — الهيرو أكثر
      صورة يراها الزائر، فتستحقّ تنظيفاً قبل أن تُنشر. */
   const [studio, setStudio] = useState<{ file: File; target: "avatar" | "logo" } | null>(null);
+
+  /** إعدادات الإطار تعيش داخل hero فتُدمج معه لا تستبدله. */
+  /** المراحل تُحفظ كاملة — مصفوفة تُستبدل لا تُدمج. */
+  const saveStages = (next: StageCard[]) => {
+    set({ stages: next });
+    return saveContent({ stages: next });
+  };
+
+  const saveHero = (patch: Record<string, unknown>) => {
+    set({ hero: { ...form.hero, ...patch } });
+    return saveContent({ hero: { ...content.hero, ...patch } });
+  };
   const { content, db, saveContent, uploadImage, layout, preset, customPrimary, toggleLayout, setPreset, setCustomPrimary } = useContent();
   const googleReady = Boolean(db?.integrations?.google?.connected);
   const [tab, setTab] = useState<Tab>("identity");
@@ -56,7 +73,6 @@ export default function CustomizePage() {
     setForm((f) => ({ ...f, plansSection: { ...(f.plansSection ?? {}), ...patch } }));
   const setHeroImage = (patch: Partial<NonNullable<SiteContent["hero"]["image"]>>) =>
     setForm((f) => ({ ...f, hero: { ...f.hero, image: { ...(f.hero.image ?? {}), ...patch } } }));
-  const pickFrame = (n: number) => { setForm((f) => ({ ...f, hero: { ...f.hero, frame: n } })); void saveContent({ hero: { ...content.hero, frame: n } }); };
   const setUi = (key: string, patch: Partial<ElementStyle>) =>
     setForm((f) => ({ ...f, ui: { ...(f.ui ?? {}), [key]: { ...(f.ui?.[key] ?? {}), ...patch } } }));
 
@@ -92,6 +108,7 @@ export default function CustomizePage() {
         <TabBtn active={tab === "theme"} onClick={() => setTab("theme")} icon={<Palette className="size-4" />}>الألوان والثيم</TabBtn>
         <TabBtn active={tab === "images"} onClick={() => setTab("images")} icon={<ImageIcon className="size-4" />}>الصور والشعار</TabBtn>
         <TabBtn active={tab === "frame"} onClick={() => setTab("frame")} icon={<Frame className="size-4" />}>إطار الصورة</TabBtn>
+        <TabBtn active={tab === "stages"} onClick={() => setTab("stages")} icon={<Layers className="size-4" />}>المراحل والفروع</TabBtn>
         <TabBtn active={tab === "links"} onClick={() => setTab("links")} icon={<ExternalLink className="size-4" />}>الروابط والأزرار</TabBtn>
         <TabBtn active={tab === "elements"} onClick={() => setTab("elements")} icon={<SlidersHorizontal className="size-4" />}>إظهار/إخفاء وألوان</TabBtn>
       </div>
@@ -320,7 +337,14 @@ export default function CustomizePage() {
           <p className="mb-5 text-xs text-muted-foreground">الصورة تظهر كاملة بلا قصّ افتراضياً — حرّكها وكبّرها حتى تستقرّ، والمعاينة تتغيّر فوراً ثم اضغط حفظ.</p>
           <div className="grid gap-6 md:grid-cols-[minmax(0,260px)_1fr]">
             <div className="mx-auto w-full max-w-[240px]">
-              <HeroFrame frame={form.hero.frame ?? 1} avatar={form.teacher.avatar} alt="معاينة" img={form.hero.image} />
+              <HeroFrame
+                frame={form.hero.frameShape ?? form.hero.frame ?? 1}
+                avatar={form.teacher.avatar}
+                alt="معاينة"
+                img={form.hero.image}
+                color={form.hero.frameColor}
+                scale={form.hero.frameScale}
+              />
             </div>
             <div className="grid gap-4 self-center">
               <div>
@@ -362,21 +386,96 @@ export default function CustomizePage() {
           </div>
         </Card>
 
+        {/* ---------- اختيار الإطار: لونه وحجمه وشكله ---------- */}
+        <Card className="mb-5">
+          <h3 className="mb-1 font-display font-extrabold">لون الإطار وحجمه</h3>
+          <p className="mb-4 text-xs text-muted-foreground">
+            اللون يسري على حدّ الإطار وخيطه الداخلي، والحجم يكبّره داخل عموده بلا تغيير نسبة أبعاده.
+          </p>
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <span className="lbl">لون الإطار</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void saveHero({ frameColor: "" })}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition ${
+                    !form.hero.frameColor ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  لون الثيم
+                </button>
+                {FRAME_SWATCH.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={c}
+                    onClick={() => void saveHero({ frameColor: c })}
+                    className={`size-8 rounded-xl border transition ${
+                      form.hero.frameColor?.toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
+                    }`}
+                    style={{ background: c }}
+                  />
+                ))}
+                <label
+                  className="grid size-8 cursor-pointer place-items-center rounded-xl border border-dashed border-border"
+                  style={{ background: form.hero.frameColor || "transparent" }}
+                  title="لون مخصّص"
+                >
+                  <input
+                    type="color"
+                    className="size-0 opacity-0"
+                    value={form.hero.frameColor || "#233b8b"}
+                    onChange={(e) => void saveHero({ frameColor: e.target.value })}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <Slider
+              label="حجم الإطار"
+              value={form.hero.frameScale ?? 100}
+              min={60}
+              max={140}
+              step={1}
+              display={`${(form.hero.frameScale ?? 100).toLocaleString("ar-EG")}٪`}
+              onChange={(v) => void saveHero({ frameScale: v })}
+            />
+          </div>
+        </Card>
+
         <Card>
           <h3 className="mb-1 font-display font-extrabold">اختر تصميم إطار الصورة</h3>
-          <p className="mb-5 text-xs text-muted-foreground">٨ تصاميم بأنيميشنات مختلفة — التغيير يُطبَّق ويُحفظ فوراً.</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {Array.from({ length: FRAME_COUNT }).map((_, i) => {
-              const n = i + 1;
-              const active = (form.hero.frame ?? 1) === n;
+          <p className="mb-5 text-xs text-muted-foreground">
+            {FRAME_SHAPES.length.toLocaleString("ar-EG")} تصميماً — التغيير يُطبَّق ويُحفظ فوراً.
+            هذا هو المكان الوحيد لاختيار الإطار.
+          </p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+            {FRAME_SHAPES.map((x) => {
+              const active = (form.hero.frameShape ?? findFrame(form.hero.frame ?? 1).id) === x.id;
               return (
-                <button key={n} onClick={() => pickFrame(n)}
-                  className={`group rounded-3xl border p-3 text-center transition ${active ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
-                  <div className="relative mx-auto mb-2 h-32 w-full">
-                    <HeroFrame frame={n} avatar={form.teacher.avatar} alt={`frame ${n}`} />
+                <button
+                  key={x.id}
+                  onClick={() => void saveHero({ frameShape: x.id })}
+                  className={`group rounded-3xl border p-3 text-center transition ${
+                    active ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <div className="relative mx-auto mb-2 w-full">
+                    <HeroFrame
+                      frame={x.id}
+                      avatar={form.teacher.avatar}
+                      alt={x.name}
+                      color={form.hero.frameColor}
+                    />
                   </div>
-                  <p className="text-xs font-bold">{n}. {FRAME_NAMES[n]}</p>
-                  {active && <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-primary"><Check className="size-3" /> مُختار</span>}
+                  <p className="truncate text-xs font-bold">{x.name}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  {active && (
+                    <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-primary">
+                      <Check className="size-3" /> مُختار
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -386,6 +485,15 @@ export default function CustomizePage() {
       )}
 
       {/* ---------- الروابط والأزرار ---------- */}
+      {/* ---------- المراحل والفروع ---------- */}
+      {tab === "stages" && (
+        <StagesEditor
+          stages={form.stages ?? []}
+          onChange={saveStages}
+          onUpload={uploadImage}
+        />
+      )}
+
       {tab === "links" && (
         <div className="grid gap-5 lg:grid-cols-2">
           <Card>
@@ -630,5 +738,132 @@ function BgSlider({ label, value, min, max, step, display, onChange }: {
         className="w-full accent-[hsl(var(--primary))]"
       />
     </label>
+  );
+}
+
+/**
+ * محرّر بطاقات المراحل.
+ * الصورة اختيارية وتملأ الفراغ بجانب قائمة الفروع في الصفحة الرئيسية،
+ * وتقبل GIF متحرّكة كما تقبل صورة ساكنة.
+ */
+function StagesEditor({
+  stages,
+  onChange,
+  onUpload,
+}: {
+  stages: StageCard[];
+  onChange: (next: StageCard[]) => Promise<unknown> | void;
+  onUpload: (f: File) => Promise<string | null>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const patch = (id: string, p: Partial<StageCard>) =>
+    onChange(stages.map((s) => (s.id === id ? { ...s, ...p } : s)));
+
+  const add = () =>
+    onChange([
+      ...stages,
+      { id: `st-${Date.now().toString(36)}`, name: "مرحلة جديدة", note: "", branches: ["فرع"], image: "" },
+    ]);
+
+  const remove = (id: string) => onChange(stages.filter((s) => s.id !== id));
+
+  const upload = async (id: string, file: File) => {
+    setBusy(id);
+    const url = await onUpload(file);
+    setBusy(null);
+    if (url) await patch(id, { image: url });
+  };
+
+  return (
+    <div className="grid gap-5">
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-display font-extrabold">المراحل والفروع</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              تظهر في قسم «المراحل» بالصفحة الرئيسية. الصورة تملأ الفراغ بجانب قائمة الفروع.
+            </p>
+          </div>
+          <Button className="px-4 py-2" onClick={add}>
+            <Plus className="size-4" /> إضافة مرحلة
+          </Button>
+        </div>
+      </Card>
+
+      {stages.length === 0 && (
+        <p className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+          لا توجد مراحل — تُعرض القيم الافتراضية. أضِف مرحلة لتتحكّم بها بنفسك.
+        </p>
+      )}
+
+      {stages.map((s) => (
+        <Card key={s.id}>
+          <div className="grid gap-5 lg:grid-cols-[1fr_minmax(0,18rem)]">
+            <div className="grid gap-3">
+              <Field label="اسم المرحلة">
+                <input className="inp" value={s.name} onChange={(e) => patch(s.id, { name: e.target.value })} />
+              </Field>
+              <Field label="سطر توضيحي (اختياري)">
+                <input className="inp" value={s.note ?? ""} onChange={(e) => patch(s.id, { note: e.target.value })} />
+              </Field>
+              <Field label="الفروع — فرع في كل سطر">
+                <textarea
+                  rows={5}
+                  className="inp resize-y"
+                  value={s.branches.join("\n")}
+                  onChange={(e) =>
+                    patch(s.id, { branches: e.target.value.split("\n").map((x) => x.trim()).filter(Boolean) })
+                  }
+                />
+              </Field>
+              <button
+                type="button"
+                onClick={() => remove(s.id)}
+                className="w-fit rounded-full border border-border px-4 py-2 text-xs font-bold text-rose-500 transition hover:border-rose-500"
+              >
+                <Trash2 className="ms-1 inline size-3.5" /> حذف المرحلة
+              </button>
+            </div>
+
+            <div>
+              <span className="lbl">صورة المرحلة (صورة أو GIF متحرّكة)</span>
+              <label className="block cursor-pointer overflow-hidden rounded-2xl border border-dashed border-border p-3 text-center transition hover:border-primary/50">
+                <input
+                  type="file"
+                  accept="image/*,image/gif"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void upload(s.id, f);
+                    e.target.value = "";
+                  }}
+                />
+                {s.image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={mediaSrc(s.image)} alt="" className="mx-auto h-32 w-auto object-contain" />
+                ) : (
+                  <span className="grid h-32 place-items-center text-xs text-muted-foreground">
+                    {busy === s.id ? "جارٍ الرفع…" : "اضغط لرفع صورة أو GIF"}
+                  </span>
+                )}
+              </label>
+              {s.image && (
+                <button
+                  type="button"
+                  onClick={() => patch(s.id, { image: "" })}
+                  className="mt-2 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-rose-500 transition hover:border-rose-500"
+                >
+                  إزالة الصورة
+                </button>
+              )}
+              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                الـGIF يُعرض متحرّكاً كما هو — الصورة تُرفع بلا إعادة ترميز فلا تفقد حركتها.
+              </p>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }

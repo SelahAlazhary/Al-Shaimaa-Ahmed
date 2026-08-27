@@ -117,8 +117,10 @@ export const DEFAULT_ICON_SET: IconSet = "line";
 export type NavColors = {
   /** خلفية اللوح الجانبي. */
   panel?: string;
-  /** لون الأيقونات والعناوين. */
+  /** لون الأيقونات. */
   icon?: string;
+  /** لون نصّ العناوين — مستقلّ عن الأيقونات، فقد يُراد نصّ هادئ وأيقونة بارزة. */
+  text?: string;
   /** لون العنصر النشط ومؤشّره. */
   active?: string;
 };
@@ -128,6 +130,7 @@ export function navColorVars(c: NavColors | undefined): React.CSSProperties {
   const v: Record<string, string> = {};
   if (c?.panel) v["--nav-panel"] = c.panel;
   if (c?.icon) v["--nav-icon"] = c.icon;
+  if (c?.text) v["--nav-text"] = c.text;
   if (c?.active) v["--nav-active"] = c.active;
   return v as React.CSSProperties;
 }
