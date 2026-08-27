@@ -16,6 +16,7 @@ import { EdgeArtLayer } from "@/components/brand/edge-art";
 import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
 import type { FrameShape } from "@/lib/frame-shapes";
 import type { TileStyle, TileColors } from "@/lib/tile-styles";
+import type { ToolbarStyle } from "@/lib/toolbar-styles";
 
 const W = 160;
 const H = 108;
@@ -906,5 +907,111 @@ export function TilePreview({
         <p style={{ color: text, opacity: 0.7, fontSize: "0.6rem", marginTop: 6 }}>متوسّط تقدّمك</p>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة شريط الأدوات                                                */
+/* ------------------------------------------------------------------ */
+
+export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const uid = useUid("tb");
+
+  const H_BAR = bar.height === "compact" ? 14 : bar.height === "tall" ? 24 : 19;
+  const float = bar.surface === "floating";
+  const bx = float ? 5 : 0;
+  const by = float ? 5 : 0;
+  const bw = W - (float ? 10 : 0) - 30; // ٣٠ للشريط الجانبي
+  const ink = bar.surface === "ink";
+
+  const fill =
+    bar.surface === "outline" ? "none"
+      : bar.surface === "glass" ? hsl(v.card, 0.6)
+        : bar.surface === "gradient" ? `url(#${uid}-g)`
+          : ink ? hsl(v.primary)
+            : hsl(v.card);
+
+  const fg = ink ? "#fff" : hsl(v.foreground);
+
+  /* عرض حقل البحث بحسب نمطه */
+  const searchW =
+    bar.search === "none" ? 0 : bar.search === "icon" ? 12 : bar.search === "pill" ? 30 : 52;
+
+  const actN = 3;
+  const actW = 9;
+  const actGap = bar.grouped ? 1.5 : 3;
+  const actTotal = actN * actW + (actN - 1) * actGap + (bar.grouped ? 4 : 0);
+  const actX = bx + 5;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={`${uid}-g`} x1={bx} y1="0" x2={bx + bw} y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={hsl(v.card)} />
+          <stop offset="100%" stopColor={hsl(v.muted)} />
+        </linearGradient>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* شريط جانبي — سياق يوضّح موضع التول بار */}
+      <rect x={W - 30} y="0" width="30" height={H} fill={hsl(v.primary)} opacity={0.9} />
+
+      {/* الشريط */}
+      <rect
+        x={bx} y={by} width={bw} height={H_BAR}
+        rx={float ? 5 : 0}
+        fill={fill}
+        stroke={bar.surface === "outline" ? "none" : "none"}
+      />
+
+      {/* الفاصل السفلي */}
+      {bar.edge === "line" && (
+        <path d={`M${bx} ${by + H_BAR} H${bx + bw}`} stroke={hsl(v.border)} strokeWidth="1" />
+      )}
+      {bar.edge === "gold" && (
+        <path d={`M${bx} ${by + H_BAR - 0.8} H${bx + bw}`} stroke={hsl(v.gold, 0.75)} strokeWidth="1.6" />
+      )}
+      {bar.edge === "shadow" && (
+        <rect x={bx} y={by + H_BAR} width={bw} height="3" fill={hsl(v.primary, 0.12)} />
+      )}
+
+      {/* الأزرار */}
+      {bar.grouped && (
+        <rect
+          x={actX - 2} y={by + H_BAR / 2 - actW / 2 - 2}
+          width={actTotal} height={actW + 4} rx={(actW + 4) / 2}
+          fill={ink ? "#fff" : hsl(v.muted)} opacity={ink ? 0.15 : 1}
+        />
+      )}
+      {Array.from({ length: actN }).map((_, i) => (
+        <circle
+          key={i}
+          cx={actX + actW / 2 + i * (actW + actGap)}
+          cy={by + H_BAR / 2}
+          r={actW / 2 - 1}
+          fill={fg}
+          opacity={i === actN - 1 ? 0.9 : 0.45}
+        />
+      ))}
+
+      {/* حقل البحث */}
+      {bar.search !== "none" && (
+        <>
+          <rect
+            x={bx + bw - searchW - 5} y={by + H_BAR / 2 - 4}
+            width={searchW} height="8" rx="4"
+            fill={ink ? "#fff" : hsl(v.background)} opacity={ink ? 0.15 : 1}
+            stroke={hsl(v.border)} strokeWidth={ink ? 0 : 0.7}
+          />
+          <circle cx={bx + bw - 9} cy={by + H_BAR / 2} r="1.6" fill={fg} opacity={0.5} />
+        </>
+      )}
+
+      {/* محتوى الصفحة تحت الشريط */}
+      <rect x={bx + 5} y={by + H_BAR + 7} width={bw - 10} height="20" rx="3" fill={hsl(v.card)} />
+      <rect x={bx + 5} y={by + H_BAR + 31} width={bw - 10} height="26" rx="3" fill={hsl(v.card)} />
+    </svg>
   );
 }

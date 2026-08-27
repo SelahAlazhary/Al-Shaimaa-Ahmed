@@ -955,6 +955,73 @@ body {
 .student-skin aside nav a .sn-keep { font-weight: 700; }
 
 /* ============================================================
+   شريط الأدوات العلوي (التول بار)
+   ============================================================ */
+
+/* ---------- السطح ---------- */
+.tb-surface-glass .app-body > header {
+  background: hsl(var(--card) / 0.6) !important;
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+.tb-surface-outline .app-body > header { background: transparent !important; }
+.tb-surface-gradient .app-body > header {
+  background: linear-gradient(100deg, hsl(var(--card)), hsl(var(--muted))) !important;
+}
+.tb-surface-floating .app-body > header {
+  margin: 0.75rem;
+  border-radius: 1.25rem;
+  border-bottom: 0 !important;
+  box-shadow: 0 14px 34px -22px hsl(var(--primary) / 0.8);
+}
+.tb-surface-ink .app-body > header {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground));
+  border-bottom-color: transparent !important;
+}
+.tb-surface-ink .app-body > header input { color: inherit; }
+.tb-surface-ink .app-body > header input::placeholder { color: hsl(var(--primary-foreground) / 0.6); }
+.tb-surface-ink .app-body > header .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.75) !important; }
+
+/* ---------- الفاصل السفلي ---------- */
+.tb-edge-none .app-body > header { border-bottom-color: transparent !important; }
+.tb-edge-shadow .app-body > header {
+  border-bottom-color: transparent !important;
+  box-shadow: 0 10px 24px -18px hsl(var(--primary) / 0.7);
+}
+.tb-edge-gold .app-body > header {
+  border-bottom: 0 !important;
+  box-shadow: inset 0 -1.5px 0 hsl(var(--gold) / 0.55);
+}
+
+/* ---------- الارتفاع ---------- */
+.tb-height-compact .app-body > header { padding-block: 0.4rem; }
+.tb-height-tall .app-body > header { padding-block: 1rem; }
+
+/* ---------- حقل البحث ---------- */
+.tb-search-none .app-body > header .tb-search { display: none; }
+.tb-search-pill .app-body > header .tb-search { max-width: 12rem; }
+.tb-search-icon .app-body > header .tb-search {
+  max-width: 2.75rem;
+  transition: max-width 0.25s ease;
+}
+.tb-search-icon .app-body > header .tb-search:focus-within { max-width: 20rem; }
+.tb-search-icon .app-body > header .tb-search input { cursor: pointer; }
+.tb-search-icon .app-body > header .tb-search input:focus { cursor: text; }
+
+/* ---------- أزرار مجمّعة في كبسولة ---------- */
+.tb-grouped .app-body > header .tb-actions {
+  gap: 0.15rem;
+  padding: 0.2rem;
+  border-radius: 9999px;
+  background: hsl(var(--muted) / 0.7);
+  box-shadow: inset 0 0 0 1px hsl(var(--gold) / 0.25);
+}
+.tb-surface-ink.tb-grouped .app-body > header .tb-actions {
+  background: hsl(var(--primary-foreground) / 0.12);
+}
+
+/* ============================================================
    بطاقات المؤشّرات — قسم مستقلّ عن الثيم
    ------------------------------------------------------------
    كل لون فارغ لا يُكتب متغيّراً، فتسقط القاعدة وترث البطاقة لون

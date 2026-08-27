@@ -8,7 +8,7 @@
  * الاختيار يُحفظ فوراً ويسري على كل الطلاب.
  */
 import { useState } from "react";
-import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop } from "lucide-react";
+import { Check, Loader2, Palette, LayoutGrid, Home, Smartphone, Shapes, RotateCcw, PanelRight, Menu, LayoutPanelTop, PanelTop } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import {
@@ -18,8 +18,9 @@ import {
 } from "@/lib/skins";
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
-  SideNavPreview, DockPreview, FramePreview, TilePreview,
+  SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview,
 } from "@/components/admin/skin-preview";
+import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, type ToolbarStyle } from "@/lib/toolbar-styles";
 import { TILE_STYLES, findTile, DEFAULT_TILE, type TileStyle } from "@/lib/tile-styles";
 import { DEFAULT_FRAME } from "@/lib/frame-shapes";
 import {
@@ -33,7 +34,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "dock" | "mobile" | "home";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home";
 
 export default function AppearancePage() {
   const { content, saveContent } = useContent();
@@ -46,6 +47,7 @@ export default function AppearancePage() {
   const mobile = findMobile(content.studentMobile);
   const design = findDesign(content.studentDesign);
   const tile = findTile(content.tileStyle);
+  const bar = findToolbar(content.toolbarStyle);
   const tileColors = content.tileColors ?? {};
   const side = findSideNav(content.sideNav);
   const dock = findDock(content.dockStyle);
@@ -103,6 +105,11 @@ export default function AppearancePage() {
         Object.values(navColors).every((v) => !v),
       patch: () => ({ sideNav: DEFAULT_SIDE_NAV, navIcons: DEFAULT_ICON_SET, navColors: {} }),
     },
+    bar: {
+      label: "شريط الأدوات",
+      isDefault: bar.id === DEFAULT_TOOLBAR,
+      patch: () => ({ toolbarStyle: DEFAULT_TOOLBAR }),
+    },
     dock: {
       label: "القائمة السفلية",
       isDefault: dock.id === DEFAULT_DOCK,
@@ -158,6 +165,12 @@ export default function AppearancePage() {
   const pickDock = async (x: DockStyle) => {
     setBusy(x.id);
     await saveContent({ dockStyle: x.id });
+    setBusy(null);
+  };
+
+  const pickBar = async (x: ToolbarStyle) => {
+    setBusy(x.id);
+    await saveContent({ toolbarStyle: x.id });
     setBusy(null);
   };
 
@@ -235,6 +248,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "side"} onClick={() => setTab("side")} icon={<PanelRight className="size-4" />}>
           القائمة الجانبية ({SIDE_NAV_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "bar"} onClick={() => setTab("bar")} icon={<PanelTop className="size-4" />}>
+          شريط الأدوات ({TOOLBAR_STYLES.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "dock"} onClick={() => setTab("dock")} icon={<Menu className="size-4" />}>
           القائمة السفلية ({DOCK_STYLES.length.toLocaleString("ar-EG")})
@@ -530,6 +546,40 @@ export default function AppearancePage() {
                 }`}
               >
                 <SideNavPreview nav={x} skin={skin} />
+                <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{x.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                  </div>
+                  {busy === x.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : on ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" />
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "bar" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {TOOLBAR_STYLES.map((x) => {
+            const on = x.id === bar.id;
+            return (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => pickBar(x)}
+                disabled={busy !== null}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                  on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                }`}
+              >
+                <ToolbarPreview bar={x} skin={skin} />
                 <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{x.name}</p>

@@ -164,7 +164,7 @@ export function DashboardShell({
 
           {/* موبايل: الهوية · سطح المكتب: بحث سريع */}
           <span className="lg:hidden"><Brand role={role} /></span>
-          <div className="relative hidden max-w-sm flex-1 sm:block">
+          <div className="tb-search relative hidden w-full max-w-sm flex-1 sm:block">
             <IconSearch className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               placeholder="بحث سريع…"
@@ -172,7 +172,7 @@ export function DashboardShell({
             />
           </div>
 
-          <div className="mr-auto flex items-center gap-2">
+          <div className="tb-actions mr-auto flex items-center gap-2">
             {content.showThemeToggle && (
               <button onClick={toggleView} aria-label="تبديل المظهر" className="btn-foil grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
                 {viewLayout === "dark" ? <IconSun className="size-5" /> : <IconMoon className="size-5" />}

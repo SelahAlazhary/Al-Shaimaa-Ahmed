@@ -216,6 +216,7 @@ export type SiteContent = {
   navIcons?: string;
   navColors?: { panel?: string; icon?: string; text?: string; active?: string };
   /** تصميم بطاقات المؤشّرات وألوانها — مستقلّ عن الثيم. */
+  toolbarStyle?: string;
   tileStyle?: string;
   tileColors?: { bg?: string; bg2?: string; text?: string; icon?: string; accent?: string };
 
