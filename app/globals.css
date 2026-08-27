@@ -1539,3 +1539,146 @@ body {
   .group:hover .ico-turn  { animation: ico-spin 1.1s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; transform-box: fill-box; }
   .group:hover .ico-jump  { animation: ico-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: center; transform-box: fill-box; }
 }
+
+/* ============================================================
+   بوّابة الدفع — عشرون هيئة
+   ------------------------------------------------------------
+   أربعة محاور مستقلّة: سطح البطاقة · ترتيب الطرق · مؤشّر الخطوات ·
+   بروز بيانات التحويل. كل محور يُعرَّف مرّة، والتركيب يأتي من الأصناف
+   لا من نسخ متكرّرة.
+
+   الألوان تمرّ عبر ‎--pg-*‎، والفارغ منها لا يُكتب فترث البوّابة لون
+   الثيم — فلا يُجبر ضبطُ لون على ضبط البقية.
+   ============================================================ */
+.pay-gate {
+  --pg-a: var(--pg-accent, hsl(var(--primary)));
+  --pg-c: var(--pg-bg, hsl(var(--card)));
+  color: var(--pg-text, inherit);
+}
+
+/* ---------- سطح بطاقات الطرق ---------- */
+.pay-method {
+  position: relative;
+  transition: box-shadow 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.pg-surface-solid .pay-method {
+  background: var(--pg-c);
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  border-radius: 1rem;
+}
+.pg-surface-glass .pay-method {
+  background: color-mix(in srgb, var(--pg-c) 55%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.7);
+  border-radius: 1.1rem;
+}
+.pg-surface-outline .pay-method {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--border));
+  border-radius: 0.9rem;
+}
+.pg-surface-soft .pay-method {
+  background: var(--pg-c);
+  box-shadow: 0 10px 26px -18px hsl(var(--primary) / 0.9);
+  border-radius: 1.25rem;
+}
+.pg-surface-plaque .pay-method {
+  background: var(--pg-c);
+  box-shadow: inset 0 0 0 1px hsl(var(--gold) / 0.45);
+  border-radius: 0;
+  clip-path: polygon(
+    0.7rem 0, calc(100% - 0.7rem) 0, 100% 0.7rem,
+    100% calc(100% - 0.7rem), calc(100% - 0.7rem) 100%,
+    0.7rem 100%, 0 calc(100% - 0.7rem), 0 0.7rem
+  );
+  padding-inline: 1.15rem;
+}
+
+/* المختارة — الحلقة الملوّنة تكفي، فلا يتغيّر المقاس عند الاختيار */
+.pay-method[data-on="1"] {
+  box-shadow: inset 0 0 0 2px var(--pg-a);
+  background: color-mix(in srgb, var(--pg-a) 8%, var(--pg-c));
+}
+.pg-surface-outline .pay-method[data-on="1"] { background: color-mix(in srgb, var(--pg-a) 8%, transparent); }
+
+/* ---------- ترتيب الطرق ---------- */
+.pay-methods { display: grid; gap: 0.65rem; }
+.pg-list-grid .pay-methods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pg-list-grid .pay-method { flex-direction: column; align-items: flex-start; text-align: start; }
+.pg-list-tabs .pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pg-list-tabs .pay-method {
+  flex: 1 1 8rem;
+  border-radius: 9999px;
+  padding-block: 0.6rem;
+}
+.pg-list-tabs .pay-method .pay-method-note { display: none; }
+.pg-list-compact .pay-methods { gap: 0.4rem; }
+.pg-list-compact .pay-method { padding-block: 0.55rem; }
+.pg-list-compact .pay-method .pay-method-icon { width: 1.75rem; height: 1.75rem; }
+.pg-list-compact .pay-method .pay-method-note { display: none; }
+
+/* ---------- مؤشّر الخطوات ---------- */
+.pay-steps { display: flex; align-items: center; gap: 0.4rem; }
+.pay-step { transition: background 0.2s ease, width 0.2s ease; }
+.pg-steps-none .pay-steps { display: none; }
+.pg-steps-dots .pay-step {
+  width: 0.45rem; height: 0.45rem; border-radius: 9999px;
+  background: hsl(var(--border));
+}
+.pg-steps-dots .pay-step[data-on="1"] { width: 1.4rem; background: var(--pg-a); }
+.pg-steps-bar .pay-steps { gap: 0.25rem; }
+.pg-steps-bar .pay-step {
+  flex: 1; height: 0.25rem; border-radius: 9999px;
+  background: hsl(var(--border));
+}
+.pg-steps-bar .pay-step[data-on="1"] { background: var(--pg-a); }
+.pg-steps-numbers .pay-step {
+  display: grid; place-items: center;
+  width: 1.5rem; height: 1.5rem; border-radius: 9999px;
+  font-size: 0.7rem; font-weight: 800;
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+.pg-steps-numbers .pay-step[data-on="1"] { background: var(--pg-a); color: #fff; }
+.pg-steps-dots .pay-step-num,
+.pg-steps-bar .pay-step-num { display: none; }
+
+/* ---------- بيانات التحويل ---------- */
+.pay-details { border-radius: 1rem; padding: 0.9rem 1rem; }
+.pg-details-card .pay-details {
+  background: color-mix(in srgb, var(--pg-a) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pg-a) 35%, transparent);
+}
+.pg-details-mono .pay-details {
+  background: hsl(var(--muted));
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+}
+.pg-details-mono .pay-value {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+}
+.pg-details-ticket .pay-details {
+  background: var(--pg-c);
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  border-radius: 0;
+  /* حزّان جانبيان كتذكرة — قصّ لا حدّ، فيصمد مع أي ارتفاع */
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% calc(50% - 0.5rem), calc(100% - 0.32rem) 50%, 100% calc(50% + 0.5rem),
+    100% 100%, 0 100%,
+    0 calc(50% + 0.5rem), 0.32rem 50%, 0 calc(50% - 0.5rem)
+  );
+  padding-inline: 1.4rem;
+}
+.pg-details-plain .pay-details {
+  background: transparent;
+  padding-inline: 0;
+  box-shadow: inset 0 -1px 0 hsl(var(--border));
+  border-radius: 0;
+}
+

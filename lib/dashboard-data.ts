@@ -10,6 +10,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/grades", label: "الصفوف", icon: "Layers" },
   { href: "/admin/subjects", label: "المواد", icon: "BookOpen" },
   { href: "/admin/plans", label: "الخطط", icon: "Wallet" },
+  { href: "/admin/payments", label: "بوّابة الدفع", icon: "Wallet" },
   { href: "/admin/codes", label: "أكواد التفعيل", icon: "KeyRound" },
   { href: "/admin/exams", label: "الاختبارات", icon: "FileCheck2" },
   { href: "/admin/live", label: "البث المباشر", icon: "Radio" },

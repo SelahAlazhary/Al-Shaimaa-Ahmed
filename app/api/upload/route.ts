@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { recordEvent } from "@/lib/security";
 import { getDB, loadDB } from "@/lib/db";
 import { googleStatus, uploadToDrive } from "@/lib/google";
+import { limit } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,6 +19,9 @@ const ALLOWED_EXT = new Set([
   "pdf","doc","docx","ppt","pptx","xls","xlsx","txt","zip","rar","mp3","m4a", // مستندات/صوت
 ]);
 const MAX_SIZE = 500 * 1024 * 1024; // 500MB (يتّسع للفيديوهات)
+/** إيصال الطالب صورة واحدة لا مكتبة وسائط — حدّ أضيق وصيغ أقلّ. */
+const RECEIPT_MAX = 8 * 1024 * 1024;
+const RECEIPT_EXT = new Set(["png", "jpg", "jpeg", "webp", "gif", "avif", "heic", "heif"]);
 
 /**
  * POST: رفع صورة/فيديو/ملف — للأدمن فقط.
@@ -27,23 +31,49 @@ const MAX_SIZE = 500 * 1024 * 1024; // 500MB (يتّسع للفيديوهات)
 export async function POST(req: Request) {
   await loadDB();
   const session = await getSession();
-  if (!session || session.role !== "admin") {
+  const form = await req.formData();
+  const file = form.get("file");
+  /*
+    الطالب يرفع إيصال تحويله وحده: صورة واحدة صغيرة بصيغ صور فقط
+    ومعدّل محدود. أي شيء غير ذلك يبقى للأدمن كما كان — فتح المسار
+    للطلاب على مصراعيه يجعل المنصّة مستضيفَ ملفات لأي مسجَّل.
+  */
+  const receipt = String(form.get("purpose") ?? "") === "receipt";
+
+  if (receipt) {
+    if (!session || session.role !== "student") {
+      return NextResponse.json({ error: "سجّل الدخول كطالب أولاً" }, { status: 401 });
+    }
+    const gate = limit(`receipt:${session.uid}`, 12, 10 * 60_000, 20 * 60_000);
+    if (!gate.ok) {
+      return NextResponse.json({ error: "محاولات رفع كثيرة — انتظر قليلاً" }, { status: 429 });
+    }
+  } else if (!session || session.role !== "admin") {
     await recordEvent("unauthorized_admin", new URL(req?.url ?? "http://x/").pathname);
     return NextResponse.json({ error: "غير مصرّح" }, { status: 401 });
   }
 
-  const form = await req.formData();
-  const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "لا يوجد ملف" }, { status: 400 });
   }
   const ext = (file.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const isMedia = (file.type || "").startsWith("image/") || (file.type || "").startsWith("video/") || (file.type || "").startsWith("audio/");
-  if (!isMedia && !ALLOWED_EXT.has(ext)) {
-    return NextResponse.json({ error: "نوع ملف غير مدعوم" }, { status: 415 });
-  }
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "الحجم أكبر من 500 ميجابايت" }, { status: 413 });
+  const isImage = (file.type || "").startsWith("image/");
+  const isMedia = isImage || (file.type || "").startsWith("video/") || (file.type || "").startsWith("audio/");
+
+  if (receipt) {
+    if (!isImage && !RECEIPT_EXT.has(ext)) {
+      return NextResponse.json({ error: "أرفق صورة للإيصال" }, { status: 415 });
+    }
+    if (file.size > RECEIPT_MAX) {
+      return NextResponse.json({ error: "حجم الصورة أكبر من ٨ ميجابايت" }, { status: 413 });
+    }
+  } else {
+    if (!isMedia && !ALLOWED_EXT.has(ext)) {
+      return NextResponse.json({ error: "نوع ملف غير مدعوم" }, { status: 415 });
+    }
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: "الحجم أكبر من 500 ميجابايت" }, { status: 413 });
+    }
   }
 
   // ---- الوجهة: Google Drive (في الخلفية) ----

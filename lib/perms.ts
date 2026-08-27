@@ -14,6 +14,7 @@ export type AdminPerm =
   | "students"
   | "subjects"
   | "plans"
+  | "payments"
   | "codes"
   | "exams"
   | "live"
@@ -33,6 +34,7 @@ export const PERMS: { key: AdminPerm; label: string; hint: string }[] = [
   { key: "students", label: "الطلاب", hint: "الحسابات، الاشتراكات، السماح بجهاز جديد" },
   { key: "subjects", label: "المواد والصفوف", hint: "إضافة المواد والدروس والفيديوهات" },
   { key: "plans", label: "الخطط", hint: "خطط الاشتراك والأسعار والخصومات" },
+  { key: "payments", label: "بوّابة الدفع", hint: "طرق الدفع وطلبات التحويل وبوت تليجرام" },
   { key: "codes", label: "أكواد التفعيل", hint: "توليد الأكواد ومتابعة استخدامها" },
   { key: "exams", label: "الاختبارات", hint: "بناء الاختبارات ومراجعة النتائج" },
   { key: "live", label: "البث المباشر", hint: "إنشاء الجلسات وتحديد من يشاهدها" },
@@ -83,6 +85,7 @@ export function permForPath(href: string): AdminPerm | null {
     "/admin/subjects": "subjects",
     "/admin/courses": "subjects",
     "/admin/plans": "plans",
+    "/admin/payments": "payments",
     "/admin/codes": "codes",
     "/admin/exams": "exams",
     "/admin/live": "live",
@@ -112,6 +115,7 @@ export function permForDbKey(key: string): AdminPerm {
     grades: "subjects",
     students: "students",
     plans: "plans",
+    payments: "payments",
     codes: "codes",
     exams: "exams",
     live: "live",
@@ -120,4 +124,26 @@ export function permForDbKey(key: string): AdminPerm {
     youtube: "youtube",
   };
   return map[key] ?? "customize";
+}
+
+/**
+ * مفاتيح المحتوى التي يملكها قسم «المظهر والتخطيط».
+ * ------------------------------------------------------------------
+ * كل شيء في `content` كان يتطلّب صلاحية «تخصيص الموقع»، فمشرفٌ يملك
+ * «المظهر» وحده كان يرى الشاشة ثم يُرفض كل حفظ فيها — إذن معطّل عملياً.
+ * هذه القائمة تفصل ما يخصّ المظهر فيُفحص بصلاحيته هو.
+ */
+const APPEARANCE_KEYS = new Set([
+  "studentSkin", "studentLayout", "studentMobile", "studentDesign",
+  "sideNav", "dockStyle", "navIcons", "navColors",
+  "tileStyle", "tileColors", "tileArt",
+  "toolbarStyle", "heroStyle", "plansStyle", "homeLayout",
+  "showThemeToggle",
+]);
+
+/** الصلاحية اللازمة لتعديل مفاتيح المحتوى المذكورة. */
+export function permForContentKeys(keys: string[]): AdminPerm {
+  return keys.length > 0 && keys.every((k) => APPEARANCE_KEYS.has(k))
+    ? "appearance"
+    : "customize";
 }

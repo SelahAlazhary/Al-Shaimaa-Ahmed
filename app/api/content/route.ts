@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getScopedDB, getPublicDB, getDB, patchDB, publicIntegrations, loadDB, flushDB } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { recordEvent } from "@/lib/security";
-import { can, permForDbKey } from "@/lib/perms";
+import { can, permForDbKey, permForContentKeys } from "@/lib/perms";
 import type { DB } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,14 @@ export async function PUT(req: Request) {
    */
   const me = getDB().users.find((u) => u.id === session.uid);
   const touched = Object.keys(patch).filter((k) => k !== "users" && k !== "integrations");
-  const missing = touched.filter((k) => !can(me, permForDbKey(k)));
+  /**
+   * `content` ليس قسماً واحداً: مفاتيح المظهر يملكها «المظهر والتخطيط»
+   * وما عداها «تخصيص الموقع» — وإلا رأى مشرفُ المظهر شاشتَه ثم رُفض
+   * كل حفظ فيها.
+   */
+  const missing = touched.filter((k) =>
+    !can(me, k === "content" ? permForContentKeys(Object.keys(patch.content ?? {})) : permForDbKey(k))
+  );
   if (missing.length) {
     await recordEvent("perm_denied", `تعديل بلا صلاحية: ${missing.join("، ")}`, { userId: me?.id, username: me?.username });
     return NextResponse.json({ error: "ليست لديك صلاحية تعديل هذا القسم" }, { status: 403 });
@@ -54,6 +61,7 @@ export async function PUT(req: Request) {
       support: { ...(current.support ?? {}), ...(patch.content.support ?? {}) },
       plansSection: { ...(current.plansSection ?? {}), ...(patch.content.plansSection ?? {}) },
       background: { ...(current.background ?? {}), ...(patch.content.background ?? {}) },
+      payments: { ...(current.payments ?? {}), ...(patch.content.payments ?? {}) },
     };
   }
   const next = patchDB(patch);

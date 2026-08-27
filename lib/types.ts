@@ -225,6 +225,9 @@ export type SiteContent = {
   /** صورة داخل بطاقة المؤشّر — زينة خلف الرقم لا محتوى. */
   tileArt?: { image?: string; mode?: "cover" | "corner" | "side" | "strip" | "badge"; opacity?: number; blur?: number };
 
+  /** بوّابة الدفع — طرقها وبياناتها وتصميمها. */
+  payments?: PaymentsConfig;
+
   /**
    * زرّ تبديل الفاتح/الداكن.
    * مخفيّ افتراضياً: المظهر قرار هوية تضبطه الإدارة، وإظهار الزرّ يجعل
@@ -575,12 +578,16 @@ export type Integrations = {
   backups?: BackupEntry[];
   /** مفتاح YouTube Data API — سرّ يُحفظ على الخادم ولا يُرسل للواجهة إطلاقاً. */
   youtubeApiKey?: string;
+  /** بوت تليجرام — التوكن سرّ لا يُرسل للواجهة إطلاقاً. */
+  telegram?: TelegramIntegration;
 };
 /** ما يُسمح بإرساله للواجهة عن التكاملات (بلا أي رموز). */
 export type PublicIntegrations = {
   google?: { connected: boolean; email?: string; connectedAt?: string; configured: boolean };
   /** هل مفتاح يوتيوب مضبوط؟ (وجوده فقط — لا قيمته) */
   youtubeApiKey?: boolean;
+  /** حالة بوت تليجرام — بلا توكن: وجوده ومعرّف المحادثة واسمه فقط. */
+  telegram?: { configured: boolean; enabled: boolean; chatId?: string; username?: string; webhookSetAt?: string };
 };
 
 /* ---------- قناة يوتيوب ---------- */
@@ -643,6 +650,100 @@ export type SecurityEvent = {
 export type SecurityBan = { ip: string; until: string; reason: string; at: string };
 
 /* ---------- قاعدة البيانات الكاملة ---------- */
+
+/* ------------------------------------------------------------------ */
+/*  بوّابة الدفع                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * نوع طريقة الدفع — يحدّد أيقونتها وشكل بياناتها ونصّ تعليماتها.
+ * ليس مجرّد تسمية: المحفظة تُنسَّق رقماً، والبنك يُنسَّق حساباً واسم بنك،
+ * والرابط يُفتح، فلا يصحّ أن يُعرض الثلاثة بالقالب نفسه.
+ */
+export type PayMethodKind =
+  | "wallet"    // محفظة هاتف (فودافون كاش · اتصالات كاش · أورنج · وي)
+  | "bank"      // حساب بنكي / IBAN
+  | "instapay"  // إنستاباي
+  | "fawry"     // فوري
+  | "link"      // رابط دفع خارجي
+  | "other";    // غير ذلك
+
+export type PayMethod = {
+  id: string;
+  kind: PayMethodKind;
+  name: string;        // «فودافون كاش»
+  holder?: string;     // اسم صاحب الحساب
+  number: string;      // الرقم / الـIBAN / الرابط
+  extra?: string;      // بيانات إضافية (اسم البنك، رقم الحساب، الفرع…)
+  note?: string;       // تعليمات يراها الطالب
+  logo?: string;       // شعار مرفوع (اختياري)
+  color?: string;      // لون البطاقة (HEX) — فارغ = لون الثيم
+  active: boolean;     // معطّلة لا تظهر للطالب
+  order?: number;
+};
+
+/** حالة طلب الدفع. */
+export type PayRequestStatus = "pending" | "approved" | "rejected";
+
+/**
+ * طلب دفع من طالب.
+ * لقطة كاملة وقت الطلب (الاسم والسعر واسم الخطة) لا مراجع فقط — فلو
+ * حُذفت الخطة أو تغيّر سعرها بقي الطلب مفهوماً كما قُدّم.
+ */
+export type PayRequest = {
+  id: string;
+  at: string;
+  userId: string;
+  student: string;
+  phone?: string;
+  grade?: string;
+  track?: string;
+  planId: string;
+  planName: string;
+  subjectId?: string;
+  subjectName?: string;
+  amount: number;
+  methodId: string;
+  methodName: string;
+  senderName?: string;   // اسم/رقم المُحوِّل كما كتبه الطالب
+  senderRef?: string;    // رقم العملية
+  receipt?: string;      // صورة التحويل
+  note?: string;         // ملاحظة الطالب
+  status: PayRequestStatus;
+  code?: string;         // كود التفعيل الصادر عند القبول
+  reason?: string;       // سبب الرفض
+  handledAt?: string;
+  handledBy?: string;
+  /** حالة الإرسال لبوت تليجرام — تُعرض في اللوحة فيُعرف إن فشل التنبيه. */
+  telegram?: "sent" | "failed" | "off";
+  readByAdmin?: boolean;
+};
+
+/** إعدادات البوّابة — بياناتها ونصوصها وشروطها. */
+export type PaymentsConfig = {
+  enabled?: boolean;         // مطفأة = يبقى الشراء عبر واتساب كما كان
+  methods?: PayMethod[];
+  title?: string;
+  desc?: string;
+  note?: string;             // تنبيه أسفل البوّابة
+  requireReceipt?: boolean;  // إلزام صورة التحويل (افتراضي: نعم)
+  requireSender?: boolean;   // إلزام اسم/رقم المُحوِّل
+  autoCode?: boolean;        // توليد كود التفعيل تلقائياً عند القبول
+  style?: string;            // تصميم البوّابة (lib/pay-styles.ts)
+  colors?: { bg?: string; accent?: string; text?: string };
+};
+
+/** تكامل بوت تليجرام — التوكن سرّ لا يغادر الخادم. */
+export type TelegramIntegration = {
+  token?: string;
+  chatId?: string;
+  /** سرّ ترويسة الويبهوك — يمنع أن يُطعِم أحدٌ البوتَ تحديثات مزوّرة. */
+  webhookSecret?: string;
+  webhookSetAt?: string;
+  username?: string;         // @اسم البوت (للعرض)
+  enabled?: boolean;
+};
+
 export type DB = {
   integrations?: Integrations;
   security?: { events: SecurityEvent[]; bans: SecurityBan[] };
@@ -657,6 +758,8 @@ export type DB = {
   live: Live[];
   tickets: Ticket[];
   notifications: Notification[];
+  /** طلبات الدفع الواردة من الطلاب. */
+  payments?: PayRequest[];
   users: User[];
 };
 

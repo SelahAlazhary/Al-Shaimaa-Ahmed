@@ -535,6 +535,8 @@ export function getScopedDB(session: Scope): PublicDB {
       notifications,
       plans: db.plans,
       youtube: undefined, // قسم القناة إداري بحت
+      // طلبات الدفع: طلباتُه وحده — لا يرى تحويلات غيره ولا أرقامهم
+      payments: (db.payments ?? []).filter((p) => p.userId === me.id),
       codes: [],
       tickets: [],
       students: [],
@@ -546,9 +548,19 @@ export function getScopedDB(session: Scope): PublicDB {
 
   // زائر
   const { videoUrl, ...cta } = db.content.cta ?? {};
+  /*
+    أرقام التحويل تُعطى لمن يدفع لا لمن يمرّ: الزائر يرى أن البوّابة
+    موجودة ولا يرى رقماً واحداً منها، فلا تُحصَد الأرقام من الصفحة.
+  */
+  const payCfg = db.content.payments;
   return {
     ...db,
-    content: { ...db.content, cta: { ...cta, videoUrl: "" } },
+    payments: [],
+    content: {
+      ...db.content,
+      ...(payCfg ? { payments: { ...payCfg, methods: [] } } : {}),
+      cta: { ...cta, videoUrl: "" },
+    },
     plans: db.plans.filter((p) => p.visible),
     youtube: undefined,
     // أسماء الصفوف فقط (تلزم قائمة التسجيل) — بلا أعداد الطلاب أو المواد

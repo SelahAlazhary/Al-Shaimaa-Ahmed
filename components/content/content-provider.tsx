@@ -23,7 +23,7 @@ type Ctx = {
   loading: boolean;
   session: Session;
   refresh: () => Promise<void>;
-  save: (patch: Partial<PublicDB>) => Promise<boolean>;
+  save: (patch: DBPatch) => Promise<boolean>;
   saveContent: (patch: Partial<SiteContent>) => Promise<boolean>;
   uploadImage: (file: File) => Promise<string | null>;
   logout: () => Promise<void>;
@@ -72,6 +72,26 @@ function applyTheme(theme: Theme, effectiveLayout: Layout) {
     root.style.removeProperty("--accent");
     root.style.removeProperty("--glow");
   }
+}
+
+
+/** تعديل جزئي — المحتوى وحده يُقبل ناقصاً لأن الخادم يدمجه بما عنده. */
+export type DBPatch = Partial<Omit<PublicDB, "content">> & { content?: Partial<SiteContent> };
+
+/** الكائنات المتداخلة تُدمج لا تُستبدَل — وإلا ضاعت حقولها غير المذكورة. */
+function mergeContent(current: SiteContent, patch: Partial<SiteContent>): SiteContent {
+  return {
+    ...current,
+    ...patch,
+    teacher: { ...current.teacher, ...(patch.teacher ?? {}) },
+    theme: { ...current.theme, ...(patch.theme ?? {}) },
+    hero: { ...current.hero, ...(patch.hero ?? {}) },
+    cta: { ...(current.cta ?? {}), ...(patch.cta ?? {}) },
+    support: { ...(current.support ?? {}), ...(patch.support ?? {}) },
+    plansSection: { ...(current.plansSection ?? {}), ...(patch.plansSection ?? {}) },
+    background: { ...(current.background ?? {}), ...(patch.background ?? {}) },
+    payments: { ...(current.payments ?? {}), ...(patch.payments ?? {}) },
+  };
 }
 
 export function ContentProvider({
@@ -124,8 +144,18 @@ export function ContentProvider({
     });
   }, [content.theme.layout]);
 
-  const save = useCallback(async (patch: Partial<PublicDB>) => {
-    setDb((prev) => (prev ? ({ ...prev, ...patch } as PublicDB) : prev)); // تحديث متفائل
+  const save = useCallback(async (patch: DBPatch) => {
+    /*
+      تحديث متفائل بدمج عميق لكائن المحتوى — يطابق ما يفعله الخادم.
+      بدونه كان المستدعي مضطرّاً لإرسال المحتوى كاملاً في كل حفظ، فيضيع
+      تعديلُ من حفظ قبله بلحظة، ويُفحص الحفظ بصلاحية القسم كلّه لا القسم
+      الذي مُسّ فعلاً.
+    */
+    setDb((prev) => (prev ? ({
+      ...prev,
+      ...patch,
+      ...(patch.content ? { content: mergeContent(prev.content, patch.content) } : {}),
+    } as PublicDB) : prev));
     const res = await fetch("/api/content", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -136,8 +166,8 @@ export function ContentProvider({
   }, [refresh]);
 
   const saveContent = useCallback(
-    (patch: Partial<SiteContent>) => save({ content: { ...content, ...patch } }),
-    [content, save]
+    (patch: Partial<SiteContent>) => save({ content: patch }),
+    [save]
   );
 
   const uploadImage = useCallback(async (file: File) => {

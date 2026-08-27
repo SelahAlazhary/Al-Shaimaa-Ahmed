@@ -18,6 +18,7 @@ import { planDuration, planScopeLabel } from "@/components/sections/plans";
 import { planPrice, planColor, planForStudent, planWaLink } from "@/lib/plans";
 import type { Subject, SitePlan } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
+import { PayGate } from "@/components/student/pay-gate";
 
 const COLORS = ["#12b981", "#2b8bf6", "#7c3aed", "#e11d48", "#f59e0b", "#0ea5e9"];
 
@@ -265,6 +266,32 @@ function PurchasePanel({
             <p className="font-display text-lg font-extrabold">تم تفعيل الكورس 🎉</p>
             <p className="text-sm text-muted-foreground">يمكنك الآن مشاهدة كل دروس «{subject.name}» من صفحة الكورس.</p>
           </div>
+        ) : content.payments?.enabled ? (
+          /*
+            البوّابة مفعّلة: الدفع يتمّ داخل المنصّة — يختار الخطة ثم
+            طريقة الدفع ثم يرفع الإيصال، ويصله الكود بعد المراجعة.
+            مطفأةً يبقى الطريق القديم عبر واتساب كما هو.
+          */
+          <>
+            <PayGate plans={plans} subject={subject} onDone={onClose} />
+
+            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" /> {y("أدخل")} كود التفعيل <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <IconKey className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && activate()}
+                  placeholder="EMZ-XXXX-XXXX" className="w-full rounded-2xl border border-border bg-card/60 py-3 pr-10 pl-3 text-center font-mono text-sm tracking-wider outline-none focus:border-primary/60" />
+              </div>
+              <button onClick={activate} disabled={busy}
+                className="inline-flex items-center gap-1.5 rounded-2xl btn-glow px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
+                {busy ? <IconSpinner className="size-4 animate-spin" /> : <IconCheckCircle className="size-4" />} تفعيل
+              </button>
+            </div>
+            {err && <p className="mt-3 rounded-2xl bg-rose-500/10 px-3 py-2 text-center text-xs font-bold text-rose-500">{err}</p>}
+          </>
         ) : (
           <>
             {/* خطط الاشتراك (من لوحة الأدمن) */}

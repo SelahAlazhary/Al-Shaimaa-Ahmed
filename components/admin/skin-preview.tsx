@@ -19,6 +19,7 @@ import type { TileStyle, TileColors, TileArt } from "@/lib/tile-styles";
 import type { ToolbarStyle } from "@/lib/toolbar-styles";
 import type { PlansStyle } from "@/lib/plans-styles";
 import type { HeroStyle } from "@/lib/hero-styles";
+import type { PayStyle } from "@/lib/pay-styles";
 
 const W = 160;
 const H = 108;
@@ -1329,6 +1330,165 @@ export function HeroStylePreview({ style, skin }: { style: HeroStyle; skin: Stud
       {/* الصورة */}
       <rect x={imgX} y={26} width={imgW} height={H - 38} rx={6} fill={tone} opacity={0.75} />
       <circle cx={imgX + imgW / 2} cy={H * 0.42} r={imgW * 0.22} fill="#fff" opacity={0.25} />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة بوّابة الدفع                                                */
+/* ------------------------------------------------------------------ */
+
+export function PayPreview({
+  style, colors, skin,
+}: {
+  style: PayStyle;
+  colors?: { bg?: string; accent?: string; text?: string };
+  skin: StudentSkin;
+}) {
+  const v = skin.vars;
+  const accent = colors?.accent || hsl(v.primary);
+  const surface = colors?.bg || hsl(v.card);
+  const text = colors?.text || hsl(v.foreground);
+  const border = hsl(v.border);
+
+  const pad = 9;
+  const inner = W - pad * 2;
+
+  /* سطح البطاقة — القصّ مسارٌ لأنه شكل حقيقي لا حدّ */
+  const plaque = (x: number, y: number, w: number, h: number) => {
+    const c = 4;
+    return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+  };
+
+  const fill =
+    style.surface === "outline" ? "none"
+      : style.surface === "glass" ? hsl(v.card, 0.55)
+        : surface;
+  const stroke = style.surface === "soft" ? "none" : border;
+  const strokeW = style.surface === "outline" ? 1.4 : 0.8;
+  const radius = style.surface === "soft" ? 6 : style.surface === "glass" ? 5.5 : 4.5;
+
+  /* ترتيب الطرق */
+  const tabs = style.list === "tabs";
+  const grid = style.list === "grid";
+  const compact = style.list === "compact";
+  const n = tabs ? 3 : grid ? 4 : 3;
+  const mh = tabs ? 9 : grid ? 20 : compact ? 10 : 14;
+  const gap = compact ? 2.5 : 3.5;
+  const cols = grid ? 2 : tabs ? 3 : 1;
+  const mw = (inner - gap * (cols - 1)) / cols;
+
+  const listTop = 30;
+  const listH = Math.ceil(n / cols) * (mh + gap) - gap;
+  const detTop = listTop + listH + 5;
+  const detH = Math.max(12, H - detTop - pad);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* العنوان */}
+      <rect x={pad} y={8} width={44} height={4} rx={2} fill={text} opacity={0.65} />
+      <rect x={pad} y={15} width={62} height={2.5} rx={1.2} fill={text} opacity={0.25} />
+
+      {/* مؤشّر الخطوات */}
+      {style.steps !== "none" && (
+        <g>
+          {Array.from({ length: 3 }).map((_, i) => {
+            const on = i === 1;
+            if (style.steps === "bar") {
+              const w = (inner - 4) / 3;
+              return (
+                <rect key={i} x={pad + i * (w + 2)} y={23} width={w} height={2} rx={1}
+                  fill={i <= 1 ? accent : border} />
+              );
+            }
+            if (style.steps === "numbers") {
+              return (
+                <circle key={i} cx={pad + 5 + i * 12} cy={24} r={4}
+                  fill={on || i === 0 ? accent : hsl(v.muted)} opacity={on || i === 0 ? 1 : 0.9} />
+              );
+            }
+            return (
+              <rect key={i} x={pad + i * 9} y={23} width={on ? 7 : 3} height={3} rx={1.5}
+                fill={on ? accent : border} />
+            );
+          })}
+        </g>
+      )}
+
+      {/* طرق الدفع */}
+      {Array.from({ length: n }).map((_, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = pad + col * (mw + gap);
+        const y = listTop + row * (mh + gap);
+        const on = i === 0;
+        const d = style.surface === "plaque" ? plaque(x, y, mw, mh) : null;
+        const rx = tabs ? mh / 2 : radius;
+
+        return (
+          <g key={i}>
+            {d ? (
+              <path d={d} fill={on ? accent : fill} fillOpacity={on ? 0.12 : 1}
+                stroke={on ? accent : stroke} strokeWidth={on ? 1.6 : strokeW} />
+            ) : (
+              <rect x={x} y={y} width={mw} height={mh} rx={rx}
+                fill={on ? accent : fill} fillOpacity={on ? 0.12 : 1}
+                stroke={on ? accent : stroke} strokeWidth={on ? 1.6 : strokeW} />
+            )}
+
+            {/* أيقونة الطريقة واسمها */}
+            {!tabs && (
+              <rect x={x + 3} y={y + (grid ? 3 : mh / 2 - (compact ? 2.5 : 3.5))}
+                width={compact ? 5 : 7} height={compact ? 5 : 7} rx={2} fill={accent} opacity={0.55} />
+            )}
+            <rect
+              x={tabs ? x + mw / 2 - 8 : grid ? x + 3 : x + (compact ? 11 : 13)}
+              y={tabs ? y + mh / 2 - 1.2 : grid ? y + 12 : y + mh / 2 - (compact ? 1.2 : 3)}
+              width={tabs ? 16 : grid ? mw - 8 : mw - (compact ? 16 : 20)}
+              height={2.4} rx={1.2} fill={text} opacity={0.6}
+            />
+            {!compact && !tabs && (
+              <rect x={grid ? x + 3 : x + 13} y={grid ? y + 16 : y + mh / 2 + 1.5}
+                width={grid ? mw - 14 : mw - 30} height={2} rx={1} fill={text} opacity={0.25} />
+            )}
+          </g>
+        );
+      })}
+
+      {/* بيانات التحويل */}
+      {(() => {
+        if (style.details === "plain") {
+          return (
+            <g>
+              <rect x={pad} y={detTop + 2} width={30} height={2.4} rx={1.2} fill={text} opacity={0.4} />
+              <rect x={pad} y={detTop + 8} width={58} height={3.4} rx={1.5} fill={text} opacity={0.75} />
+              <rect x={pad} y={detTop + detH - 1} width={inner} height={0.8} fill={border} />
+            </g>
+          );
+        }
+        const box =
+          style.details === "ticket"
+            ? `M${pad} ${detTop} H${pad + inner} V${detTop + detH / 2 - 3} L${pad + inner - 2} ${detTop + detH / 2} L${pad + inner} ${detTop + detH / 2 + 3} V${detTop + detH} H${pad} V${detTop + detH / 2 + 3} L${pad + 2} ${detTop + detH / 2} L${pad} ${detTop + detH / 2 - 3} Z`
+            : null;
+        const bg = style.details === "mono" ? hsl(v.muted) : accent;
+        const op = style.details === "mono" ? 1 : 0.12;
+        return (
+          <g>
+            {box ? (
+              <path d={box} fill={surface} stroke={border} strokeWidth={0.8} />
+            ) : (
+              <rect x={pad} y={detTop} width={inner} height={detH} rx={4} fill={bg} fillOpacity={op}
+                stroke={style.details === "card" ? accent : border} strokeOpacity={style.details === "card" ? 0.4 : 1} strokeWidth={0.8} />
+            )}
+            <rect x={pad + 5} y={detTop + 3.5} width={26} height={2.2} rx={1.1} fill={text} opacity={0.4} />
+            <rect x={pad + 5} y={detTop + 8.5} width={style.details === "mono" ? 66 : 52}
+              height={style.details === "mono" ? 4.5 : 3.4} rx={1.5} fill={text}
+              opacity={style.details === "mono" ? 0.85 : 0.7} />
+          </g>
+        );
+      })()}
     </svg>
   );
 }
