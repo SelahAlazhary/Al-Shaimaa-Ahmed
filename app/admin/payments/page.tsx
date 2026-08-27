@@ -508,30 +508,6 @@ function MethodsTab({
           {methods.map((m, i) => (
             <Card key={m.id} className="grid gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                {/*
-                  الشعار يُضغط فيُرفع.
-                  ------------------------------------------------------------
-                  الرفعُ كان زرّاً صغيراً بين المفاتيح، والشعارُ مرآةٌ لما
-                  سيراه الطالب — فأولى أن يكون هو نفسُه موضعَ الرفع.
-                */}
-                <label
-                  className="group relative inline-flex shrink-0 cursor-pointer"
-                  title={m.logo ? "اضغط لتغيير الشعار" : "اضغط لرفع شعار"}
-                >
-                  <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-11" />
-                  <span className="absolute inset-0 grid place-items-center rounded-xl bg-black/55 opacity-0 transition group-hover:opacity-100">
-                    {busyLogo === m.id
-                      ? <Loader2 className="size-4 animate-spin text-white" />
-                      : <ImageIcon className="size-4 text-white" />}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={busyLogo !== null}
-                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void pickLogo(m.id, f); }}
-                  />
-                </label>
                 <select
                   value={m.kind}
                   onChange={(e) => patch(m.id, { kind: e.target.value as PayMethodKind })}
@@ -566,6 +542,65 @@ function MethodsTab({
 
               <Field label="تعليمات للطالب" value={m.note ?? ""} placeholder="حوّل المبلغ ثم صوّر رسالة التأكيد" onChange={(v) => patch(m.id, { note: v })} />
 
+              {/*
+                شعار الطريقة — حقلٌ مستقلّ بعنوانه.
+                ------------------------------------------------------------
+                كان مربّعاً صغيراً في رأس البطاقة بين قائمة النوع وأزرار
+                الترتيب، فلا يُقرأ أنه موضعُ رفع. صار حقلاً كبقية الحقول:
+                له عنوانٌ ومساحةٌ ونصٌّ يقول ما يُفعل به.
+              */}
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-muted-foreground">شعار الطريقة</span>
+                <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-border p-3">
+                  <label
+                    className="group relative inline-flex shrink-0 cursor-pointer"
+                    title={m.logo ? "اضغط لتغيير الشعار" : "اضغط لرفع صورة"}
+                  >
+                    <PayMark kind={m.kind} name={m.name} logo={m.logo} color={m.color} className="size-14" />
+                    <span className="absolute inset-0 grid place-items-center rounded-xl bg-black/55 opacity-0 transition group-hover:opacity-100">
+                      {busyLogo === m.id
+                        ? <Loader2 className="size-5 animate-spin text-white" />
+                        : <ImageIcon className="size-5 text-white" />}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={busyLogo !== null}
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void pickLogo(m.id, f); }}
+                    />
+                  </label>
+
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-bold transition hover:border-primary/60">
+                    {busyLogo === m.id
+                      ? <Loader2 className="size-4 animate-spin text-primary" />
+                      : <ImageIcon className="size-4 text-primary" />}
+                    {m.logo ? "تغيير الصورة" : "رفع صورة الشعار"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={busyLogo !== null}
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void pickLogo(m.id, f); }}
+                    />
+                  </label>
+
+                  {m.logo && (
+                    <button
+                      type="button"
+                      onClick={() => patch(m.id, { logo: "" })}
+                      className="rounded-xl border border-border px-3 py-2.5 text-[11px] font-bold text-muted-foreground transition hover:border-rose-500/50 hover:text-rose-500"
+                    >
+                      إزالة الصورة
+                    </button>
+                  )}
+
+                  <span className="text-[11px] text-muted-foreground">
+                    {m.logo ? "هذا ما سيراه الطالب" : "بلا صورة تظهر علامة مرسومة بلون الطريقة"}
+                  </span>
+                </div>
+              </div>
+
               <div className="flex flex-wrap items-center gap-3">
                 <Toggle
                   label="مفعّلة"
@@ -574,13 +609,7 @@ function MethodsTab({
                   onChange={(v) => patch(m.id, { active: v && Boolean(m.number.trim()) })}
                 />
 
-                <span className="text-[11px] text-muted-foreground">
-                  {m.logo ? "الشعار مرفوع — اضغطه بالأعلى لتغييره" : "اضغط المربّع بالأعلى لرفع شعار الطريقة"}
-                </span>
-                {m.logo && (
-                  <button type="button" onClick={() => patch(m.id, { logo: "" })}
-                    className="text-[11px] font-bold text-muted-foreground hover:text-rose-500">إزالة الشعار</button>
-                )}
+
 
                 <span className="ms-2 text-[11px] font-semibold text-muted-foreground">اللون:</span>
                 <button type="button" onClick={() => patch(m.id, { color: "" })}
