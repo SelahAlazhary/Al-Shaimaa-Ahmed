@@ -79,11 +79,12 @@ export default function MySubjects() {
   const [buy, setBuy] = useState<Subject | null>(null);
   const payOn = gatewayOn(content.payments);
   /*
-    الفصول: تُعرض ألسنتُها حين تكون هناك حاجةٌ إليها فعلاً.
-    ------------------------------------------------------------------
-    لسانٌ فارغ يدعو للضغط ثم يعرض لا شيء، ولسانٌ وحيد ليس اختياراً.
-    والافتراضُ يقع على أوّل فصلٍ فيه كورسات — كان يقع على الأوّل دائماً،
-    فمن كانت كورساتُه في الثاني رأى شاشةً فارغة عند الدخول.
+    الفصلان يظهران دائماً — كلاهما جزءٌ من المنهج لا خيارٌ يتوقّف على
+    ما رُفع بعد، وإخفاءُ الفارغ منهما يُخفي عن الطالب أنّ هناك فصلاً
+    ثانياً أصلاً.
+
+    والافتراضُ وحده يبقى ذكياً: يقع على أوّل فصلٍ فيه كورسات، فمن كانت
+    كورساتُه في الثاني لا يرى شاشةً فارغة عند الدخول.
   */
   const termsWithCourses = ([1, 2] as const).filter(
     (t) => subjects.some((c) => (c.term ?? 1) === t)
@@ -96,10 +97,10 @@ export default function MySubjects() {
     <>
       <PageHeader title="الكورسات" subtitle={`${fem ? "اختاري" : "اختر"} الكورس الذي تريد${fem ? "ين" : ""} دراسته — ${y("فعّل")}ه بكود التفعيل بعد الشراء`} />
 
-      {/* تقسيم الفصلين — لا يظهر إلا حين يكون في الفصلين كورسات */}
-      {termsWithCourses.length > 1 && (
+      {/* الفصلان — يظهران دائماً وعدّادُ كلٍّ منهما بجانبه */}
+      {subjects.length > 0 && (
         <div className="mb-5 flex flex-wrap gap-2">
-          {termsWithCourses.map((id) => {
+          {([1, 2] as const).map((id) => {
             const t = { id, label: id === 1 ? "الفصل الدراسي الأول" : "الفصل الدراسي الثاني" };
             const count = subjects.filter((x) => (x.term ?? 1) === t.id).length;
             const active = activeTerm === t.id;
