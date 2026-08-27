@@ -180,7 +180,10 @@ export type SiteContent = {
   };
   hero: {
     statusPill: string;
-    frame?: number;      // 1..8 — تصميم إطار الصورة
+    frame?: number;         // (توافق قديم) رقم الإطار
+    frameShape?: string;    // معرّف الشكل من lib/frame-shapes.ts
+    frameColor?: string;    // لون الإطار (HEX) — فارغ = لون الثيم
+    frameScale?: number;    // حجم الإطار ٦٠..١٤٠٪
     /** ضبط الصورة داخل الإطار: الملء، الإزاحة الأفقية/الرأسية (٪)، والتكبير. */
     image?: ImageFit;
   };

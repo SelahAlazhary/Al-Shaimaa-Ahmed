@@ -14,6 +14,7 @@ import type { MobileLayout } from "@/lib/skins";
 import { shapeStyle, type StudentDesign } from "@/lib/designs";
 import { EdgeArtLayer } from "@/components/brand/edge-art";
 import type { SideNavStyle, DockStyle } from "@/lib/nav-styles";
+import type { FrameShape } from "@/lib/frame-shapes";
 
 const W = 160;
 const H = 108;
@@ -769,6 +770,51 @@ export function DockPreview({ dock, skin }: { dock: DockStyle; skin: StudentSkin
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة إطار الصورة                                                 */
+/* ------------------------------------------------------------------ */
+
+export function FramePreview({
+  shape,
+  color,
+  skin,
+}: {
+  shape: FrameShape;
+  color?: string;
+  skin: StudentSkin;
+}) {
+  const v = skin.vars;
+  const FW = 80;
+  const FH = 100;
+  const stroke = color || hsl(v.primary);
+  const outer = shape.path(FW, FH, 3);
+  const inner = shape.path(FW, FH, 11);
+  const uid = useUid("fp");
+
+  return (
+    <svg viewBox={`0 0 ${FW} ${FH}`} className="mx-auto block h-auto w-full max-w-[6.5rem]" style={{ aspectRatio: `${FW} / ${FH}` }}>
+      <defs>
+        <clipPath id={`${uid}-c`}>
+          <path d={outer} />
+        </clipPath>
+      </defs>
+      {/* صورة تمثيلية: هيئة شخص مبسّطة تُظهر ما يقصّه الإطار */}
+      <g clipPath={`url(#${uid}-c)`}>
+        <rect width={FW} height={FH} fill={hsl(v.muted)} />
+        <circle cx={FW / 2} cy={FH * 0.38} r={FW * 0.17} fill={hsl(v.primary, 0.45)} />
+        <path
+          d={`M${FW * 0.2} ${FH} q${FW * 0.3} -${FH * 0.34} ${FW * 0.6} 0 Z`}
+          fill={hsl(v.primary, 0.45)}
+        />
+      </g>
+      <path d={outer} fill="none" stroke={stroke} strokeWidth={1.6} strokeOpacity={0.75} strokeLinejoin="round" />
+      {shape.innerRule && (
+        <path d={inner} fill="none" stroke={stroke} strokeWidth={0.8} strokeOpacity={0.35} strokeLinejoin="round" />
+      )}
     </svg>
   );
 }

@@ -22,7 +22,7 @@ import { KuficBackdrop, HarakatField, Shamsa, RuleOrnament, ElegantRule } from "
 import { DaadGlyph } from "@/components/brand/calligraphy";
 import { ArabicTextBackdrop } from "@/components/brand/text-backdrop";
 import { VideoModal } from "@/components/ui/video-modal";
-import { HeroFrame } from "@/components/sections/hero-frames";
+import { HeroFrame } from "@/components/sections/hero-frame";
 import { useContent } from "@/components/content/content-provider";
 import { el, isHidden, btnStyle, textStyle } from "@/lib/ui-style";
 import type { HeroShape } from "@/lib/home-layouts";
@@ -224,7 +224,14 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.15 }}
             >
-              <HeroFrame frame={content.hero.frame ?? 1} avatar={t.avatar} alt={t.name} img={content.hero.image} />
+              <HeroFrame
+                frame={content.hero.frameShape ?? content.hero.frame ?? 1}
+                avatar={t.avatar}
+                alt={t.name}
+                img={content.hero.image}
+                color={content.hero.frameColor}
+                scale={content.hero.frameScale}
+              />
             </motion.div>
 
             {t.topStudents > 0 && (

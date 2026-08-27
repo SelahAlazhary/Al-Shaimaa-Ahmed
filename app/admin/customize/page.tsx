@@ -8,6 +8,7 @@ import { Moon, Sun, Check, Upload, Save, ExternalLink, Palette, Type, ImageIcon,
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
+import { ImageStudio } from "@/components/admin/image-studio";
 import { HeroFrame, FRAME_COUNT, FRAME_NAMES } from "@/components/sections/hero-frames";
 import type { SiteContent, Preset, ColorSpec, ElementStyle } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
@@ -36,6 +37,9 @@ const PRESETS: { id: Preset; label: string; swatch: string }[] = [
 type Tab = "identity" | "theme" | "images" | "frame" | "links" | "elements";
 
 export default function CustomizePage() {
+  /* الصورة تمرّ باستوديو القصّ وإزالة الخلفية قبل الرفع — الهيرو أكثر
+     صورة يراها الزائر، فتستحقّ تنظيفاً قبل أن تُنشر. */
+  const [studio, setStudio] = useState<{ file: File; target: "avatar" | "logo" } | null>(null);
   const { content, db, saveContent, uploadImage, layout, preset, customPrimary, toggleLayout, setPreset, setCustomPrimary } = useContent();
   const googleReady = Boolean(db?.integrations?.google?.connected);
   const [tab, setTab] = useState<Tab>("identity");
@@ -195,8 +199,13 @@ export default function CustomizePage() {
               })}
             </div>
           </Card>
-          <ImageUploader label="صورة الأستاذة (Hero)" hint="يُفضّل PNG بخلفية شفافة" value={form.teacher.avatar}
-            onUpload={async (f) => { const url = await uploadImage(f); if (url) { setTeacher({ avatar: url }); await saveContent({ teacher: { ...form.teacher, avatar: url } }); } }} tall />
+          <ImageUploader
+            label="صورة الأستاذة (Hero)"
+            hint="تُفتح أداة القصّ وإزالة الخلفية قبل الرفع"
+            value={form.teacher.avatar}
+            onUpload={(f) => setStudio({ file: f, target: "avatar" })}
+            tall
+          />
           <ImageUploader label="شعار المنصّة / الأيقونة (favicon)" hint="مربّع، PNG/SVG" value={form.teacher.logo}
             onUpload={async (f) => { const url = await uploadImage(f); if (url) { setTeacher({ logo: url }); await saveContent({ teacher: { ...form.teacher, logo: url } }); } }} />
         
@@ -494,6 +503,26 @@ export default function CustomizePage() {
           })}
           <p className="text-xs text-muted-foreground lg:col-span-2">اضغط «حفظ النصوص» بالأعلى لحفظ التغييرات.</p>
         </div>
+      )}
+
+      {/* استوديو الصورة — قصّ وإزالة خلفية قبل الرفع */}
+      {studio && (
+        <ImageStudio
+          file={studio.file}
+          onCancel={() => setStudio(null)}
+          onDone={async (out) => {
+            const url = await uploadImage(out);
+            setStudio(null);
+            if (!url) return;
+            if (studio.target === "avatar") {
+              setTeacher({ avatar: url });
+              await saveContent({ teacher: { ...form.teacher, avatar: url } });
+            } else {
+              setTeacher({ logo: url });
+              await saveContent({ teacher: { ...form.teacher, logo: url } });
+            }
+          }}
+        />
       )}
 
       <style>{`.inp{width:100%;border-radius:0.9rem;border:1px solid hsl(var(--border));background:hsl(var(--card)/0.6);padding:0.6rem 0.85rem;font-size:0.9rem;outline:none;color:inherit;font-family:inherit}.inp:focus{border-color:hsl(var(--primary)/0.6)}.inp.w-auto{width:auto}.lbl{margin-bottom:0.35rem;display:block;font-size:0.7rem;font-weight:600;color:hsl(var(--muted-foreground))}`}</style>
