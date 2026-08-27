@@ -90,6 +90,50 @@ const cutTop = (c: string): string =>
 const diagonal = (c: string): string =>
   `polygon(${c} 0, 100% 0, 100% calc(100% - ${c}), calc(100% - ${c}) 100%, 0 100%, 0 ${c})`;
 
+/**
+ * حافّة معرّجة — أسنان متتابعة على الحافّتين العليا والسفلى.
+ * تُبنى كمضلّع بنقاط كثيرة بالنسبة المئوية، فتتبع أي عرض بلا قياس.
+ */
+function jagged(teeth: number, depth: string): string {
+  const step = 100 / teeth;
+  const pts: string[] = [];
+  // الحافّة العليا: قمّة ثم قاع بالتناوب
+  for (let i = 0; i <= teeth; i++) {
+    const x = (i * step).toFixed(2);
+    pts.push(`${x}% ${i % 2 === 0 ? "0%" : depth}`);
+  }
+  // النزول على الحافّة اليمنى ثم الحافّة السفلى بالعكس
+  for (let i = teeth; i >= 0; i--) {
+    const x = (i * step).toFixed(2);
+    pts.push(`${x}% ${i % 2 === 0 ? "100%" : `calc(100% - ${depth})`}`);
+  }
+  return `polygon(${pts.join(", ")})`;
+}
+
+/**
+ * حافّة غير منتظمة — كورقة ممزّقة.
+ * الانحرافات مشتقّة من متتالية ثابتة لا من عشوائية وقت التشغيل: لو
+ * تغيّر الشكل بين رسم الخادم ورسم المتصفّح لظهر اختلاف محسوس، ولاختلف
+ * شكل البطاقة عن نفسها بين تحميل وآخر.
+ */
+function torn(points: number, maxDepth: number): string {
+  const step = 100 / points;
+  // متتالية زائفة ثابتة: تنويع كافٍ بلا عشوائية
+  const jitter = (i: number) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+  const pts: string[] = [];
+  for (let i = 0; i <= points; i++) {
+    const x = (i * step).toFixed(2);
+    const d = (jitter(i) * maxDepth).toFixed(2);
+    pts.push(`${x}% ${d}px`);
+  }
+  for (let i = points; i >= 0; i--) {
+    const x = (i * step).toFixed(2);
+    const d = (jitter(i + 100) * maxDepth).toFixed(2);
+    pts.push(`${x}% calc(100% - ${d}px)`);
+  }
+  return `polygon(${pts.join(", ")})`;
+}
+
 const box = (radius: string): DesignShape => ({ clip: null, radius });
 const shape = (clip: string, radius = "0px"): DesignShape => ({ clip, radius });
 
@@ -125,6 +169,10 @@ export const STUDENT_DESIGNS: StudentDesign[] = [
   d("diagonal", "القطريّ", "ركنان متقابلان مقصوصان", shape(diagonal("1.4rem")), shape(diagonal("0.9rem")), "none", "single"),
   d("outline", "المفرَّغ", "حدّ رفيع بلا تعبئة — أخفّ ما يكون", box("1.5rem"), box("1.2rem"), "none", "dashed"),
   d("bare", "المجرَّد", "بلا حدّ ولا زخرفة — المحتوى وحده", box("1.6rem"), box("1.3rem"), "none", "none"),
+  d("jagged", "المعرَّج", "حافّتان بأسنان متتابعة كطابع البريد",
+    shape(jagged(28, "10px")), shape(jagged(16, "7px")), "none", "single"),
+  d("torn", "الممزَّق", "حوافّ غير منتظمة كورقة ممزّقة",
+    shape(torn(22, 12)), shape(torn(14, 8)), "none", "none"),
 ];
 
 export const DEFAULT_DESIGN = STUDENT_DESIGNS[0].id;

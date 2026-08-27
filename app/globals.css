@@ -767,6 +767,52 @@ body {
 }
 
 /* ============================================================
+   حماية محتوى الكورس من الالتقاط
+   ------------------------------------------------------------
+   لا تمنع لقطة الشاشة — لا يستطيع ذلك أي موقع — لكنها ترفع كلفة
+   النسخ: لا تحديد نصّ، ولا سحب صور، ولا طباعة، والمحتوى يُخفى حين
+   تفقد النافذة تركيزها فتفشل أدوات اللقطة التي تصوّر نافذة أخرى.
+   ============================================================ */
+.capture-guard,
+.capture-guard * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* حقول الإدخال تبقى قابلة للاستخدام */
+.capture-guard input,
+.capture-guard textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.capture-guard img,
+.capture-guard video {
+  -webkit-user-drag: none;
+  pointer-events: auto;
+}
+
+/* إخفاء فوري عند فقد التركيز */
+.capture-hidden body { visibility: hidden; }
+.capture-hidden::after {
+  content: "المحتوى مخفيّ — عُد إلى النافذة لمتابعة الدرس";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  font-weight: 700;
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+}
+
+/* الطباعة والحفظ كـPDF */
+@media print {
+  .capture-guard body { display: none !important; }
+}
+
+/* ============================================================
    حركة الهوية المتّجهة (SVG)
    كل الحركات داخل no-preference — تتوقّف تماماً مع تقليل الحركة.
    ============================================================ */

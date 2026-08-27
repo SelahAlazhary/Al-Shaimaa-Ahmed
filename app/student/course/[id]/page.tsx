@@ -10,6 +10,7 @@ import {
 import { EmptyLock } from "@/components/brand/illustrations";
 import { PageHeader, Card, Progress } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { CaptureGuard } from "@/components/student/capture-guard";
 import { subjectActive, subscriptionFor, daysLeft } from "@/lib/access";
 import type { Lesson } from "@/lib/types";
 
@@ -37,7 +38,7 @@ function toEmbed(url: string): { kind: "video" | "iframe"; src: string } {
 
 export default function CoursePlayer({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { db, session, refresh } = useContent();
+  const { db, session, refresh, content } = useContent();
   const me = db?.users.find((u) => u.id === session?.uid);
   const subject = db?.subjects.find((s) => s.id === id);
   const owned = subjectActive(me, subject);
@@ -76,6 +77,7 @@ export default function CoursePlayer({ params }: { params: Promise<{ id: string 
     return <NotFound msg="الكورس غير موجود." />;
   }
   if (!owned) {
+
     return (
       <Card className="mx-auto max-w-md text-center">
         <EmptyLock className="mx-auto mb-2 text-primary" width={176} />
@@ -88,6 +90,8 @@ export default function CoursePlayer({ params }: { params: Promise<{ id: string 
 
   return (
     <>
+      {/* حماية المحتوى — تُفعَّل من لوحة الإدارة */}
+      <CaptureGuard enabled={Boolean(content.blockCapture)} />
       <Link href="/student/subjects" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-primary">
         <IconArrowLeft className="size-4 rotate-180" /> كل الكورسات
       </Link>

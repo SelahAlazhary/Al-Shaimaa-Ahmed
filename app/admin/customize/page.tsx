@@ -424,6 +424,33 @@ export default function CustomizePage() {
       {/* ---------- إظهار/إخفاء وألوان العناصر ---------- */}
       {tab === "elements" && (
         <div className="grid gap-4 lg:grid-cols-2">
+          {/* حماية محتوى الكورس */}
+          <Card className="lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-display font-bold">حماية محتوى الكورس من الالتقاط</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  تُعطّل الزرّ الأيمن والطباعة واختصارات الحفظ وأدوات المطوّر، وتُخفي المحتوى
+                  حين تفقد النافذة تركيزها فتفشل أدوات التسجيل الخارجية.
+                  <b className="text-foreground"> لا تمنع لقطة الشاشة نفسها</b> — لا يستطيع ذلك
+                  أي موقع، فاللقطة يلتقطها نظام التشغيل أو كاميرا هاتف آخر. تُصعّب النسخ ولا تمنعه.
+                </p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.blockCapture)}
+                  onChange={(e) => {
+                    set({ blockCapture: e.target.checked });
+                    void saveContent({ blockCapture: e.target.checked });
+                  }}
+                  className="size-4 accent-[hsl(var(--primary))]"
+                />
+                {form.blockCapture ? "مفعّلة" : "معطّلة"}
+              </label>
+            </div>
+          </Card>
+
           {/* زرّ تبديل المظهر — مخفيّ افتراضياً عن كل المنصّة */}
           <Card className="lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
