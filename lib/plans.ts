@@ -49,11 +49,47 @@ export function planForStudent(
     [a.gender, student.gender],
   ];
 
-  /* الحقل الفارغ لا يُضيّق شيئاً — الخطة العامّة تظهر للجميع بلا ضبط. */
+  /*
+    قاعدتان تحكمان المطابقة:
+
+    ١) الحقل الفارغ في الفئة لا يُضيّق شيئاً — الخطة العامّة تظهر للجميع
+       بلا ضبط.
+
+    ٢) والحقل الذي لا يملك الطالبُ قيمةً له لا يُقصيه.
+       ------------------------------------------------------------------
+       الإقصاءُ عند الجهل يجعل الخطةَ غيرَ مرئية لأحد: الفصل الدراسي لم
+       يكن يُسأل عنه في التسجيل قبل أن يصير مبنيّاً، فلا أحدَ ممّن سجّل
+       قبلَه يحمل قيمةً له — وخطةٌ مقيَّدة بفصلٍ تختفي عن الجميع بلا أن
+       يُنبَّه أحد. والصواب أن يُقصي الشرطُ من خالفه لا من جُهل حالُه.
+  */
   return pairs.every(([want, has]) => {
     const w = (want ?? "").trim();
-    return !w || w === (has ?? "").trim();
+    const h = (has ?? "").trim();
+    return !w || !h || w === h;
   });
+}
+
+/**
+ * الحقول التي تُضيّق الفئة ولا يملك هذا الطالب قيمةً لها.
+ * تُستعمل في اللوحة لتنبيه المشرف: شرطٌ لا يُقصي أحداً ليس تصفية.
+ */
+export function audienceBlindSpots(
+  plan: { track?: string; audience?: PlanAudience },
+  student: StudentProfile
+): string[] {
+  const a = plan.audience ?? {};
+  const rows: [string | undefined, string | undefined, string][] = [
+    [a.stage, student.stage, "المرحلة"],
+    [a.grade, student.grade, "الصف"],
+    [a.system, student.eduSystem, "النظام التعليمي"],
+    [a.track ?? plan.track, student.track, "الشعبة"],
+    [a.branch, student.branch, "فرع الشعبة"],
+    [a.term, student.termName, "الفصل الدراسي"],
+    [a.gender, student.gender, "النوع"],
+  ];
+  return rows
+    .filter(([w, h]) => (w ?? "").trim() && !(h ?? "").trim())
+    .map(([, , label]) => label);
 }
 
 /** وصف الفئة بالعربية — يُعرض في اللوحة وفي بطاقة الخطة. */

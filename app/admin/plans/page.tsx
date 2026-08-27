@@ -11,7 +11,7 @@ import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
 import { TRACKS, STAGES, EDU_SYSTEMS, SCIENCE_BRANCHES, TRACK_STAGE, BRANCH_TRACK, AZHAR } from "@/lib/data";
 import { useContent } from "@/components/content/content-provider";
-import { planPrice, audienceLabel } from "@/lib/plans";
+import { planPrice, audienceLabel, planForStudent, audienceBlindSpots } from "@/lib/plans";
 import { TERMS } from "@/lib/signup-rules";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
 
@@ -60,6 +60,7 @@ export default function PlansPage() {
   const plans = db?.plans ?? [];
   const subjects = db?.subjects ?? [];
   const grades = db?.grades ?? [];
+  const students = (db?.users ?? []).filter((u) => u.role === "student");
   const [editing, setEditing] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<Form>(EMPTY);
@@ -240,6 +241,41 @@ export default function PlansPage() {
                     },
                   })}
                 </span>
+                {(() => {
+                  /*
+                    كم طالباً تطابقه هذه الفئة الآن؟
+                    ------------------------------------------------------------
+                    الفئةُ شرطٌ لا يُرى أثرُه إلا بعد الحفظ، فيُحفظ شرطٌ لا يطابق
+                    أحداً ولا يُنبَّه أحد. الرقم هنا يقول ذلك قبل الحفظ.
+                  */
+                  const draft = {
+                    track: f.track,
+                    audience: {
+                      stage: f.audStage, grade: f.audGrade, system: f.audSystem,
+                      track: f.track, branch: f.audBranch, term: f.audTerm, gender: f.audGender,
+                    },
+                  };
+                  const n = students.filter((u) => planForStudent(draft, u)).length;
+                  const blind = students.length
+                    ? Array.from(new Set(students.flatMap((u) => audienceBlindSpots(draft, u))))
+                    : [];
+                  if (students.length === 0) return null;
+                  return (
+                    <>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        n === 0 ? "bg-rose-500/15 text-rose-600" : "bg-emerald-500/15 text-emerald-600"
+                      }`}>
+                        {n === 0 ? "لا يطابقها أيّ طالب" : `يطابقها ${n.toLocaleString("ar-EG")} من ${students.length.toLocaleString("ar-EG")}`}
+                      </span>
+                      {blind.length > 0 && (
+                        <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                          لا يُضيّق: {blind.join(" · ")} — لا يملكها الطلاب
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
+
                 {[f.audStage, f.audGrade, f.audSystem, f.track, f.audBranch, f.audTerm, f.audGender].some(Boolean) && (
                   <button
                     type="button"

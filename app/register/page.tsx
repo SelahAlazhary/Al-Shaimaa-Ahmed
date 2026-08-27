@@ -9,12 +9,12 @@ import {
   EGYPT_GOVERNORATES, TRACKS, STAGES, TRACK_STAGE,
   EDU_SYSTEMS, AZHAR, BRANCH_TRACK, SCIENCE_BRANCHES,
 } from "@/lib/data";
-import { showsTrack, showsBranch, showsTerm, termsForStage, signupProblem, normalizePhone } from "@/lib/signup-rules";
+import { showsTrack, showsBranch, signupProblem, normalizePhone } from "@/lib/signup-rules";
 
 export default function RegisterPage() {
   const { db, content } = useContent();
   const grades = db?.grades ?? [];
-  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", termName: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
   const [confirm, setConfirm] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -26,8 +26,6 @@ export default function RegisterPage() {
   /* الفصول تُدار من اللوحة، فقد لا تكون هناك فصول أصلاً — عندها لا يظهر
      الحقل ولا يُطلب، فلا يتعطّل التسجيل على منصّة لم تُعرّف فصولها بعد. */
   const terms = content.terms ?? [];
-  const stageTerms = termsForStage(terms, form.stage);
-  const needsTerm = showsTerm(form, terms);
 
   const needsTrack = showsTrack(form);
   const needsBranch = showsBranch(form);
@@ -41,7 +39,6 @@ export default function RegisterPage() {
     setForm((f) => ({
       ...f,
       stage: v,
-      termName: "", // فصول المرحلة السابقة لا تصلح للجديدة
       ...(v === TRACK_STAGE ? {} : { track: "", branch: "" }),
     }));
 
@@ -68,7 +65,6 @@ export default function RegisterPage() {
         ...form,
         phone: normalizePhone(form.phone),
         grade: form.grade || grades[0]?.name,
-        termName: needsTerm ? form.termName : "",
         track: needsTrack ? form.track : "",
         branch: needsBranch ? form.branch : "",
       }),
@@ -158,21 +154,13 @@ export default function RegisterPage() {
           </Field>
         </div>
         {/* الصف — ومعه الشعبة إن كانت المرحلة ثانوية، وإلا يتمدّد الصف وحده */}
-        <div className={`grid gap-3 ${needsTerm || needsTrack ? "grid-cols-2" : ""}`}>
+        <div className={`grid gap-3 ${needsTrack ? "grid-cols-2" : ""}`}>
           <Field label="الصف الدراسي">
             <select required className={inputCls} value={form.grade} onChange={(e) => set("grade", e.target.value)}>
               <option value="">اختر الصف الدراسي…</option>
               {grades.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
             </select>
           </Field>
-          {needsTerm && (
-            <Field label="الفصل الدراسي">
-              <select required className={inputCls} value={form.termName} onChange={(e) => set("termName", e.target.value)}>
-                <option value="">اختر الفصل…</option>
-                {stageTerms.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
-              </select>
-            </Field>
-          )}
           {needsTrack && (
             <Field label="الشعبة">
               <select required className={inputCls} value={form.track} onChange={(e) => setTrack(e.target.value)}>

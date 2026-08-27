@@ -52,12 +52,18 @@ export function termsForStage(
   return s(stage) ? [...TERMS] : [];
 }
 
-/** هل يظهر حقل الفصل الدراسي؟ عند اختيار مرحلة لها فصول معرّفة. */
-export function showsTerm(
-  f: SignupInput,
-  terms: readonly { id: string; name: string; stage?: string }[] | undefined
-) {
-  return termsForStage(terms, f.stage).length > 0;
+/**
+ * الفصل الدراسي لا يُسأل عنه في التسجيل.
+ * ------------------------------------------------------------------
+ * الفصلُ صفةُ الكورس لا صفةُ الطالب: الطالب نفسه يدرس الفصلين، ويختار
+ * بينهما من ألسنة شاشة الكورسات متى شاء. وسؤالُه عنه مرّةً واحدة عند
+ * التسجيل يقيّده بما اختاره يومَها ولا يفيد شيئاً.
+ *
+ * الدالةُ باقيةٌ تعيد false دائماً، فلا يُكسر مستدعٍ ولا تبقى بيانات
+ * قديمة تُقارَن بها.
+ */
+export function showsTerm(): boolean {
+  return false;
 }
 
 /** الشعبة (علمي/أدبي) — في المرحلة الثانوية وحدها. */
@@ -140,15 +146,6 @@ export function signupProblem(
     oneOf(f.stage, STAGES, "المرحلة الدراسية مطلوبة", "المرحلة الدراسية غير صحيحة") ??
     // الصفوف يضبطها الأدمن، فتُقارن بالموجود فعلاً وقت التسجيل
     oneOf(f.grade, gradeNames, "الصف الدراسي مطلوب", "الصف الدراسي غير صحيح") ??
-    // الفصل يُطلب فقط إن كانت لمرحلة الطالب فصول معرّفة في اللوحة
-    (showsTerm(f, terms)
-      ? oneOf(
-          f.termName,
-          termsForStage(terms, f.stage).map((t) => t.name),
-          "الفصل الدراسي مطلوب",
-          "الفصل الدراسي غير صحيح"
-        )
-      : null) ??
     (showsTrack(f) ? oneOf(f.track, TRACKS, "الشعبة مطلوبة", "الشعبة غير صحيحة") : null) ??
     (showsBranch(f)
       ? oneOf(f.branch, SCIENCE_BRANCHES, "فرع الشعبة العلمية مطلوب", "فرع الشعبة العلمية غير صحيح")
