@@ -27,7 +27,12 @@ export function CtaFooter() {
   const FT = findFooterStyle(content.footerStyle);
   const showCta = !isHidden(content, "section.cta");
 
-  const dev = content.developer ?? {};
+  /*
+    المحتوى المخزون لا يُدمج مع الافتراضي بل يحلّ محلّه، فمنصّةٌ حُفظ
+    محتواها قبل هذه الميزة لا تحمل المفتاح أصلاً. فالنسبةُ تظهر افتراضاً
+    ومن أرادها أخرى بدّلها من اللوحة، ومن أراد إخفاءها حفظ ذلك فيها.
+  */
+  const dev = content.developer ?? { name: "EX-EG" };
 
   return (
     <>

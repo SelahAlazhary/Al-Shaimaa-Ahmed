@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Pencil, X, Check, Eye, EyeOff, Layers, BookOpen, CalendarClock, Sparkles, Star,
-  Percent, Palette, Tag,
+  Percent, Palette, Tag, Image as ImageIcon,
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/primitives";
@@ -14,6 +14,9 @@ import { useContent } from "@/components/content/content-provider";
 import { planPrice, audienceLabel, planForStudent, audienceBlindSpots } from "@/lib/plans";
 import { TERMS } from "@/lib/signup-rules";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
+import { mediaSrc } from "@/lib/media";
+import { ImageStudio } from "@/components/admin/image-studio";
+import { MotionArtPicker } from "@/components/admin/motion-art";
 
 const KIND_LABEL: Record<PlanKind, string> = {
   term: "حتى نهاية الترم (بتاريخ)",
@@ -27,6 +30,7 @@ type Form = {
   price: number; durationDays: number; endsAt: string; badge: string;
   highlight: boolean; desc: string; perks: string; visible: boolean; order: number;
   color: string; cta: string; termNo: 1 | 2; whatsapp: string; track: string;
+  image: string; imageSize: number; imageCut: boolean;
   audStage: string; audGrade: string; audSystem: string; audBranch: string;
   audGender: string;
   discountOn: boolean; discountType: "percent" | "amount"; discountValue: number;
@@ -37,6 +41,7 @@ const EMPTY: Form = {
   name: "", kind: "term", scope: "all", subjectId: "", price: 0, durationDays: 0,
   endsAt: "", badge: "", highlight: false, desc: "", perks: "", visible: true, order: 0,
   color: "", cta: "", termNo: 1, whatsapp: "", track: "",
+  image: "", imageSize: 56, imageCut: false,
   audStage: "", audGrade: "", audSystem: "", audBranch: "", audGender: "",
   discountOn: false, discountType: "percent", discountValue: 0,
   discountLabel: "", discountUntil: "",
@@ -57,7 +62,11 @@ const PLAN_COLORS = [
 ];
 
 export default function PlansPage() {
-  const { db, save, content } = useContent();
+  const { db, save, content, uploadImage } = useContent();
+  /* حالةُ الصورة: أستوديو القصّ للساكنة، ومنتقي المكتبة، ومؤشّر الرفع. */
+  const [studio, setStudio] = useState<File | null>(null);
+  const [picker, setPicker] = useState(false);
+  const [imgBusy, setImgBusy] = useState(false);
   const plans = db?.plans ?? [];
   const subjects = db?.subjects ?? [];
   const grades = db?.grades ?? [];
@@ -77,6 +86,7 @@ export default function PlansPage() {
       badge: p.badge ?? "", highlight: Boolean(p.highlight), desc: p.desc ?? "",
       perks: (p.perks ?? []).join("\n"), visible: p.visible, order: p.order ?? 0,
       color: p.color ?? "", cta: p.cta ?? "", termNo: p.termNo ?? 1,
+      image: p.image ?? "", imageSize: p.imageSize ?? 56, imageCut: Boolean(p.imageCut),
       whatsapp: p.whatsapp ?? "", track: p.audience?.track ?? p.track ?? "",
       audStage: p.audience?.stage ?? "", audGrade: p.audience?.grade ?? "",
       audSystem: p.audience?.system ?? "", audBranch: p.audience?.branch ?? "",
@@ -111,6 +121,10 @@ export default function PlansPage() {
       visible: f.visible,
       order: Number(f.order) || 0,
       color: f.color || undefined,
+      /* الصورةُ الفارغة لا تُخزَّن — ولا يُخزَّن حجمُ صورةٍ لا وجود لها. */
+      image: f.image || undefined,
+      imageSize: f.image ? Math.max(40, Math.min(200, Number(f.imageSize) || 56)) : undefined,
+      imageCut: f.image && f.imageCut ? true : undefined,
       cta: f.cta.trim() || undefined,
       whatsapp: f.whatsapp.trim() || undefined,
       track: f.track || undefined,
@@ -412,6 +426,111 @@ export default function PlansPage() {
               </div>
             </div>
 
+
+            {/* ---------- صورة الخطة ---------- */}
+            <div className="sm:col-span-3 rounded-2xl border border-border p-4">
+              <span className="lbl mb-3 flex items-center gap-1.5">
+                <ImageIcon className="inline size-3.5" /> صورة الخطة (تحلّ محلّ أيقونة النطاق)
+              </span>
+
+              <div className="flex flex-wrap items-start gap-4">
+                <div
+                  className="plan-image grid shrink-0 place-items-center rounded-2xl border border-dashed border-border bg-muted/30"
+                  style={{ width: Math.max(56, f.imageSize), height: Math.max(56, f.imageSize) }}
+                >
+                  {f.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={mediaSrc(f.image)}
+                      alt="معاينة صورة الخطة"
+                      className={`max-h-full max-w-full object-contain ${f.imageCut ? "img-cut" : ""}`}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <span className="px-2 text-center text-[10px] text-muted-foreground">لا صورة</span>
+                  )}
+                </div>
+
+                <div className="grid min-w-[220px] flex-1 gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      id="plan-img"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file) return;
+                        /*
+                          المتحرّكةُ تُرفع كما هي: أستوديو الصورة يقرأ إطاراً
+                          واحداً فيقتل الحركة. وخلفيتُها تُقصّ بالمزج لا بالتحرير.
+                        */
+                        const moving = /gif|webp|apng/i.test(file.type);
+                        if (moving) {
+                          setImgBusy(true);
+                          const url = await uploadImage(file);
+                          setImgBusy(false);
+                          if (url) set({ image: url, imageCut: true });
+                          return;
+                        }
+                        setStudio(file);
+                      }}
+                    />
+                    <Button variant="outline" onClick={() => document.getElementById("plan-img")?.click()} disabled={imgBusy}>
+                      <ImageIcon className="size-4" /> {imgBusy ? "جارٍ الرفع…" : "رفع صورة"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setPicker(true)}
+                      className="rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+                    >
+                      <Sparkles className="inline size-3.5" /> من مكتبة الحركة
+                    </button>
+                    {f.image ? (
+                      <button
+                        type="button"
+                        onClick={() => set({ image: "", imageCut: false })}
+                        className="rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground transition hover:border-rose-500/50 hover:text-rose-500"
+                      >
+                        إزالة
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <label className="flex items-center gap-3">
+                    <span className="w-24 shrink-0 text-[11px] font-semibold text-muted-foreground">
+                      الحجم {f.imageSize.toLocaleString("ar-EG")}px
+                    </span>
+                    <input
+                      type="range"
+                      min={40}
+                      max={200}
+                      step={4}
+                      value={f.imageSize}
+                      onChange={(e) => set({ imageSize: Number(e.target.value) })}
+                      className="h-1.5 flex-1 accent-[hsl(var(--primary))]"
+                    />
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs font-bold">
+                    <input
+                      type="checkbox"
+                      checked={f.imageCut}
+                      onChange={(e) => set({ imageCut: e.target.checked })}
+                      className="size-4 accent-[hsl(var(--primary))]"
+                    />
+                    إسقاط الخلفية البيضاء
+                  </label>
+                  <p className="text-[10px] leading-relaxed text-muted-foreground">
+                    الساكنةُ تُفتح في أستوديو الصورة فتُقصّ خلفيتُها ويُحفظ الشفّافُ نفسُه.
+                    والمتحرّكةُ تُرفع كما هي — تحريرُها يقرأ إطاراً واحداً فيقتل الحركة — وتُسقَط
+                    خلفيتُها بالمزج، وهو يصلح لخلفيةٍ بيضاء لا لخلفيةٍ ملوّنة.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* الخصم */}
             <div className="sm:col-span-3 rounded-2xl border border-border p-4">
               <label className="mb-3 flex items-center gap-2">
@@ -529,6 +648,25 @@ export default function PlansPage() {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {studio && (
+        <ImageStudio
+          file={studio}
+          onCancel={() => setStudio(null)}
+          onDone={async (out) => {
+            setImgBusy(true);
+            const url = await uploadImage(out);
+            setImgBusy(false);
+            setStudio(null);
+            /* المقصوصةُ شفّافةٌ أصلاً، فلا تحتاج مزجاً فوق القصّ. */
+            if (url) set({ image: url, imageCut: false });
+          }}
+        />
+      )}
+
+      {picker && (
+        <MotionArtPicker onClose={() => setPicker(false)} onPick={(url) => set({ image: url, imageCut: false })} />
       )}
 
       <style>{`.inp{width:100%;border-radius:0.9rem;border:1px solid hsl(var(--border));background:hsl(var(--card)/0.6);padding:0.55rem 0.8rem;font-size:0.85rem;outline:none;color:inherit;font-family:inherit}.inp:focus{border-color:hsl(var(--primary)/0.6)}.lbl{margin-bottom:0.25rem;display:block;font-size:0.7rem;font-weight:600;color:hsl(var(--muted-foreground))}`}</style>

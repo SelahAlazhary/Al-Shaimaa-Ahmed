@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SectionHeading, Reveal, Button } from "@/components/ui/primitives";
+import { mediaSrc } from "@/lib/media";
 import { useContent } from "@/components/content/content-provider";
 import {
   IconCheck, IconSparkle, IconCalendar, IconLayers, IconBook, IconWhatsapp, IconArrowLeft,
@@ -126,6 +127,9 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
     ? `خصم ${priced.percent.toLocaleString("ar-EG")}٪`
     : plan.badge || (featured ? "الأفضل قيمة" : "");
 
+  /* الحجمُ محصورٌ فلا تُفسد قيمةٌ شاردة تخطيطَ البطاقة. */
+  const imgSize = Math.max(40, Math.min(200, plan.imageSize ?? 56));
+
   return (
     <Reveal delay={index * 0.07} className="h-full">
       <motion.div
@@ -141,13 +145,32 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
       >
         {ribbon && <CornerRibbon text={ribbon} tone={tone} />}
 
-        {/* أيقونة النطاق — في الركن المقابل للشريط */}
-        <span
-          className="grid size-14 place-items-center self-start rounded-2xl"
-          style={{ background: `${tone}1a`, color: tone }}
-        >
-          {scopeIcon}
-        </span>
+        {/*
+          رأس البطاقة: صورةُ الخطة إن رُفعت، وإلا أيقونةُ النطاق.
+          والصورةُ لا تُوضع فوق الأيقونة بل مكانها — رمزان في موضعٍ واحد
+          يتزاحمان، ولا يقول الثاني ما لم يقله الأوّل.
+        */}
+        {plan.image ? (
+          <span
+            className="plan-image grid shrink-0 place-items-center self-start"
+            style={{ width: imgSize, height: imgSize }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mediaSrc(plan.image)}
+              alt={plan.name}
+              className={`max-h-full max-w-full object-contain ${plan.imageCut ? "img-cut" : ""}`}
+              referrerPolicy="no-referrer"
+            />
+          </span>
+        ) : (
+          <span
+            className="grid size-14 place-items-center self-start rounded-2xl"
+            style={{ background: `${tone}1a`, color: tone }}
+          >
+            {scopeIcon}
+          </span>
+        )}
 
         {/* الاسم والوصف */}
         <div className="plan-body flex flex-1 flex-col">
