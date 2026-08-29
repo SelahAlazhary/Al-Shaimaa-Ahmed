@@ -8,6 +8,7 @@ import {
 import { seedUsers } from "./seed-admin";
 import { courseActive, lessonActive, planExpiry, planSubjectId, eligibleFor, liveVisible, publicLives } from "./access";
 import { resolvePlan } from "./plans";
+import { dropActivity } from "./activity-store";
 import { firebaseConfigured } from "./firebase";
 import { pushConfigured } from "./push";
 import { ensureStore, peek, commit, flushStore, storeState, invalidate, readLocal } from "./store";
@@ -195,6 +196,8 @@ export function createUser(input: {
   name: string; username: string; password: string; role: Role;
   phone?: string; grade?: string; stage?: string; eduSystem?: string; termName?: string; track?: string; branch?: string;
   gender?: "male" | "female"; school?: string; governorate?: string; active?: boolean;
+  /** من أين جاء وأوّل صفحة دخل منها — تُحفظ مرّةً ولا تُقرأ بعدها. */
+  source?: string; landing?: string;
 }): PublicUser {
   const db = getDB();
   if (db.users.some((u) => u.username.toLowerCase() === input.username.toLowerCase())) {
@@ -219,6 +222,8 @@ export function createUser(input: {
     gender: input.gender,
     school: input.school,
     governorate: input.governorate,
+    source: input.source,
+    landing: input.landing,
     progress: {},
     enrolled: [],
     createdAt: new Date().toISOString(),
@@ -314,6 +319,9 @@ export function deleteUser(id: string) {
   db.tickets = db.tickets.filter((t) => (t.userId ? t.userId !== id : t.student !== u.name));
 
   db.notifications = db.notifications.filter((n) => n.userId !== id);
+
+  /* سجلّ نشاطه في مساره المستقلّ — يُمحى معه فلا يبقى بعد صاحبه. */
+  void dropActivity(id);
 
   /* طلبات الدفع تحمل اسمه وهاتفه وصورة إيصاله — تُحذف معه. */
   db.payments = (db.payments ?? []).filter((p) => p.userId !== id);

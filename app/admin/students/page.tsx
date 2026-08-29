@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { UserPlus, Search, X, Trash2, BookOpen, Smartphone, ShieldOff, Check, Loader2, KeyRound } from "lucide-react";
+import Link from "next/link";
 import { PageHeader, DataTable, StatusBadge } from "@/components/dashboard/ui";
+import { isOnline, sinceText } from "@/lib/activity";
 import { Button } from "@/components/ui/primitives";
 import { useContent } from "@/components/content/content-provider";
 import type { PublicUser } from "@/lib/types";
@@ -52,19 +54,30 @@ export default function StudentsPage() {
       {students.length === 0 ? (
         <p className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">لا يوجد طلاب بعد — الحسابات تُنشأ من صفحة التسجيل أو بإضافتها هنا.</p>
       ) : (
-        <DataTable head={["الطالب", "البريد", "الصف الدراسي", "الشعبة", "المحافظة", "الجهاز المرتبط", "الكورسات", "إجراءات"]}>
+        <DataTable head={["الطالب", "البريد", "الصف الدراسي", "الشعبة", "المصدر", "الجهاز المرتبط", "الكورسات", "إجراءات"]}>
           {rows.map((s) => (
             <tr key={s.id} className="transition hover:bg-muted/50">
               <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-9 place-items-center rounded-full bg-primary/12 text-sm font-bold text-primary">{s.name.charAt(0)}</span>
-                  <div><p className="font-semibold">{s.name}</p><p className="text-[11px] text-muted-foreground">{s.phone || "—"}</p></div>
-                </div>
+                {/* الاسم بابُ التقرير — أوّل ما تُبحث عنه هو ما يُضغط */}
+                <Link href={`/admin/students/${s.id}`} className="flex items-center gap-3 transition hover:opacity-80">
+                  <span className="relative grid size-9 place-items-center rounded-full bg-primary/12 text-sm font-bold text-primary">
+                    {s.name.charAt(0)}
+                    {isOnline(s) && (
+                      <span className="absolute -left-0.5 -top-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-card" />
+                    )}
+                  </span>
+                  <div>
+                    <p className="font-semibold">{s.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {s.phone || "—"} · {sinceText(s.lastSeen)}
+                    </p>
+                  </div>
+                </Link>
               </td>
               <td className="px-4 py-3 font-mono text-xs text-muted-foreground" dir="ltr">{s.username}</td>
               <td className="px-4 py-3">{s.grade || "—"}</td>
               <td className="px-4 py-3 text-muted-foreground">{s.track || "—"}</td>
-              <td className="px-4 py-3 text-muted-foreground">{s.governorate || "—"}</td>
+              <td className="px-4 py-3 text-muted-foreground">{s.source || s.governorate || "—"}</td>
               <td className="px-4 py-3">
                 {s.deviceId ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-2.5 py-1 text-[11px] font-bold text-emerald-600">

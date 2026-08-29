@@ -599,12 +599,44 @@ export type User = {
   deviceBoundAt?: string;            // تاريخ الارتباط
   deviceResetAt?: string;            // آخر سماح من الأدمن بجهاز جديد
   readNotifications?: string[];      // معرّفات الإشعارات المقروءة
+
+  /* ---------- التتبّع ---------- */
+  /*
+    السجلُّ نفسُه ليس هنا: قاعدةُ المنصّة تُقرأ كاملةً في كل طلب، فستّةُ
+    كيلوبايت لكل طالب تُقرأ في كل مرّة ثمنٌ لا يُدفع. يسكن في مسارٍ
+    مستقلّ (lib/activity-store.ts) ولا يُقرأ إلا عند فتح التقرير.
+    وهنا المجاميع وحدها — عشراتُ البايتات لا آلافُها.
+  */
+  lastSeen?: string;      // آخر ظهور
+  visits?: number;        // عدد مرّات الدخول
+  minutes?: number;       // دقائق المشاهدة التقريبية
+  source?: string;        // من أين جاء إلى المنصّة أوّل مرّة
+  landing?: string;       // أوّل صفحة دخل منها
   owner?: boolean;                   // مالكة المنصّة — كل الصلاحيات ولا تُحذف
   adminPerms?: AdminPerm[];          // صلاحيات المشرف (تُتجاهل للمالكة)
   createdAt: string;
 };
 
 /** اشتراك إشعارات الجهاز (Web Push) — سرّ لا يُرسل لأي واجهة. */
+/** نوع الحدث المسجَّل في حلقة نشاط الطالب. */
+export type ActivityKind =
+  | "login" | "view" | "lesson" | "quiz" | "exam" | "pay" | "redeem" | "live";
+
+/**
+ * حدثٌ واحد — مضغوطٌ عمداً.
+ * حروفٌ لا كلمات في النوع، ومراجعُ لا نسخٌ من الأسماء: الاسمُ يُقرأ من
+ * الكورس وقت العرض، فلا يتكرّر في كل سطر.
+ */
+export type Activity = {
+  id: string;
+  at: string;
+  kind: ActivityKind;
+  /** ما الذي مُسّ: معرّف كورس أو درس أو مسار صفحة. */
+  ref?: string;
+  /** تفصيلٌ قصير حين يلزم (درجة · مبلغ · اسم). */
+  meta?: string;
+};
+
 export type PushSub = {
   id: string;
   endpoint: string;

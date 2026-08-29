@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, sameOrigin, passwordProblem, invalidUsername } from "@/lib/guard";
 import { signupProblem, showsTrack, showsBranch, normalizePhone } from "@/lib/signup-rules";
+import { sourceOf } from "@/lib/activity";
 import { recordEvent, bannedUntil } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,10 @@ export async function POST(req: Request) {
       school: body.school,
       governorate: body.governorate,
       active: true, // الحساب مُفعّل فوراً — لا يحتاج موافقة الإدارة
+      /* من أين جاء؟ يُشتقّ مرّةً واحدة عند التسجيل ويبقى — فهو صفةُ
+         الحساب لا صفةُ الزيارة، ولا يُقرأ بعدها من ترويسة. */
+      source: sourceOf(req.headers.get("referer"), String(body.utm ?? "")),
+      landing: String(body.landing ?? "").slice(0, 120) || undefined,
     });
     // التسجيل الذاتي يربط الحساب بجهاز صاحبه فوراً (حساب واحد = جهاز واحد)
     if (user.role === "student" && !isAdmin) {

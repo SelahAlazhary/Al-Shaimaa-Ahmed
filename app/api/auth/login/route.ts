@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { findUserByUsername, verifyPassword, bindDevice, loadDB } from "@/lib/db";
+import { findUserByUsername, verifyPassword, bindDevice, loadDB, getDB, saveDB } from "@/lib/db";
 import { setSessionCookie } from "@/lib/session";
+import { newActivity, pushActivity } from "@/lib/activity";
 import { ensureDeviceId, deviceLabel } from "@/lib/device";
 import { clientIp, limit, resetLimit, sameOrigin } from "@/lib/guard";
 import { recordEvent, bannedUntil } from "@/lib/security";
@@ -91,6 +92,16 @@ export async function POST(req: Request) {
 
   resetLimit(`login:ip:${ip}`);
   resetLimit(`login:user:${String(username).toLowerCase()}:${ip}`);
+  /* الدخولُ حدثٌ في سجلّ الطالب لا في سجلّ الأمان وحده — منه تُعرف
+     عادتُه: متى يدخل وكم مرّة. */
+  if (user!.role === "student") {
+    const db = getDB();
+    const u = db.users.find((x: { id: string }) => x.id === user!.id);
+    if (u) {
+      pushActivity(u, newActivity("login", undefined, deviceLabel(req.headers.get("user-agent"))));
+      saveDB(db);
+    }
+  }
   await setSessionCookie({ uid: user!.id, role: user!.role, name: user!.name });
   await recordEvent("login_ok", `دخول ${user!.role === "admin" ? "أدمن" : "طالب"}`, { userId: user!.id, username: user!.username });
   return NextResponse.json({ ok: true, role: user!.role, name: user!.name });
