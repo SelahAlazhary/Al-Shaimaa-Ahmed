@@ -67,6 +67,8 @@ export default function CustomizePage() {
   const set = (patch: Partial<SiteContent>) => setForm((f) => ({ ...f, ...patch }));
   const setTeacher = (patch: Partial<SiteContent["teacher"]>) => setForm((f) => ({ ...f, teacher: { ...f.teacher, ...patch } }));
   const setSocial = (patch: Partial<SiteContent["social"]>) => setForm((f) => ({ ...f, social: { ...f.social, ...patch } }));
+  const setDeveloper = (patch: Partial<NonNullable<SiteContent["developer"]>>) =>
+    setForm((f) => ({ ...f, developer: { ...(f.developer ?? {}), ...patch } }));
   const setSupport = (patch: Partial<NonNullable<SiteContent["support"]>>) => setForm((f) => ({ ...f, support: { ...(f.support ?? {}), ...patch } }));
   const setCta = (patch: Partial<NonNullable<SiteContent["cta"]>>) => setForm((f) => ({ ...f, cta: { ...(f.cta ?? {}), ...patch } }));
   const setPlansSection = (patch: Partial<NonNullable<SiteContent["plansSection"]>>) =>
@@ -593,6 +595,85 @@ export default function CustomizePage() {
               </div>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">اضغط «حفظ النصوص» بالأعلى لحفظ التغييرات.</p>
+          </Card>
+          {/*
+            الشركة المطوّرة.
+            حقوقُ المنصّة للأستاذة، ونسبةُ التطوير شيءٌ آخر — فسطرٌ مستقلٌّ
+            تحت الحقوق لا جملةٌ تخلطهما.
+          */}
+          <Card className="lg:col-span-2">
+            <h3 className="mb-1 font-display font-extrabold">الشركة المطوّرة (أسفل الفوتر)</h3>
+            <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+              يظهر سطرٌ تحت حقوق النشر: «تطوير — الاسم». من ترك الاسم فارغاً لم يظهر السطر،
+              ومن ترك الرابط فارغاً ظهر الاسمُ نصّاً لا وصلةً معطوبة.
+            </p>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-3">
+                <Field label="اسم الشركة">
+                  <input className="inp" value={form.developer?.name ?? ""} placeholder="EX-EG"
+                    onChange={(e) => setDeveloper({ name: e.target.value })} />
+                </Field>
+                <Field label="رابط الشركة (عند الضغط)">
+                  <input dir="ltr" className="inp text-right" value={form.developer?.url ?? ""} placeholder="https://…"
+                    onChange={(e) => setDeveloper({ url: e.target.value })} />
+                </Field>
+                <label className="flex items-center gap-2 text-xs font-bold">
+                  <input type="checkbox" checked={!form.developer?.hidden}
+                    onChange={(e) => setDeveloper({ hidden: !e.target.checked })} />
+                  إظهار السطر في الفوتر
+                </label>
+                <p className="text-[11px] text-muted-foreground">اضغط «حفظ النصوص» بالأعلى لحفظ الاسم والرابط.</p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold text-muted-foreground">شعار الشركة (اختياري)</p>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-14 w-28 place-items-center overflow-hidden rounded-2xl border border-dashed border-border bg-muted/30">
+                    {form.developer?.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={mediaSrc(form.developer.logo)} alt="شعار الشركة المطوّرة"
+                        className="max-h-full max-w-full object-contain" referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">لا شعار</span>
+                    )}
+                  </div>
+                  <input
+                    id="dev-logo"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const url = await uploadImage(f);
+                      if (!url) return;
+                      const next = { ...(form.developer ?? {}), logo: url };
+                      set({ developer: next });
+                      await saveContent({ developer: next });
+                    }}
+                  />
+                  <Button variant="outline" onClick={() => document.getElementById("dev-logo")?.click()}>
+                    <Upload className="size-4" /> رفع الشعار
+                  </Button>
+                  {form.developer?.logo ? (
+                    <button
+                      type="button"
+                      className="rounded-xl border border-border px-3 py-2 text-[11px] font-bold text-muted-foreground transition hover:border-rose-500/50 hover:text-rose-500"
+                      onClick={async () => {
+                        const next = { ...(form.developer ?? {}), logo: "" };
+                        set({ developer: next });
+                        await saveContent({ developer: next });
+                      }}
+                    >
+                      إزالة
+                    </button>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  الشعارُ يُرفع ويُحفظ فوراً — بارتفاع ١٦ بكسل في الفوتر فلا يزاحم الحقوق.
+                </p>
+              </div>
+            </div>
           </Card>
         </div>
       )}

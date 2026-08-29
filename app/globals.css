@@ -2819,3 +2819,99 @@ body {
   .app-dock-inner { gap: 0.25rem; padding-inline: 0.4rem; }
   .app-tab { padding-block: 0.5rem; }
 }
+
+/* ============================================================
+   لوح قسم الهيرو
+   ------------------------------------------------------------
+   سجلُّ الهيرو القائم يحكم ما بداخله؛ وهذا يحكم اللوحَ نفسَه: سطحَه
+   وحوافَّه وحدَّه. محوران لا يتداخلان فيُركَّبان بحرّية.
+
+   والألوان متغيّراتٌ لا أصناف: التصميمُ شكلٌ واللونُ هوية — ومن أراد
+   لوحاً مستديراً بلون منصّته لا يُجبَر على لونِ مصمّمه.
+   ============================================================ */
+
+/* زيادة الطول لأسفل — حشوٌ لا ارتفاعٌ ثابت، فيبقى القسم يتمدّد بمحتواه
+   ولا يُقصّ منه شيء. والقيمتان هما حشوُ الهيرو نفسِه (pb-20 / md:pb-28)
+   فلا تضيع الاستجابةُ حين يكون الزائد صفراً. */
+#hero { padding-bottom: calc(5rem + var(--hsh-extra, 0px)); }
+@media (min-width: 768px) {
+  #hero { padding-bottom: calc(7rem + var(--hsh-extra, 0px)); }
+}
+
+/* لون النصّ داخل اللوح */
+.hsh-text #hero,
+.hsh-text #hero h1,
+.hsh-text #hero p { color: var(--hsh-text); }
+
+/* ---------- الهامش ---------- */
+.hsh-inset #hero {
+  margin-inline: 1.25rem;
+  margin-top: 1rem;
+}
+@media (min-width: 1024px) {
+  .hsh-inset #hero { margin-inline: 2.5rem; }
+}
+
+/* ---------- السطح ---------- */
+.hsh-surface-card #hero { background: var(--hsh-bg, hsl(var(--card))); }
+.hsh-surface-glass #hero {
+  background: var(--hsh-bg, hsl(var(--card) / 0.55));
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+.hsh-surface-gradient #hero {
+  background: linear-gradient(140deg, var(--hsh-bg, hsl(var(--card))), var(--hsh-bg2, hsl(var(--muted))));
+}
+.hsh-surface-ink #hero {
+  background: var(--hsh-bg, hsl(var(--primary)));
+  color: var(--hsh-text, hsl(var(--primary-foreground)));
+}
+/* الحبر يقلب ألوان ما بداخله — وإلا بقي نصٌّ داكن على لوحٍ داكن */
+.hsh-surface-ink #hero h1,
+.hsh-surface-ink #hero p { color: inherit; }
+.hsh-surface-ink #hero .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.75) !important; }
+
+.hsh-surface-tint #hero {
+  background: var(--hsh-bg, hsl(var(--primary) / 0.07));
+}
+
+/* ---------- الحوافّ ---------- */
+.hsh-shape-soft #hero { border-radius: 1.5rem; }
+.hsh-shape-round #hero { border-radius: 2.75rem; }
+.hsh-shape-pill #hero { border-radius: 2rem 2rem 14rem 14rem / 2rem 2rem 6rem 6rem; }
+.hsh-shape-arch #hero { border-radius: 14rem 14rem 2rem 2rem / 7rem 7rem 2rem 2rem; }
+.hsh-shape-plaque #hero {
+  border-radius: 0;
+  clip-path: polygon(
+    2.5rem 0, calc(100% - 2.5rem) 0, 100% 2.5rem,
+    100% calc(100% - 2.5rem), calc(100% - 2.5rem) 100%,
+    2.5rem 100%, 0 calc(100% - 2.5rem), 0 2.5rem
+  );
+}
+/* موجةٌ سفلية — قناعٌ لا صورة، فيتمدّد بأي عرض */
+.hsh-shape-wave #hero {
+  border-radius: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 3rem) no-repeat,
+    radial-gradient(6rem 3rem at 50% 0, #000 99%, transparent) bottom / 12rem 3rem repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 3rem) no-repeat,
+    radial-gradient(6rem 3rem at 50% 0, #000 99%, transparent) bottom / 12rem 3rem repeat-x;
+}
+
+/* ---------- الحدّ ---------- */
+.hsh-edge-hairline #hero { box-shadow: inset 0 0 0 1px var(--hsh-edge, hsl(var(--border))); }
+.hsh-edge-gold #hero { box-shadow: inset 0 0 0 1.5px var(--hsh-edge, hsl(var(--gold) / 0.55)); }
+.hsh-edge-thick #hero { box-shadow: inset 0 0 0 3px var(--hsh-edge, hsl(var(--primary) / 0.5)); }
+.hsh-edge-dashed #hero {
+  border: 2px dashed var(--hsh-edge, hsl(var(--gold) / 0.5));
+}
+.hsh-edge-glow #hero {
+  box-shadow:
+    inset 0 0 0 1px var(--hsh-edge, hsl(var(--gold) / 0.4)),
+    0 34px 70px -40px var(--hsh-edge, hsl(var(--primary) / 0.9));
+}
+/* الحدّ الحادّ الممتدّ: خطٌّ سفليٌّ فقط لا إطار */
+.hsh-shape-square.hsh-edge-hairline:not(.hsh-inset) #hero {
+  box-shadow: inset 0 -1px 0 hsl(var(--border));
+}

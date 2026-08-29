@@ -25,6 +25,7 @@ import type { FaqStyle, CtaStyle, FooterStyle } from "@/lib/block-styles";
 import type { MobileHome } from "@/lib/mobile-home";
 import { motionVars, type MotionStyle } from "@/lib/motion-styles";
 import type { ButtonStyle } from "@/lib/button-styles";
+import type { HeroShell, HeroShellOpts } from "@/lib/hero-shell";
 
 const W = 160;
 const H = 108;
@@ -2445,6 +2446,122 @@ export function ButtonPreview({ style, skin }: { style: ButtonStyle; skin: Stude
       {/* أثر الارتفاع */}
       {style.hover === "lift" && (
         <rect x={x1} y={y + bh + 2} width={bw} height={1.6} rx={0.8} fill={tone} opacity={0.18} />
+      )}
+    </svg>
+  );
+}
+
+/**
+ * معاينة لوح الهيرو.
+ * ------------------------------------------------------------------
+ * اللوحُ هنا مرسومٌ بمسارٍ حقيقي لا بحدٍّ يوحي بالشكل: القوسُ قوسٌ
+ * والموجةُ موجةٌ والأركانُ مقصوصةٌ فعلاً — فما تراه في البطاقة هو ما
+ * يقع في الصفحة، لا تقريبٌ له.
+ */
+export function HeroShellPreview({
+  shell,
+  skin,
+  opts,
+}: {
+  shell: HeroShell;
+  skin: StudentSkin;
+  opts?: HeroShellOpts;
+}) {
+  const uid = useUid("hsh");
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const text = opts?.text || hsl(v.foreground);
+
+  /* هامشُ اللوح — الممتدُّ يلامس الحوافّ والمنفصلُ يبتعد */
+  const m = shell.inset ? 7 : 0;
+  const x = m, y = m, w = W - m * 2, h = H - m * 2;
+  /* الزيادةُ لأسفل تُرى في المعاينة كما تُرى في الصفحة */
+  const grow = Math.max(0, Math.min(400, opts?.extra ?? 0)) / 400;
+
+  /* ---------- مسار الشكل ---------- */
+  const path = (() => {
+    const R = { square: 0, soft: 6, round: 12, pill: 12, arch: 12, plaque: 0, wave: 0 }[shell.shape];
+    switch (shell.shape) {
+      case "arch": {
+        const a = Math.min(w / 2, h * 0.55);
+        return `M${x} ${y + h - 5} V${y + a} A${w / 2} ${a} 0 0 1 ${x + w} ${y + a} V${y + h - 5} Q${x + w} ${y + h} ${x + w - 5} ${y + h} H${x + 5} Q${x} ${y + h} ${x} ${y + h - 5} Z`;
+      }
+      case "pill": {
+        const a = Math.min(w / 2, h * 0.45);
+        return `M${x} ${y + 8} Q${x} ${y} ${x + 8} ${y} H${x + w - 8} Q${x + w} ${y} ${x + w} ${y + 8} V${y + h - a} A${w / 2} ${a} 0 0 1 ${x} ${y + h - a} Z`;
+      }
+      case "plaque": {
+        const c = 12;
+        return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
+      }
+      case "wave": {
+        /* أربع فصوصٍ سفلية — كالقناع في الصفحة */
+        const n = 4, s = w / n, b = y + h - 9;
+        let d = `M${x} ${y} H${x + w} V${b}`;
+        for (let i = 0; i < n; i++) {
+          const cx = x + w - i * s;
+          d += ` A${s / 2} 9 0 0 1 ${cx - s} ${b}`;
+        }
+        return d + " Z";
+      }
+      default:
+        return `M${x + R} ${y} H${x + w - R} Q${x + w} ${y} ${x + w} ${y + R} V${y + h - R} Q${x + w} ${y + h} ${x + w - R} ${y + h} H${x + R} Q${x} ${y + h} ${x} ${y + h - R} V${y + R} Q${x} ${y} ${x + R} ${y} Z`;
+    }
+  })();
+
+  /* ---------- السطح ---------- */
+  const grad = `${uid}-g`;
+  const fill =
+    shell.surface === "none" ? "none"
+      : shell.surface === "gradient" ? `url(#${grad})`
+        : shell.surface === "ink" ? (opts?.bg || tone)
+          : shell.surface === "tint" ? (opts?.bg || tone)
+            : (opts?.bg || hsl(v.card));
+  const fillOpacity =
+    shell.surface === "tint" ? 0.12 : shell.surface === "glass" ? 0.6 : 1;
+
+  /* ---------- الحدّ ---------- */
+  const edgeColor = opts?.edge || (shell.edge === "thick" ? tone : gold);
+  const edgeW = { none: 0, hairline: 1, gold: 1.4, thick: 3, glow: 1.2, dashed: 1.6 }[shell.edge];
+
+  /* نصُّ اللوح — الحبرُ يقلب ما بداخله */
+  const ink = shell.surface === "ink";
+  const headline = opts?.text || (ink ? "#ffffff" : text);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <defs>
+        <linearGradient id={grad} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={opts?.bg || hsl(v.card)} />
+          <stop offset="1" stopColor={opts?.bg2 || hsl(v.muted)} />
+        </linearGradient>
+        <filter id={`${uid}-b`} x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3" />
+        </filter>
+      </defs>
+
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {shell.edge === "glow" && <path d={path} fill={edgeColor} opacity={0.4} filter={`url(#${uid}-b)`} />}
+
+      {shell.surface !== "none" && <path d={path} fill={fill} fillOpacity={fillOpacity} />}
+      {edgeW > 0 && (
+        <path d={path} fill="none" stroke={edgeColor} strokeWidth={edgeW}
+          strokeDasharray={shell.edge === "dashed" ? "5 4" : undefined} />
+      )}
+
+      {/* محتوى الهيرو مصغَّراً: صورةٌ وعنوانٌ وزرّان */}
+      <circle cx={W / 2} cy={y + 26} r={11} fill={ink ? "#ffffff" : tone} opacity={ink ? 0.9 : 0.85} />
+      <rect x={W / 2 - 32} y={y + 43} width={64} height={5} rx={2.5} fill={headline} opacity={0.85} />
+      <rect x={W / 2 - 22} y={y + 52} width={44} height={3} rx={1.5} fill={headline} opacity={0.4} />
+      <rect x={W / 2 - 30} y={y + 61} width={28} height={9} rx={3} fill={ink ? "#ffffff" : tone} opacity={0.9} />
+      <rect x={W / 2 + 2} y={y + 61} width={28} height={9} rx={3} fill="none" stroke={gold} strokeWidth={1} />
+
+      {/* الزيادةُ لأسفل — شريطٌ يبيّن المساحة المضافة */}
+      {grow > 0 && (
+        <rect x={x + 6} y={y + h - 6 - grow * (h - 84)} width={w - 12} height={Math.max(2, grow * (h - 84))}
+          rx={2} fill={tone} opacity={0.16} />
       )}
     </svg>
   );

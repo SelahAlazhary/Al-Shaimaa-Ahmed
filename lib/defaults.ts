@@ -11,6 +11,8 @@ import type {
 export const defaultContent: SiteContent = {
   brand: "الشيماء أحمد",
   platformSubtitle: "Al-Shaimaa Ahmed",
+  /* نسبةُ التطوير — الرابطُ والشعارُ يُملآن من اللوحة. */
+  developer: { name: "EX-EG" },
   teacher: {
     name: "الشيماء أحمد",
     subject: "اللغة العربية",

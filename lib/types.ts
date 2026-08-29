@@ -261,7 +261,16 @@ export type SiteContent = {
   /** تصميم زرّي الهيرو (lib/button-styles.ts). */
   buttonStyle?: string;
   /** قواعد الوهج — خلفياتٌ وحوافُّ مضيئة لعناصر مختارة. */
+  /**
+   * الشركة المطوّرة — سطرٌ تحت حقوق النشر باسمها ورابطها وشعارها.
+   * اختياريٌّ كلُّه: من ترك الاسم فارغاً لم يظهر السطر أصلاً، ومن ترك
+   * الرابط فارغاً ظهر الاسمُ نصّاً لا وصلةً معطوبة.
+   */
+  developer?: { name?: string; url?: string; logo?: string; hidden?: boolean };
   glow?: GlowRule[];
+  /** لوح قسم الهيرو: شكلُه (lib/hero-shell.ts) وألوانُه وارتفاعُه. */
+  heroShell?: string;
+  heroShellOpts?: { bg?: string; bg2?: string; edge?: string; text?: string; extra?: number };
   /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
   mobileHome?: string;
   /** إيقاع الحركة في المنصّة (lib/motion-styles.ts). */
@@ -668,7 +677,11 @@ export type GlowTarget =
 export type GlowRule = {
   id: string;
   targets: GlowTarget[];
+  /** تعبئة خلفية العنصر نفسِه باللون أو التدرّج. */
+  fill?: boolean;
+  /** هالةٌ مضيئة حول العنصر. */
   bg: boolean;
+  /** حافّةٌ مضيئة على حدّ العنصر. */
   edge: boolean;
   mode: GlowMode;
   c1?: string;

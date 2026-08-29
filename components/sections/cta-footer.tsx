@@ -12,6 +12,8 @@ import { KuficBackdrop, RuleOrnament, Shamsa, ElegantRule } from "@/components/b
 import { useContent } from "@/components/content/content-provider";
 import { findCtaStyle, ctaClass, findFooterStyle, footerClass } from "@/lib/block-styles";
 import { el, isHidden, btnStyle } from "@/lib/ui-style";
+import { mediaSrc } from "@/lib/media";
+import type { SiteContent } from "@/lib/types";
 
 export function CtaFooter() {
   const { content, wa } = useContent();
@@ -24,6 +26,8 @@ export function CtaFooter() {
   const ctBrand = CT.fill === "brand" ? "btn-glow shadow-glow-lg" : "";
   const FT = findFooterStyle(content.footerStyle);
   const showCta = !isHidden(content, "section.cta");
+
+  const dev = content.developer ?? {};
 
   return (
     <>
@@ -91,6 +95,17 @@ export function CtaFooter() {
         <div className="container mt-4 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} {content.brand}. جميع الحقوق محفوظة.
         </div>
+        {/*
+          الشركة المطوّرة.
+          سطرٌ منفصلٌ تحت الحقوق لا مدسوسٌ فيها: حقوقُ المنصّة للأستاذة،
+          والتطويرُ نسبةٌ أخرى — فلا يختلطان في جملةٍ واحدة.
+        */}
+        {dev.name && !dev.hidden ? (
+          <div className="container mt-2 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+            <span>تطوير</span>
+            <DevCredit dev={dev} />
+          </div>
+        ) : null}
       </footer>
     </>
   );
@@ -100,6 +115,42 @@ function SocialBtn({ href, label, children }: { href: string; label: string; chi
   return (
     <a href={href} aria-label={label} className="btn-foil grid size-11 place-items-center rounded-2xl text-muted-foreground transition hover:text-accent">
       {children}
+    </a>
+  );
+}
+
+/**
+ * نسبةُ التطوير.
+ * الشعارُ صورةٌ عاديّة لا `next/image`: مصدرُه رابطٌ خارجيٌّ قد يكون من
+ * أيّ مضيف، ولا يستحقّ سطرٌ بهذا الحجم إعداداً للنطاقات المسموحة.
+ */
+function DevCredit({ dev }: { dev: NonNullable<SiteContent["developer"]> }) {
+  const inner = (
+    <>
+      {dev.logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={mediaSrc(dev.logo)}
+          alt={dev.name ?? ""}
+          className="h-4 w-auto max-w-[64px] object-contain"
+          referrerPolicy="no-referrer"
+        />
+      ) : null}
+      <span className="font-bold">{dev.name}</span>
+    </>
+  );
+
+  if (!dev.url) {
+    return <span className="inline-flex items-center gap-1.5">{inner}</span>;
+  }
+  return (
+    <a
+      href={dev.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1.5 transition hover:text-primary"
+    >
+      {inner}
     </a>
   );
 }

@@ -16,6 +16,8 @@ import {
   type GlowRule, type GlowMode, type GlowTarget,
 } from "@/lib/glow";
 
+const RGB = ["#ff0040", "#ff8a00", "#ffe600", "#22dd55", "#00d4ff", "#7c3aed", "#ff0040"];
+
 const SWATCH = ["#7c3aed", "#0ea5e9", "#12b981", "#e11d48", "#f59e0b", "#c9a227", "#173972", "#ff0080"];
 
 const TARGETS = Object.keys(TARGET_LABEL) as GlowTarget[];
@@ -55,57 +57,62 @@ export function GlowEditor({
       )}
 
       {rules.map((r) => {
-        const paint =
-          r.mode === "solid" ? (r.c1 || "#7c3aed")
-            : r.mode === "gradient" ? `linear-gradient(120deg, ${r.c1 || "#7c3aed"}, ${r.c2 || "#0ea5e9"})`
-              : "conic-gradient(from 0deg,#ff0040,#ff8a00,#ffe600,#22dd55,#00d4ff,#7c3aed,#ff0040)";
+        const c1 = r.c1 || "#7c3aed";
+        const c2 = r.c2 || "#0ea5e9";
+        const pct = Math.max(5, Math.min(100, r.intensity ?? 55));
+        const spin = Math.max(2, Math.min(30, r.speed ?? 8));
+        const fade = (c: string, p: number) => `color-mix(in srgb, ${c} ${Math.round(p)}%, transparent)`;
+
+        /* المعاينةُ تُبنى بالخصائص نفسِها التي يكتبها `glowCss` —
+           تعبئةٌ وظلٌّ مُسقَط وحدٌّ خارجي — فما يُرى هنا يقع هناك. */
+        const fillStyle =
+          r.mode === "gradient"
+            ? `linear-gradient(140deg, ${fade(c1, pct)}, ${fade(c2, pct)})`
+            : r.mode === "rgb"
+              ? `linear-gradient(120deg, ${RGB.map((c) => fade(c, pct)).join(",")})`
+              : `linear-gradient(${fade(c1, pct)}, ${fade(c1, pct)})`;
+        const blur = 10 + Math.round(pct * 0.22);
+        const halo =
+          r.mode === "gradient"
+            ? `drop-shadow(-6px 6px ${blur}px ${fade(c1, pct)}) drop-shadow(6px -6px ${blur}px ${fade(c2, pct)})`
+            : `drop-shadow(0 0 ${blur}px ${fade(r.mode === "rgb" ? RGB[0] : c1, pct)})`;
+        const ew = pct > 70 ? 3 : pct > 40 ? 2 : 1.5;
 
         return (
           <div key={r.id} className="grid gap-4 rounded-2xl border border-border p-4">
             {/* ---------- المعاينة الحيّة ---------- */}
             <div className="flex flex-wrap items-center gap-5">
               <div className="grid place-items-center rounded-2xl bg-muted/60 p-6">
-                <span className="relative grid h-16 w-32 place-items-center rounded-2xl bg-card text-xs font-bold">
-                  {r.bg && (
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute rounded-2xl"
-                      style={{
-                        inset: -10,
-                        background: paint,
-                        filter: "blur(16px)",
-                        opacity: (r.intensity ?? 55) / 100,
-                        animation: r.mode === "rgb" ? `glw-hue ${r.speed ?? 8}s linear infinite` : undefined,
-                      }}
-                    />
-                  )}
-                  {r.edge && (
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-2xl"
-                      style={{
-                        padding: 2,
-                        background: paint,
-                        WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-                        WebkitMaskComposite: "xor",
-                        mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-                        maskComposite: "exclude",
-                        animation: r.mode === "rgb" ? `glw-hue ${r.speed ?? 8}s linear infinite` : undefined,
-                      }}
-                    />
-                  )}
-                  <span className="relative">معاينة حيّة</span>
+                <span
+                  className="grid h-16 w-32 place-items-center rounded-2xl bg-card text-xs font-bold"
+                  style={{
+                    backgroundImage: r.fill ? fillStyle : undefined,
+                    backgroundSize: r.fill && r.mode === "rgb" ? "300% 100%" : undefined,
+                    filter: r.bg ? halo : undefined,
+                    outline: r.edge ? `${ew}px solid ${fade(r.mode === "rgb" ? RGB[0] : c1, Math.max(45, pct))}` : undefined,
+                    outlineOffset: r.edge ? -ew : undefined,
+                    animation:
+                      r.mode === "rgb" && (r.bg || r.edge || r.fill)
+                        ? `glw-demo ${spin}s linear infinite`
+                        : undefined,
+                  }}
+                >
+                  معاينة حيّة
                 </span>
               </div>
 
               <div className="grid gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold">
+                  <input type="checkbox" checked={!!r.fill} onChange={(e) => patch(r.id, { fill: e.target.checked })} />
+                  خلفية العنصر نفسه (تعبئة سطحه)
+                </label>
+                <label className="flex items-center gap-2 text-xs font-bold">
                   <input type="checkbox" checked={r.bg} onChange={(e) => patch(r.id, { bg: e.target.checked })} />
-                  خلفية مضيئة (هالة خلف العنصر)
+                  هالة مضيئة (ضوء حول العنصر)
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold">
                   <input type="checkbox" checked={r.edge} onChange={(e) => patch(r.id, { edge: e.target.checked })} />
-                  حواف مضيئة (إطار متدرّج)
+                  حواف مضيئة (خيط على الحدّ)
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold">
                   <input type="checkbox" checked={r.enabled !== false} onChange={(e) => patch(r.id, { enabled: e.target.checked })} />
@@ -229,10 +236,24 @@ export function GlowEditor({
         <Plus className="size-4" /> قاعدة وهج جديدة
       </button>
 
-      <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
-        <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
-        من ضبط جهازه على «تقليل الحركة» تتوقّف عنده دورةُ الألوان — يبقى الوهج ولا يدور.
-      </p>
+      <style>{"@keyframes glw-demo{to{background-position:300% 0;filter:hue-rotate(360deg)}}"}</style>
+
+      <div className="grid gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="flex items-start gap-2">
+          <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          الوهجُ يُرسم على خلفية العنصر وظلِّه وحدِّه — لا فوقه بطبقةٍ تحجب زخارف
+          التصميم. فلا يُخرَّب شريطُ الأدوات ولا حوافُّ البطاقات كما كان يقع.
+        </p>
+        <p className="flex items-start gap-2">
+          <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          في «التدرّج» تأخذ الحافّةُ اللونَ الأوّل وحدَه — الحدُّ خيطٌ لا سطحٌ يقبل
+          تدرّجاً. والتعبئةُ والهالةُ تأخذان اللونين معاً.
+        </p>
+        <p className="flex items-start gap-2">
+          <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          من ضبط جهازه على «تقليل الحركة» تتوقّف عنده دورةُ الألوان — يبقى الوهج ولا يدور.
+        </p>
+      </div>
     </div>
   );
 }

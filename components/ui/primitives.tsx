@@ -16,7 +16,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const base =
-  "relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60";
+  "ui-btn relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60";
 
 const variants: Record<Variant, string> = {
   glow: "btn-glow text-white overflow-hidden",

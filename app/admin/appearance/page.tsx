@@ -19,9 +19,10 @@ import {
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview, PlansPreview,
-  HeroStylePreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview, MobileHomePreview, MotionPreview, ButtonPreview,
+  HeroStylePreview, HeroShellPreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview, MobileHomePreview, MotionPreview, ButtonPreview,
 } from "@/components/admin/skin-preview";
 import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
+import { HERO_SHELLS, findHeroShell, DEFAULT_HERO_SHELL, type HeroShell, type HeroShellOpts } from "@/lib/hero-shell";
 import {
   SECTION_STYLES, findSectionStyle, DEFAULT_SECTION_STYLE, SX_SECTIONS,
   type SectionStyle, type SxSectionKey,
@@ -55,7 +56,9 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons" | "glow";
+const SHELL_SWATCH = ["#173972", "#0f172a", "#1e293b", "#c9a227", "#7c3aed", "#0ea5e9", "#f8fafc", "#ffffff"];
+
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons" | "glow" | "shell";
 
 
 /** اختيار تثبيت الشريط — إعدادٌ لا هيئة، فله صفُّه الخاصّ. */
@@ -134,6 +137,8 @@ export default function AppearancePage() {
   const mHome = findMobileHome(content.mobileHome);
   const motion = findMotion(content.motionStyle);
   const btnStyle = findButtonStyle(content.buttonStyle);
+  const shell = findHeroShell(content.heroShell);
+  const shOpts: HeroShellOpts = content.heroShellOpts ?? {};
   const glow = (content.glow ?? []) as GlowRule[];
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
@@ -218,6 +223,11 @@ export default function AppearancePage() {
       label: "تنسيق الهاتف",
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    shell: {
+      label: "لوح الرئيسية",
+      isDefault: shell.id === DEFAULT_HERO_SHELL && Object.keys(shOpts).length === 0,
+      patch: () => ({ heroShell: DEFAULT_HERO_SHELL, heroShellOpts: {} }),
     },
     glow: {
       label: "الوهج",
@@ -356,6 +366,16 @@ export default function AppearancePage() {
     await saveContent({ buttonStyle: x.id });
     setBusy(null);
   };
+
+  const pickShell = async (x: HeroShell) => {
+    setBusy(x.id);
+    await saveContent({ heroShell: x.id });
+    setBusy(null);
+  };
+
+  /* الألوانُ والارتفاع خارج التصاميم: يُبدَّل الشكلُ فتبقى الهوية. */
+  const patchShell = (p: Partial<HeroShellOpts>) =>
+    void saveContent({ heroShellOpts: { ...shOpts, ...p } });
 
   const pickMotion = async (x: MotionStyle) => {
     setBusy(x.id);
@@ -504,6 +524,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "footer"} onClick={() => setTab("footer")} icon={<PanelBottom className="size-4" />}>
           الفوتر ({FOOTER_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "shell"} onClick={() => setTab("shell")} icon={<Shapes className="size-4" />}>
+          لوح الرئيسية
         </TabBtn>
         <TabBtn active={tab === "hero"} onClick={() => setTab("hero")} icon={<Sparkles className="size-4" />}>
           قسم الهيرو ({HERO_STYLES.length.toLocaleString("ar-EG")})
@@ -1472,6 +1495,127 @@ export default function AppearancePage() {
             );
           })}
         </div>
+        </>
+      )}
+
+      {tab === "shell" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">لوح القسم الرئيسي</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              هذا يحكم اللوحَ نفسَه: سطحَه وحوافَّه وحدَّه وارتفاعَه — لا ما بداخله.
+              وما بداخله (العنوان والشارة والزخرفة) يحكمه لسانُ «تصميم الرئيسية».
+              والمحوران لا يتداخلان، فيُركَّب أيُّهما مع أيّ.
+            </p>
+          </Card>
+
+          <Card className="mb-5 grid gap-5">
+            <div>
+              <p className="font-display mb-1 text-sm font-bold">ألوانه</p>
+              <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+                التصميمُ شكلٌ واللونُ هوية — فمن أراد لوحاً مستديراً بلون منصّته لا يُجبَر
+                على لونِ مصمّمه. واللونُ المتروك يرث لون الثيم.
+              </p>
+              <div className="grid gap-2.5">
+                {([
+                  ["bg", "لون السطح"],
+                  ["bg2", "اللون الثاني (للتدرّج)"],
+                  ["edge", "لون الحافّة"],
+                  ["text", "لون النصّ"],
+                ] as const).map(([k, label]) => (
+                  <div key={k} className="flex flex-wrap items-center gap-2">
+                    <span className="w-32 shrink-0 text-xs font-semibold text-muted-foreground">{label}</span>
+                    {SHELL_SWATCH.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        aria-label={c}
+                        onClick={() => patchShell({ [k]: c })}
+                        className={`size-7 rounded-lg border transition ${
+                          (shOpts[k] || "").toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border"
+                        }`}
+                        style={{ background: c }}
+                      />
+                    ))}
+                    <label
+                      className="grid size-7 cursor-pointer place-items-center rounded-lg border border-dashed border-border"
+                      style={{ background: shOpts[k] || "transparent" }}
+                    >
+                      <input
+                        type="color"
+                        className="size-0 opacity-0"
+                        value={shOpts[k] || "#173972"}
+                        onChange={(e) => patchShell({ [k]: e.target.value })}
+                      />
+                    </label>
+                    {shOpts[k] ? (
+                      <button
+                        type="button"
+                        onClick={() => patchShell({ [k]: "" })}
+                        className="rounded-lg border border-border px-2 py-1 text-[10px] font-bold text-muted-foreground transition hover:border-primary/40"
+                      >
+                        لون الثيم
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="font-display mb-1 text-sm font-bold">زيادة طوله لأسفل</p>
+              <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+                تُضاف مساحةً تحت المحتوى لا ارتفاعاً ثابتاً — فيبقى القسم يتمدّد بمحتواه
+                ولا يُقصّ منه شيء على الشاشات الضيّقة.
+              </p>
+              <label className="flex items-center gap-3">
+                <span className="w-32 shrink-0 text-xs font-semibold text-muted-foreground">
+                  {(shOpts.extra ?? 0).toLocaleString("ar-EG")} بكسل
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={400}
+                  step={10}
+                  value={shOpts.extra ?? 0}
+                  onChange={(e) => patchShell({ extra: Number(e.target.value) })}
+                  className="h-1.5 flex-1 accent-primary"
+                />
+              </label>
+            </div>
+          </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {HERO_SHELLS.map((x) => {
+              const on = x.id === shell.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickShell(x)}
+                  disabled={busy !== null}
+                  className={`group relative overflow-hidden rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <HeroShellPreview shell={x} skin={skin} opts={shOpts} />
+                  <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </>
       )}
 
