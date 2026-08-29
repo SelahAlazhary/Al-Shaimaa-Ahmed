@@ -28,6 +28,7 @@ export function HeroFrame({
   img,
   color,
   scale = 100,
+  baseRule = false,
 }: {
   frame?: string | number;
   avatar: string;
@@ -37,6 +38,8 @@ export function HeroFrame({
   color?: string;
   /** حجم الإطار كنسبة مئوية (٦٠..١٤٠). */
   scale?: number;
+  /** خطّ القاعدة أسفل الإطار — مطفأ افتراضياً. */
+  baseRule?: boolean;
 }) {
   const uid = useUid("hf");
   const reduce = useReducedMotion();
@@ -95,8 +98,14 @@ export function HeroFrame({
           <path d={inner} fill="none" stroke={stroke} strokeWidth={1.1} strokeOpacity={0.3} strokeLinejoin="round" />
         )}
 
-        {/* قاعدة مذهّبة تثبّت الإطار بصرياً */}
-        <path d={`M${W * 0.12} ${H - 3} H${W * 0.88}`} stroke={stroke} strokeWidth={3} strokeOpacity={0.45} strokeLinecap="round" />
+        {/*
+          القاعدة المذهّبة — اختيارية ومطفأة افتراضياً.
+          كانت تُرسم تحت كل إطار مهما كان شكلُه، فتبدو خطّاً غريباً معلَّقاً
+          أسفل الأشكال التي لا تحتاج تثبيتاً بصرياً.
+        */}
+        {baseRule && (
+          <path d={`M${W * 0.12} ${H - 3} H${W * 0.88}`} stroke={stroke} strokeWidth={3} strokeOpacity={0.45} strokeLinecap="round" />
+        )}
       </motion.svg>
     </div>
   );

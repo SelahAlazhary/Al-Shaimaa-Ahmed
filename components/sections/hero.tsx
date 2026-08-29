@@ -235,6 +235,7 @@ export function Hero({ shape = "split" }: { shape?: HeroShape }) {
                 img={content.hero.image}
                 color={content.hero.frameColor}
                 scale={content.hero.frameScale}
+                baseRule={content.hero.frameBaseRule === true}
               />
             </motion.div>
 

@@ -218,6 +218,8 @@ export type SiteContent = {
     frameShape?: string;    // معرّف الشكل من lib/frame-shapes.ts
     frameColor?: string;    // لون الإطار (HEX) — فارغ = لون الثيم
     frameScale?: number;    // حجم الإطار ٦٠..١٤٠٪
+    /** خطّ القاعدة أسفل الإطار — مطفأ افتراضياً، وكان يُرسم دائماً. */
+    frameBaseRule?: boolean;
     /** ضبط الصورة داخل الإطار: الملء، الإزاحة الأفقية/الرأسية (٪)، والتكبير. */
     image?: ImageFit;
   };
@@ -247,6 +249,15 @@ export type SiteContent = {
   navbarStyle?: string;
   /** تثبيت شريط الواجهة: عائم · مثبّت · يمشي مع الصفحة. */
   navbarStick?: string;
+  /** إخفاء شريط الواجهة — الصفحة تبدأ بالهيرو مباشرة. */
+  navbarHidden?: boolean;
+  /** إخفاء شريط أدوات اللوحة. */
+  toolbarHidden?: boolean;
+  /**
+   * مصدر أيقونة التطبيق: الشعار المرفوع · صورة المعلّمة · علامة المنصّة.
+   * فارغاً يبقى السلوك القديم — الشعارُ إن وُجد وإلا العلامة.
+   */
+  appIcon?: "logo" | "avatar" | "mark";
   /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
   mobileHome?: string;
   /** إيقاع الحركة في المنصّة (lib/motion-styles.ts). */

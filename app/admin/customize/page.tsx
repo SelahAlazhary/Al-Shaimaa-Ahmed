@@ -190,6 +190,48 @@ export default function CustomizePage() {
       {/* ---------- الصور ---------- */}
       {tab === "images" && (
         <div className="grid gap-5 lg:grid-cols-2">
+          {/*
+            أيقونة التطبيق — ما يراه الطالب على شاشة هاتفه بعد التثبيت.
+            كانت تتبع الشعار وحده، ومن أراد صورتَه لم يجد سبيلاً.
+          */}
+          <Card className="lg:col-span-2">
+            <h3 className="mb-1 font-display font-extrabold">أيقونة التطبيق</h3>
+            <p className="mb-4 text-xs text-muted-foreground">
+              ما يظهر على شاشة هاتف الطالب بعد تثبيت المنصّة، وفي تبويب المتصفّح.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              {([
+                { id: "logo", label: "الشعار المرفوع" },
+                { id: "avatar", label: "صورة المعلّمة" },
+                { id: "mark", label: "علامة المنصّة" },
+              ] as const).map((o) => {
+                const on = (form.appIcon ?? "logo") === o.id;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => set({ appIcon: o.id })}
+                    className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold transition ${
+                      on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/pwa-icon?size=96&v=${form.appIcon ?? "logo"}`}
+                alt="معاينة أيقونة التطبيق"
+                width={56}
+                height={56}
+                className="rounded-2xl border border-border"
+              />
+              <span className="text-[11px] text-muted-foreground">
+                المعاينة تتحدّث بعد الحفظ — الأيقونة تُولَّد على الخادم.
+              </span>
+            </div>
+          </Card>
           <Card className="lg:col-span-2">
             <h3 className="mb-1 font-display font-extrabold">مكان استضافة الملفات المرفوعة</h3>
             <p className="mb-4 text-xs text-muted-foreground">
@@ -332,6 +374,23 @@ export default function CustomizePage() {
       {/* ---------- إطار الصورة ---------- */}
       {tab === "frame" && (
         <>
+        <Card className="mb-5">
+          <h3 className="mb-1 font-display font-extrabold">خطّ القاعدة أسفل الإطار</h3>
+          <p className="mb-3 text-xs text-muted-foreground">
+            كان يُرسم تحت كل إطار مهما كان شكلُه، فيبدو خطّاً معلَّقاً أسفل الأشكال التي
+            لا تحتاج تثبيتاً بصرياً. صار مطفأً افتراضياً.
+          </p>
+          <button
+            type="button"
+            onClick={() => set({ hero: { ...form.hero, frameBaseRule: !form.hero.frameBaseRule } })}
+            className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold transition ${
+              form.hero.frameBaseRule ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+            }`}
+          >
+            {form.hero.frameBaseRule ? "الخطّ ظاهر" : "الخطّ مخفيّ"}
+          </button>
+        </Card>
+
         <Card className="mb-5">
           <h3 className="mb-1 font-display font-extrabold">ضبط الصورة داخل الإطار</h3>
           <p className="mb-5 text-xs text-muted-foreground">الصورة تظهر كاملة بلا قصّ افتراضياً — حرّكها وكبّرها حتى تستقرّ، والمعاينة تتغيّر فوراً ثم اضغط حفظ.</p>

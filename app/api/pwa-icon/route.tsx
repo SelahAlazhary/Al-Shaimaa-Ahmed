@@ -47,7 +47,16 @@ export async function GET(req: Request) {
   const pad = maskable ? size * 0.2 : size * 0.14;
   const inner = size - pad * 2;
 
-  const logo = content.teacher.logo?.startsWith("/") ? `${origin}${content.teacher.logo}` : content.teacher.logo;
+  /*
+    مصدر الأيقونة يُختار من اللوحة: الشعار أو صورة المعلّمة أو العلامة.
+    والمسارُ النسبي يُجعل مطلقاً — مولّدُ الصورة يجلبها من الشبكة لا من
+    المتصفّح، فلا يعرف أصلَ الصفحة.
+  */
+  const pick = content.appIcon ?? "logo";
+  const raw = pick === "avatar" ? content.teacher.avatar
+    : pick === "mark" ? ""
+      : content.teacher.logo;
+  const logo = raw?.startsWith("/") ? `${origin}${raw}` : raw;
   const markSrc = `data:image/svg+xml;base64,${Buffer.from(markSvg()).toString("base64")}`;
 
   return new ImageResponse(

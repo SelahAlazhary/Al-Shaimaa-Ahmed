@@ -90,6 +90,30 @@ function StickPicker({
   );
 }
 
+
+/** مفتاحٌ بسيط — يُعاد استعماله في مواضع الإظهار والإخفاء. */
+function Switch({
+  label, hint, on, onChange,
+}: {
+  label: string; hint?: string; on: boolean; onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!on)}
+      className="flex w-full items-center gap-3 rounded-2xl border border-border px-4 py-3 text-right transition hover:border-primary/40"
+    >
+      <span className={`relative h-5 w-9 shrink-0 rounded-full transition ${on ? "bg-primary" : "bg-muted"}`}>
+        <span className={`absolute top-0.5 size-4 rounded-full bg-white transition-all ${on ? "left-0.5" : "right-0.5"}`} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs font-bold">{label}</span>
+        {hint && <span className="block text-[10px] text-muted-foreground">{hint}</span>}
+      </span>
+    </button>
+  );
+}
+
 export default function AppearancePage() {
   const { content, saveContent, uploadImage } = useContent();
   const [tab, setTab] = useState<Tab>("skin");
@@ -864,6 +888,19 @@ export default function AppearancePage() {
 
       {tab === "bar" && (
         <>
+        <Card className="mb-5">
+          <p className="font-display mb-1 font-bold">إظهار الشريط</p>
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            شريط أدوات لوحتَي الطالب والإدارة — إخفاؤه يوسّع مساحة المحتوى.
+          </p>
+          <Switch
+            label="إظهار شريط أدوات اللوحة"
+            hint="فيه البحث السريع والإشعارات وزرّ القائمة على الجوّال"
+            on={content.toolbarHidden !== true}
+            onChange={(v) => void saveContent({ toolbarHidden: !v })}
+          />
+        </Card>
+
         <StickPicker
           label="تثبيت شريط اللوحة"
           value={content.toolbarStick}
@@ -1142,6 +1179,19 @@ export default function AppearancePage() {
                 لم يُضبط بعد — يتبع حالياً شريط الأدوات ({bar.name}). اختر تصميماً ليصير مستقلّاً.
               </p>
             )}
+          </Card>
+
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">إظهار الشريط</p>
+            <p className="mb-3 text-[11px] text-muted-foreground">
+              إخفاؤه يجعل الصفحة تبدأ بالهيرو مباشرة — والروابط تبقى في الفوتر.
+            </p>
+            <Switch
+              label="إظهار شريط الواجهة"
+              hint="مخفيّاً لا يظهر للزائر إطلاقاً"
+              on={content.navbarHidden !== true}
+              onChange={(v) => void saveContent({ navbarHidden: !v })}
+            />
           </Card>
 
           <StickPicker

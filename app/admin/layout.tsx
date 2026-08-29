@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     // admin-skin: هوية بصرية خاصة بلوحة الإدارة (تصميم فقط — لا يمسّ الموقع أو بوابة الطالب)
-    <div className={`admin-skin ${toolbarClass(bar)} ${stickClass(getDB().content.toolbarStick)}`} data-toolbar={bar.id}>
+    <div className={`admin-skin ${toolbarClass(bar)} ${stickClass(getDB().content.toolbarStick)} ${getDB().content.toolbarHidden ? "tools-hidden" : ""}`} data-toolbar={bar.id}>
       <DashboardShell
         nav={nav}
         role="admin"
