@@ -290,6 +290,8 @@ export type SiteContent = {
   /** إطار الأيقونات وحركتُها (lib/icon-frames.ts · lib/icon-motion.ts). */
   iconFrame?: string;
   iconFrameColors?: { bg?: string; bg2?: string; fg?: string; edge?: string };
+  /** مكتبة الأيقونات المطبَّقة (lib/icon-libs.ts). */
+  iconLib?: string;
   iconCover?: string;
   iconMotion?: string;
   heroShell?: string;

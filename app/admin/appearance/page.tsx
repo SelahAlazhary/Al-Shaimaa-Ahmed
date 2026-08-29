@@ -26,6 +26,8 @@ import { HERO_SHELLS, findHeroShell, DEFAULT_HERO_SHELL, type HeroShell, type He
 import { ICON_FRAMES, findIconFrame, DEFAULT_ICON_FRAME, type IconFrame } from "@/lib/icon-frames";
 import { ICON_MOTIONS, findIconMotion, DEFAULT_ICON_MOTION, type IconMotion } from "@/lib/icon-motion";
 import { ICON_COVERS, findIconCover, DEFAULT_ICON_COVER, type IconCover } from "@/lib/icon-covers";
+import { ICON_LIBS, findIconLib, DEFAULT_ICON_LIB, ICON_SLOTS, type IconLib } from "@/lib/icon-libs";
+import { LibGlyph } from "@/components/brand/lib-icon";
 import {
   SECTION_STYLES, findSectionStyle, DEFAULT_SECTION_STYLE, SX_SECTIONS,
   type SectionStyle, type SxSectionKey,
@@ -145,6 +147,7 @@ export default function AppearancePage() {
   const iconFrame = findIconFrame(content.iconFrame);
   const iconMotion = findIconMotion(content.iconMotion);
   const iconCover = findIconCover(content.iconCover);
+  const iconLib = findIconLib(content.iconLib);
   const icColors = content.iconFrameColors ?? {};
   const glow = (content.glow ?? []) as GlowRule[];
   const plansStyle = findPlansStyle(content.plansStyle);
@@ -237,11 +240,13 @@ export default function AppearancePage() {
         iconFrame.id === DEFAULT_ICON_FRAME &&
         iconMotion.id === DEFAULT_ICON_MOTION &&
         iconCover.id === DEFAULT_ICON_COVER &&
+        iconLib.id === DEFAULT_ICON_LIB &&
         Object.keys(icColors).length === 0,
       patch: () => ({
         iconFrame: DEFAULT_ICON_FRAME,
         iconMotion: DEFAULT_ICON_MOTION,
         iconCover: DEFAULT_ICON_COVER,
+        iconLib: DEFAULT_ICON_LIB,
         iconFrameColors: {},
       }),
     },
@@ -391,6 +396,12 @@ export default function AppearancePage() {
   const pickFrame = async (x: IconFrame) => {
     setBusy(x.id);
     await saveContent({ iconFrame: x.id });
+    setBusy(null);
+  };
+
+  const pickLib = async (x: IconLib) => {
+    setBusy(`il-${x.id}`);
+    await saveContent({ iconLib: x.id });
     setBusy(null);
   };
 
@@ -1598,6 +1609,74 @@ export default function AppearancePage() {
                     </button>
                   ) : null}
                 </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* ---------- مكتبة الأيقونات ---------- */}
+          <Card className="mb-4">
+            <p className="font-display mb-1 text-sm font-bold">
+              مكتبة الأيقونات ({ICON_LIBS.length.toLocaleString("ar-EG")} مكتبات)
+            </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              المكتبةُ المختارة تسري على كلّ رمزٍ في المنصّة — القائمة الجانبية وشريط الهاتف
+              ورأس اللوحة معاً. وثلاثُ هندساتٍ لا عشر: خطّيّةٌ ومصمتةٌ وكوفيّة، والمكتباتُ
+              معالجاتٌ لها في السُمك والنهايات والتعبئة — وهكذا تُبنى مكتباتُ الأيقونات
+              المعروفة أصلاً، هندسةٌ واحدة بأوزانٍ عدّة، لا عشرُ رسماتٍ للرمز الواحد فيختلّ
+              اتّساقُ المجموعة.
+            </p>
+          </Card>
+
+          <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {ICON_LIBS.map((x) => {
+              const on = x.id === iconLib.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickLib(x)}
+                  disabled={busy !== null}
+                  className={`rounded-3xl border-2 p-3 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  {/* عيّنةٌ من ثمانية رموزٍ بالمكتبة نفسِها — لا وصفٌ لها */}
+                  <div className="mb-2.5 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-muted/50 px-2 py-3 text-primary">
+                    {ICON_SLOTS.slice(0, 8).map((sl) => (
+                      <LibGlyph key={sl} lib={x} slot={sl} className="size-5" />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === `il-${x.id}` ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3.5" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* كلُّ خانات المكتبة المختارة — لتُرى قبل أن تُعتمد */}
+          <Card className="mb-8">
+            <p className="font-display mb-3 text-sm font-bold">
+              خانات «{iconLib.name}» ({ICON_SLOTS.length.toLocaleString("ar-EG")} رمزاً)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {ICON_SLOTS.map((sl) => (
+                <span
+                  key={sl}
+                  className="grid size-11 place-items-center rounded-2xl border border-border text-primary"
+                >
+                  <LibGlyph lib={iconLib} slot={sl} className="size-5" />
+                </span>
               ))}
             </div>
           </Card>

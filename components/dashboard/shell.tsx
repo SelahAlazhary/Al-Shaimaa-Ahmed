@@ -19,6 +19,8 @@ import {
   IconChart, IconLifebuoy, IconHome, IconPalette, IconSearch, IconBell, IconMenu, IconClose,
   IconMoon, IconSun, IconLogout, IconWallet, IconYoutube, IconDatabase, IconShield, IconStar, IconWrench,
 }  from "@/components/brand/icons";
+import type { IconSlot } from "@/lib/icon-libs";
+import { LibIcon } from "@/components/brand/lib-icon";
 import { BrandLockup } from "@/components/brand/logo";
 import { KuficBackdrop } from "@/components/brand/pattern";
 import { GoldRule } from "@/components/dashboard/ui";
@@ -29,25 +31,30 @@ import type { NavItem } from "@/lib/dashboard-data";
 type BrandIcon = ComponentType<IconProps>;
 
 /** مفاتيح التنقّل → أيقونات الهوية المتّجهة. */
-const ICONS: Record<string, BrandIcon> = {
-  LayoutDashboard: IconGrid,
-  Users: IconUsers,
-  Layers: IconLayers,
-  BookOpen: IconBook,
-  KeyRound: IconKey,
-  FileCheck2: IconClipboardCheck,
-  Radio: IconRadio,
-  BarChart3: IconChart,
-  LifeBuoy: IconLifebuoy,
-  Home: IconHome,
-  Palette: IconPalette,
-  Bell: IconBell,
-  Wallet: IconWallet,
-  Youtube: IconYoutube,
-  Database: IconDatabase,
-  Shield: IconShield,
-  Star: IconStar,
-  Wrench: IconWrench,
+/**
+ * أيقوناتُ القائمة تُرسم من المكتبة المختارة لا من مجموعةٍ ثابتة.
+ * والخريطةُ هنا تربط اسمَ الأيقونة في `dashboard-data` بخانةِ المكتبة —
+ * فتبديلُ المكتبة يبدّلها كلَّها معاً.
+ */
+const SLOTS: Record<string, IconSlot> = {
+  LayoutDashboard: "grid",
+  Users: "users",
+  Layers: "layers",
+  BookOpen: "book",
+  KeyRound: "key",
+  FileCheck2: "exam",
+  Radio: "radio",
+  BarChart3: "chart",
+  LifeBuoy: "lifebuoy",
+  Home: "home",
+  Palette: "palette",
+  Bell: "bell",
+  Wallet: "wallet",
+  Youtube: "video",
+  Database: "database",
+  Shield: "shield",
+  Star: "star",
+  Wrench: "wrench",
 };
 
 export function DashboardShell({
@@ -80,7 +87,7 @@ export function DashboardShell({
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       {nav.map((item) => {
-        const Icon = ICONS[item.icon] ?? IconGrid;
+        const slot = SLOTS[item.icon] ?? "grid";
         const active = isActive(item.href);
         return (
           <Link
@@ -103,7 +110,7 @@ export function DashboardShell({
               />
             )}
             <span className="sn-icon relative z-10 shrink-0">
-              <Icon className="size-5" />
+              <LibIcon slot={slot} className="size-5" />
             </span>
             <span className="sn-keep relative z-10">{item.label}</span>
             {/* الشارة تقول «هنا عملٌ ينتظر» — فلا تُوضع إلا حيث ينتظر عمل */}
@@ -175,7 +182,7 @@ export function DashboardShell({
           {/* موبايل: الهوية · سطح المكتب: بحث سريع */}
           <span className="lg:hidden"><Brand role={role} /></span>
           <div className="tb-search relative hidden w-full max-w-sm flex-1 sm:block">
-            <IconSearch className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><LibIcon slot="search" className="size-4" /></span>
             <input
               placeholder="بحث سريع…"
               className="btn-foil w-full rounded-full border-0 py-2.5 pr-10 pl-4 text-sm outline-none transition focus:ring-2 focus:ring-accent/40"
@@ -185,7 +192,7 @@ export function DashboardShell({
           <div className="tb-actions mr-auto flex items-center gap-2">
             {content.showThemeToggle && (
               <button onClick={toggleView} aria-label="تبديل المظهر" className="btn-foil grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
-                {viewLayout === "dark" ? <IconSun className="size-5" /> : <IconMoon className="size-5" />}
+                {viewLayout === "dark" ? <LibIcon slot="sun" className="size-5" /> : <LibIcon slot="moon" className="size-5" />}
               </button>
             )}
             <Link href={role === "admin" ? "/admin/notifications" : "/student/notifications"} aria-label="الإشعارات" className="btn-foil relative grid size-11 place-items-center rounded-full text-muted-foreground transition hover:text-accent sm:size-10">
@@ -209,7 +216,7 @@ export function DashboardShell({
             style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
           >
             {nav.map((item) => {
-              const Icon = ICONS[item.icon] ?? IconHome;
+              const slot = SLOTS[item.icon] ?? "home";
               const active = isActive(item.href);
               return (
                 <li key={item.href} className="relative">
@@ -220,7 +227,7 @@ export function DashboardShell({
                   >
                     {active && <span className="app-tab-pill" />}
                     <span className="relative z-10 grid size-7 place-items-center">
-                      <Icon className="size-[1.2rem]" />
+                      <LibIcon slot={slot} className="size-[1.2rem]" />
                     </span>
                     <span className="relative z-10 max-w-full truncate">{item.label}</span>
                   </Link>
@@ -263,7 +270,7 @@ function UserCard({ user, onLogout }: { user: { name: string; sub: string; avata
         <p className="truncate text-[11px] text-muted-foreground">{user.sub}</p>
       </div>
       <button onClick={onLogout} aria-label="خروج" className="grid size-8 place-items-center rounded-full text-muted-foreground transition hover:text-rose-500">
-        <IconLogout className="size-4" />
+        <LibIcon slot="logout" className="size-4" />
       </button>
     </div>
   );

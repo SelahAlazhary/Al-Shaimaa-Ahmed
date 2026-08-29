@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from "react";
 import { X, Search } from "lucide-react";
-import { MOTION_ART, motionArtUrl } from "@/lib/motion-art";
+import { MOTION_ART, MOTION_LIBS, motionArtUrl, type MotionLibId } from "@/lib/motion-art";
 
 export function MotionArtPicker({
   onPick,
@@ -23,14 +23,15 @@ export function MotionArtPicker({
   onClose: () => void;
 }) {
   const [q, setQ] = useState("");
+  /* «الكل» ليس مكتبةً بل غيابُ التصفية — فيبقى البحثُ عامّاً لمن لا يعرف أين يجد. */
+  const [lib, setLib] = useState<MotionLibId | "all">("all");
 
   const list = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return MOTION_ART;
-    return MOTION_ART.filter(
-      (x) => x.name.includes(s) || x.id.toLowerCase().includes(s)
-    );
-  }, [q]);
+    const base = lib === "all" ? MOTION_ART : MOTION_ART.filter((x) => x.lib === lib);
+    if (!s) return base;
+    return base.filter((x) => x.name.includes(s) || x.id.toLowerCase().includes(s));
+  }, [q, lib]);
 
   return (
     <div className="fixed inset-0 z-[120] grid place-items-center bg-black/50 p-4 backdrop-blur-sm">
@@ -55,10 +56,31 @@ export function MotionArtPicker({
           </button>
         </div>
 
+        {/* المكاتب — تصفيةٌ لا بحث */}
+        <div className="flex flex-wrap gap-1.5 border-b border-border px-4 py-3">
+          {([{ id: "all" as const, name: "الكل" }, ...MOTION_LIBS]).map((L) => {
+            const on = lib === L.id;
+            const n = L.id === "all" ? MOTION_ART.length : MOTION_ART.filter((x) => x.lib === L.id).length;
+            return (
+              <button
+                key={L.id}
+                type="button"
+                onClick={() => setLib(L.id as MotionLibId | "all")}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                  on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                {L.name} <span className="opacity-60">{n.toLocaleString("ar-EG")}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
-            صورٌ متحرّكة خفيفةٌ شفّافةُ الخلفية، تُحفظ داخل المنصّة نفسِها فلا تعتمد على
-            خادمٍ خارجي ولا يموت رابطُها. {list.length.toLocaleString("ar-EG")} من{" "}
+            خمسُ مكاتبَ كاملة من العلوم والفلك والرياضيات والمدرسة والدراسة — صورٌ متحرّكة
+            خفيفةٌ شفّافةُ الخلفية، تُحفظ داخل المنصّة نفسِها فلا تعتمد على خادمٍ خارجي ولا
+            يموت رابطُها. {list.length.toLocaleString("ar-EG")} من{" "}
             {MOTION_ART.length.toLocaleString("ar-EG")}.
           </p>
 
