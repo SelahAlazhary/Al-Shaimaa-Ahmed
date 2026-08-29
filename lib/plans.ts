@@ -165,10 +165,10 @@ const KIND_DAYS: Record<string, number | null> = {
 };
 
 export const COURSE_PRICE_KINDS: { id: CoursePriceKind; label: string; hint: string }[] = [
+  { id: "once", label: "دائم", hint: "يعمل دائماً بعد الاشتراك ولا ينتهي" },
+  { id: "term", label: "حتى نهاية الترم", hint: "ينتهي بتاريخ نهاية الترم العام" },
   { id: "month", label: "شهري", hint: "يفتح الكورس ٣٠ يوماً" },
-  { id: "term", label: "الترم كامل", hint: "حتى تاريخ نهاية الترم" },
   { id: "lesson", label: "حصّة واحدة", hint: "وصول قصير (٧ أيام)" },
-  { id: "once", label: "مرّة واحدة", hint: "وصول دائم بلا انتهاء" },
   { id: "custom", label: "مدّة مخصّصة", hint: "تحدّد عدد الأيام بنفسك" },
 ];
 
@@ -190,7 +190,13 @@ export function coursePricePlans(subject: {
     .map((p, i) => ({
       id: `CP:${subject.id}:${p.id}`,
       name: p.label.trim(),
-      kind: p.kind === "term" ? "term" : p.kind === "custom" ? "custom" : "month",
+      /*
+        «مرّة واحدة» كانت تسقط إلى «شهري» فتنتهي بعد ثلاثين يوماً — وهي
+        بيعٌ لوصولٍ دائم. صارت تُنقل إلى نوعها الصحيح.
+      */
+      kind: p.kind === "term" ? "term"
+        : p.kind === "once" ? "lifetime"
+          : p.kind === "custom" ? "custom" : "month",
       scope: "subject",
       subjectId: subject.id,
       termNo: subject.term,

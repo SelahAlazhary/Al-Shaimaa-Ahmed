@@ -91,7 +91,9 @@ export function CoursePricesEditor({
                     <option key={k.id} value={k.id}>{k.label}</option>
                   ))}
                 </select>
-                <span className="mt-1 block text-[10px] text-muted-foreground">
+                <span className={`mt-1 block text-[10px] ${
+                  p.kind === "once" ? "font-bold text-emerald-600" : "text-muted-foreground"
+                }`}>
                   {COURSE_PRICE_KINDS.find((k) => k.id === p.kind)?.hint}
                 </span>
               </label>

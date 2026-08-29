@@ -16,9 +16,10 @@ import { TERMS } from "@/lib/signup-rules";
 import type { SitePlan, PlanKind, PlanScope, PlanDiscount } from "@/lib/types";
 
 const KIND_LABEL: Record<PlanKind, string> = {
-  term: "ترم كامل (ينتهي بتاريخ)",
-  month: "شهري (ينتهي بعد مدّة)",
-  custom: "مخصّص (مدّة بالأيام)",
+  term: "حتى نهاية الترم (بتاريخ)",
+  month: "شهري (٣٠ يوماً)",
+  custom: "مدّة مخصّصة بالأيام",
+  lifetime: "دائم — لا ينتهي بعد الاشتراك",
 };
 
 type Form = {
@@ -100,7 +101,8 @@ export default function PlansPage() {
       subjectId: f.scope === "subject" ? f.subjectId : undefined,
       termNo: f.scope === "term" ? f.termNo : undefined,
       price: Number(f.price) || 0,
-      durationDays: f.durationDays > 0 ? Number(f.durationDays) : null,
+      /* الدائم بلا مدّة ولا تاريخ — وجودُهما يوهم بانتهاءٍ لا يقع. */
+      durationDays: f.kind === "lifetime" ? null : (f.durationDays > 0 ? Number(f.durationDays) : null),
       endsAt: f.kind === "term" && f.endsAt ? f.endsAt : null,
       badge: f.badge.trim() || undefined,
       highlight: f.highlight,
@@ -145,6 +147,7 @@ export default function PlansPage() {
     save({ plans: plans.map((p) => (p.id === id ? { ...p, visible: !p.visible } : p)) });
 
   const durationText = (p: SitePlan) => {
+    if (p.kind === "lifetime") return "دائم — لا ينتهي";
     if (p.kind === "term") {
       const end = p.endsAt || content.termEnd;
       return end ? `حتى ${new Date(end).toLocaleDateString("ar-EG")}` : `${p.durationDays ?? 120} يوماً`;
@@ -176,10 +179,28 @@ export default function PlansPage() {
                 {(Object.keys(KIND_LABEL) as PlanKind[]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
               </select>
             </label>
-            <label><span className="lbl">نطاق الخطة</span>
-              <select className="inp" value={f.scope} onChange={(e) => set({ scope: e.target.value as PlanScope })}>
-                <option value="all">كل المواد (الفصلان معاً)</option>
-                <option value="term">كل مواد فصل دراسي</option>
+            {/*
+              نطاقٌ واحدٌ صريح.
+              ------------------------------------------------------------
+              كان النطاقُ حقلاً ثم يظهر حقلٌ ثانٍ لرقم الفصل، فيُقرأ
+              «كل مواد فصل دراسي» ولا يُعرف أيُّ فصل إلا بعد النزول.
+              صارت الخيارات مقروءةً كما تُقال: الأول كلّه، أو الثاني كلّه،
+              أو الفصلان معاً، أو كورس بعينه.
+            */}
+            <label><span className="lbl">نطاق الخطة (ماذا تفتح؟)</span>
+              <select
+                className="inp"
+                value={f.scope === "term" ? `term${f.termNo}` : f.scope}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "term1") set({ scope: "term", termNo: 1 });
+                  else if (v === "term2") set({ scope: "term", termNo: 2 });
+                  else set({ scope: v as PlanScope });
+                }}
+              >
+                <option value="term1">الفصل الدراسي الأول كلّه</option>
+                <option value="term2">الفصل الدراسي الثاني كلّه</option>
+                <option value="all">الفصلان معاً — كل المواد</option>
                 <option value="subject">كورس محدّد</option>
               </select>
               {/*
@@ -188,15 +209,15 @@ export default function PlansPage() {
               */}
               <span className="mt-1 block text-[10px] leading-relaxed text-muted-foreground">
                 {f.scope === "all"
-                  ? "تظهر في الصفحة الرئيسية وداخل كل كورس."
+                  ? "تفتح كل الكورسات في الفصلين معاً."
                   : f.scope === "term"
-                    ? `تظهر داخل كورسات ${f.termNo === 2 ? "الفصل الثاني" : "الفصل الأول"} وحدها.`
+                    ? `تفتح كورسات ${f.termNo === 2 ? "الفصل الثاني" : "الفصل الأول"} كلَّها — وتظهر داخلها وحدها.`
                     : f.subjectId
                       ? `تظهر داخل «${subjects.find((x) => x.id === f.subjectId)?.name ?? "الكورس المحدّد"}» وحده — لا في كورس آخر.`
                       : "اختر الكورس أوّلاً — بلا كورس لن تظهر لأحد."}
               </span>
             </label>
-            {f.scope === "term" && (
+            {false && (
               <label><span className="lbl">الفصل الدراسي</span>
                 <select className="inp" value={f.termNo} onChange={(e) => set({ termNo: Number(e.target.value) as 1 | 2 })}>
                   <option value={1}>الفصل الدراسي الأول</option>

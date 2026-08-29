@@ -23,6 +23,7 @@ import type { SitePlan } from "@/lib/types";
 
 /** وصف مدّة الخطة بلغة الطالب. */
 export function planDuration(p: SitePlan, termEnd?: string): string {
+  if (p.kind === "lifetime") return "اشتراك دائم — لا ينتهي";
   if (p.kind === "term") {
     const end = p.endsAt || termEnd;
     return end

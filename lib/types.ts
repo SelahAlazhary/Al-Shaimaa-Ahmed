@@ -90,7 +90,14 @@ export type Theme = {
  *  month  : شهري — ينتهي بعد durationDays (٣٠ يوماً افتراضياً).
  *  custom : مخصّص — ينتهي بعد durationDays، أو دائم إذا كانت null.
  */
-export type PlanKind = "term" | "month" | "custom";
+/**
+ * نوع الخطة — وهو ما يحدّد متى تنتهي.
+ *   term     ينتهي بتاريخ نهاية الترم (خاصٌّ بالخطة أو العامُّ للمنصّة).
+ *   month    ينتهي بعد مدّة بالأيام (٣٠ افتراضاً).
+ *   custom   مدّةٌ بالأيام تحدّدها.
+ *   lifetime لا ينتهي أبداً — يبقى بعد الاشتراك دائماً.
+ */
+export type PlanKind = "term" | "month" | "custom" | "lifetime";
 /** رقم الفصل الدراسي. */
 export type TermNo = 1 | 2;
 

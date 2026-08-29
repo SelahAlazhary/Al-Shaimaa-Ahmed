@@ -88,6 +88,8 @@ export function planExpiry(plan: SitePlan, termEnd?: string, from: Date = new Da
     if (!d || d <= 0) return null;
     return new Date(from.getTime() + d * 86400000).toISOString();
   };
+  /* الدائم لا ينتهي — null تعني «بلا تاريخ انتهاء» في كل المنصّة. */
+  if (plan.kind === "lifetime") return null;
   if (plan.kind === "term") {
     const fixed = plan.endsAt || termEnd;
     if (fixed) {
