@@ -19,6 +19,7 @@ import { findButtonStyle, buttonClass } from "@/lib/button-styles";
 import { findHeroShell, heroShellClass, heroShellVars } from "@/lib/hero-shell";
 import { findIconFrame, iconFrameClass, iconFrameVars } from "@/lib/icon-frames";
 import { findIconMotion, iconMotionClass } from "@/lib/icon-motion";
+import { findIconCover, iconCoverClass } from "@/lib/icon-covers";
 import { siteDown, scopeDown, maintText, type MaintScope } from "@/lib/maintenance";
 import { MaintenancePanel, MaintenanceBar } from "@/components/brand/maintenance";
 import { getSession } from "@/lib/session";
@@ -49,6 +50,7 @@ export default async function Home() {
   const SH = findHeroShell(content.heroShell);
   const IF = findIconFrame(content.iconFrame);
   const IM = findIconMotion(content.iconMotion);
+  const IC = findIconCover(content.iconCover);
   const shOpts = content.heroShellOpts;
 
   /*
@@ -65,7 +67,7 @@ export default async function Home() {
 
   return (
     <main
-      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)} ${content.navbarHidden ? "bar-hidden" : ""} ${buttonClass(findButtonStyle(content.buttonStyle))} ${heroShellClass(SH)} ${shOpts?.text ? "hsh-text" : ""} ${iconFrameClass(IF)} ${iconMotionClass(IM)}`}
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)} ${content.navbarHidden ? "bar-hidden" : ""} ${buttonClass(findButtonStyle(content.buttonStyle))} ${heroShellClass(SH)} ${shOpts?.text ? "hsh-text" : ""} ${iconFrameClass(IF)} ${iconCoverClass(IC)} ${iconMotionClass(IM)}`}
       style={{ ...motionVars(MO), ...heroShellVars(shOpts), ...iconFrameVars(content.iconFrameColors) }}
       data-home-layout={L.id}
       data-toolbar={bar.id}

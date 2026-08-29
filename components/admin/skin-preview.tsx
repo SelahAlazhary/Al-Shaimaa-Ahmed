@@ -28,6 +28,7 @@ import type { ButtonStyle } from "@/lib/button-styles";
 import type { HeroShell, HeroShellOpts } from "@/lib/hero-shell";
 import { iconFrameClass, iconFrameVars, type IconFrame } from "@/lib/icon-frames";
 import { iconMotionClass, type IconMotion } from "@/lib/icon-motion";
+import { iconCoverClass, type IconCover } from "@/lib/icon-covers";
 
 const W = 160;
 const H = 108;
@@ -2666,15 +2667,17 @@ export function HeroShellPreview({
 export function IconFramePreview({
   frame,
   motion,
+  cover,
   colors,
 }: {
   frame: IconFrame;
   motion?: IconMotion;
+  cover?: IconCover;
   colors?: { bg?: string; bg2?: string; fg?: string; edge?: string };
 }) {
   return (
     <div
-      className={`grid h-[72px] place-items-center rounded-2xl bg-muted/50 ${iconFrameClass(frame)} ${motion ? iconMotionClass(motion) : ""}`}
+      className={`grid h-[72px] place-items-center rounded-2xl bg-muted/50 ${iconFrameClass(frame)} ${cover ? iconCoverClass(cover) : ""} ${motion ? iconMotionClass(motion) : ""}`}
       style={iconFrameVars(colors)}
     >
       <span className="ic-frame grid size-11 place-items-center text-primary">

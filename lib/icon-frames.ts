@@ -37,6 +37,7 @@ function f(
 }
 
 export const ICON_FRAMES: IconFrame[] = [
+  f("bare", "بلا إطار", "الأيقونة وحدَها", "none", "none", "none"),
   f("soft", "الناعم", "مربّع باستدارة خفيفة", "soft", "tint", "none"),
   f("round", "المستدير", "استدارة واسعة", "round", "tint", "none"),
   f("circle", "الدائري", "دائرةٌ كاملة", "circle", "tint", "none"),
@@ -56,7 +57,6 @@ export const ICON_FRAMES: IconFrame[] = [
   f("shadowed", "الغائر", "ظلٌّ داخليٌّ يُغوِّره", "round", "tint", "inset"),
   f("raised", "البارز", "ظلٌّ تحته يرفعه", "round", "solid", "raise"),
   f("dashed", "المتقطّع", "حدٌّ متقطّع", "round", "none", "dash"),
-  f("bare", "بلا إطار", "الأيقونة وحدَها", "none", "none", "none"),
 ];
 
 export const DEFAULT_ICON_FRAME = ICON_FRAMES[0].id;

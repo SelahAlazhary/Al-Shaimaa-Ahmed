@@ -25,6 +25,7 @@ import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "
 import { HERO_SHELLS, findHeroShell, DEFAULT_HERO_SHELL, type HeroShell, type HeroShellOpts } from "@/lib/hero-shell";
 import { ICON_FRAMES, findIconFrame, DEFAULT_ICON_FRAME, type IconFrame } from "@/lib/icon-frames";
 import { ICON_MOTIONS, findIconMotion, DEFAULT_ICON_MOTION, type IconMotion } from "@/lib/icon-motion";
+import { ICON_COVERS, findIconCover, DEFAULT_ICON_COVER, type IconCover } from "@/lib/icon-covers";
 import {
   SECTION_STYLES, findSectionStyle, DEFAULT_SECTION_STYLE, SX_SECTIONS,
   type SectionStyle, type SxSectionKey,
@@ -143,6 +144,7 @@ export default function AppearancePage() {
   const shOpts: HeroShellOpts = content.heroShellOpts ?? {};
   const iconFrame = findIconFrame(content.iconFrame);
   const iconMotion = findIconMotion(content.iconMotion);
+  const iconCover = findIconCover(content.iconCover);
   const icColors = content.iconFrameColors ?? {};
   const glow = (content.glow ?? []) as GlowRule[];
   const plansStyle = findPlansStyle(content.plansStyle);
@@ -234,8 +236,14 @@ export default function AppearancePage() {
       isDefault:
         iconFrame.id === DEFAULT_ICON_FRAME &&
         iconMotion.id === DEFAULT_ICON_MOTION &&
+        iconCover.id === DEFAULT_ICON_COVER &&
         Object.keys(icColors).length === 0,
-      patch: () => ({ iconFrame: DEFAULT_ICON_FRAME, iconMotion: DEFAULT_ICON_MOTION, iconFrameColors: {} }),
+      patch: () => ({
+        iconFrame: DEFAULT_ICON_FRAME,
+        iconMotion: DEFAULT_ICON_MOTION,
+        iconCover: DEFAULT_ICON_COVER,
+        iconFrameColors: {},
+      }),
     },
     shell: {
       label: "لوح الرئيسية",
@@ -383,6 +391,12 @@ export default function AppearancePage() {
   const pickFrame = async (x: IconFrame) => {
     setBusy(x.id);
     await saveContent({ iconFrame: x.id });
+    setBusy(null);
+  };
+
+  const pickCover = async (x: IconCover) => {
+    setBusy(`iv-${x.id}`);
+    await saveContent({ iconCover: x.id });
     setBusy(null);
   };
 
@@ -1603,13 +1617,57 @@ export default function AppearancePage() {
                     on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <IconFramePreview frame={x} colors={icColors} />
+                  <IconFramePreview frame={x} cover={iconCover} colors={icColors} />
                   <div className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-2">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold">{x.name}</p>
                       <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
                     </div>
                     {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ---------- ٢٠ غلافاً ---------- */}
+          <Card className="mb-4 mt-8">
+            <p className="font-display mb-1 text-sm font-bold">
+              غلاف الأيقونة ({ICON_COVERS.length.toLocaleString("ar-EG")})
+            </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              الإطارُ يحكم اللوحَ تحت الأيقونة، والغلافُ يحكم ما حوله: حلقةٌ تحيطه، أو هالةٌ
+              تتسرّب من خلفه، أو نقشٌ يملؤه، أو شارةٌ على حافّته. ومحوران لا يتداخلان فيُركَّب
+              أيُّ غلافٍ على أيّ إطار.
+            </p>
+          </Card>
+
+          <div className="mb-8 grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+            {ICON_COVERS.map((x) => {
+              const on = x.id === iconCover.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickCover(x)}
+                  disabled={busy !== null}
+                  className={`rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <IconFramePreview frame={iconFrame} cover={x} colors={icColors} />
+                  <div className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === `iv-${x.id}` ? (
                       <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
                     ) : on ? (
                       <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-white">
@@ -1647,7 +1705,7 @@ export default function AppearancePage() {
                     on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <IconFramePreview frame={iconFrame} motion={x} colors={icColors} />
+                  <IconFramePreview frame={iconFrame} cover={iconCover} motion={x} colors={icColors} />
                   <div className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-2">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold">{x.name}</p>

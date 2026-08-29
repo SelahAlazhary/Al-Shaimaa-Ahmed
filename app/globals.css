@@ -2947,7 +2947,13 @@ body {
 .ic-frame { position: relative; }
 
 /* ---------- الشكل ---------- */
-[class*="ic-shape-"]:not(.ic-shape-none) .ic-frame { border-radius: 0; }
+/*
+  ولا تُكتب قاعدةُ مسحٍ قبلها.
+  كانت `[class*="ic-shape-"]:not(.ic-shape-none) .ic-frame` تمسح الاستدارة —
+  ووزنُها (٠،٣،٠) يغلب كلَّ قاعدةِ شكلٍ بعدها (٠،٢،٠)، فكان الشكلُ يُختار
+  ولا يقع. والمسحُ لم يكن لازماً أصلاً: صنفُ تيلويند `rounded-2xl` وزنُه
+  (٠،١،٠) فتغلبه قاعدةُ الشكل وحدَها.
+*/
 .ic-shape-soft .ic-frame     { border-radius: 0.7rem; }
 .ic-shape-round .ic-frame    { border-radius: 1rem; }
 .ic-shape-circle .ic-frame   { border-radius: 999px; }
@@ -2970,24 +2976,28 @@ body {
 }
 
 /* ---------- التعبئة ---------- */
-/* اللوحُ يُمسح أوّلاً ثمّ يُطلى: المواضعُ تكتب تدرّجاتها في `style`،
-   وهي أقوى من أيّ صنف — فتُلغى بـ`background-image:none`. */
-[class*="ic-fill-"]:not(.ic-fill-keep) .ic-frame { background-image: none; }
-.ic-fill-none .ic-frame     { background-color: transparent; }
-.ic-fill-tint .ic-frame     { background-color: var(--ic-bg, hsl(var(--primary) / 0.12)); }
-.ic-fill-solid .ic-frame    { background-color: var(--ic-bg, hsl(var(--primary))); }
+/*
+  بطاقةُ المؤشّر وأيقونةُ الخطّة تكتبان تدرّجَهما في `style` — وهو أقوى من
+  أيّ محدِّد مهما بلغ وزنُه، فلا يُزاح إلّا بـ`!important`. وهذا موضعُه
+  بالضبط: تجاوزُ نمطٍ سطريٍّ لا يمكن تعديلُه من هنا.
+
+  و«بلا تعبئة» لا يكتب شيئاً: من لم يختر سطحاً بقي كلُّ موضعٍ على سطحه —
+  ولا سيّما الخططُ، فلكلٍّ لونُها.
+*/
+.ic-fill-tint .ic-frame  { background: var(--ic-bg, hsl(var(--primary) / 0.12)) !important; }
+.ic-fill-solid .ic-frame { background: var(--ic-bg, hsl(var(--primary))) !important; }
 .ic-fill-gradient .ic-frame {
-  background-image: linear-gradient(135deg, var(--ic-bg, hsl(var(--primary))), var(--ic-bg2, hsl(var(--gold))));
+  background: linear-gradient(135deg, var(--ic-bg, hsl(var(--primary))), var(--ic-bg2, hsl(var(--gold)))) !important;
 }
 .ic-fill-glass .ic-frame {
-  background-color: var(--ic-bg, hsl(var(--card) / 0.5));
+  background: var(--ic-bg, hsl(var(--card) / 0.5)) !important;
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
 }
 /* المصمتُ والمتدرّجُ يقلبان لونَ الأيقونة، وإلّا اختفت في سطحها */
 .ic-fill-solid .ic-frame,
-.ic-fill-gradient .ic-frame { color: var(--ic-fg, #fff); }
-.ic-fill-tint .ic-frame     { color: var(--ic-fg, hsl(var(--primary))); }
+.ic-fill-gradient .ic-frame { color: var(--ic-fg, #fff) !important; }
+.ic-fill-tint .ic-frame     { color: var(--ic-fg, hsl(var(--primary))) !important; }
 
 /* ---------- الحدّ ---------- */
 .ic-edge-hair .ic-frame  { box-shadow: inset 0 0 0 1px var(--ic-edge, hsl(var(--border))); }
@@ -3242,4 +3252,223 @@ body {
   box-shadow:
     12px 12px 30px hsl(0 0% 0% / 0.45),
     -12px -12px 30px hsl(var(--foreground) / 0.06);
+}
+
+/* ============================================================
+   أغلفة الأيقونات
+   ------------------------------------------------------------
+   الإطارُ يحكم اللوحَ تحت الأيقونة، والغلافُ يحكم ما حوله. والزخرفةُ
+   تسكن `::before` و`::after` الخاصّين بلوح الأيقونة — وهما فارغان: لوحُ
+   الأيقونة عنصرٌ خُلق لهذا ولا يكتب فيه تصميمٌ آخر شيئاً. فالقاعدةُ ليست
+   «لا تستعمل الزائفة» بل «لا تكتب حيث كُتب».
+
+   وكلُّ غلافٍ `pointer-events:none` ويرث استدارةَ الإطار، فلا يحجب ضغطةً
+   ولا يخالف شكلَ ما يحيط به.
+   ============================================================ */
+
+[class*="icv-"] .ic-frame::before,
+[class*="icv-"] .ic-frame::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ---------- الحلقة ---------- */
+.icv-ring .ic-frame::before {
+  inset: -4px;
+  border: 1.5px solid var(--ic-edge, hsl(var(--primary) / 0.35));
+}
+
+/* ---------- الحلقتان ---------- */
+.icv-dualRing .ic-frame::before {
+  inset: -3px;
+  border: 1.5px solid var(--ic-edge, hsl(var(--primary) / 0.4));
+}
+.icv-dualRing .ic-frame::after {
+  inset: -7px;
+  border: 1px solid var(--ic-edge, hsl(var(--gold) / 0.45));
+}
+
+/* ---------- الحلقة المنقّطة ---------- */
+.icv-dotRing .ic-frame::before {
+  inset: -5px;
+  border: 2px dotted var(--ic-edge, hsl(var(--gold) / 0.7));
+}
+
+/* ---------- الهالة ---------- */
+.icv-halo .ic-frame::before {
+  inset: -6px;
+  background: var(--ic-bg, hsl(var(--primary) / 0.55));
+  filter: blur(9px);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* ---------- المدار ---------- */
+.icv-orbit .ic-frame::before {
+  inset: -6px;
+  border: 1px dashed var(--ic-edge, hsl(var(--primary) / 0.35));
+}
+.icv-orbit .ic-frame::after {
+  inset: -6px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle 3px at 50% 0, var(--ic-edge, hsl(var(--gold))) 98%, transparent) no-repeat;
+  animation: icv-orbit 5s linear infinite;
+}
+@keyframes icv-orbit { to { transform: rotate(360deg); } }
+
+/* ---------- النبضة ---------- */
+.icv-pulse .ic-frame::before {
+  inset: -3px;
+  border: 2px solid var(--ic-edge, hsl(var(--primary) / 0.5));
+  animation: icv-pulse 2.4s ease-out infinite;
+}
+@keyframes icv-pulse {
+  0%   { transform: scale(0.94); opacity: 0.85; }
+  70%  { transform: scale(1.18); opacity: 0; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+
+/* ---------- المسحة ---------- */
+.icv-sweep .ic-frame::before {
+  inset: -2.5px;
+  background: conic-gradient(
+    from 0deg,
+    var(--ic-edge, hsl(var(--primary))),
+    hsl(var(--gold)),
+    var(--ic-edge, hsl(var(--primary)))
+  );
+  /* قناعٌ يُبقي الحلقةَ ويُفرّغ ما بداخلها — الحدُّ لا يقبل تدرّجاً */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 2px;
+}
+
+/* ---------- البريق ---------- */
+.icv-shine .ic-frame { overflow: hidden; }
+.icv-shine .ic-frame::before {
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, hsl(0 0% 100% / 0.55) 50%, transparent 62%);
+  animation: icv-shine 3.6s ease-in-out infinite;
+}
+@keyframes icv-shine {
+  0%, 62% { transform: translateX(-120%); }
+  100%    { transform: translateX(120%); }
+}
+
+/* ---------- الكشّاف ---------- */
+.icv-spot .ic-frame::before {
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% -20%, hsl(0 0% 100% / 0.45), transparent 62%);
+}
+
+/* ---------- الشبكة ---------- */
+.icv-grid .ic-frame::before {
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.12) 1px, transparent 1px);
+  background-size: 0.5rem 0.5rem;
+  opacity: 0.7;
+}
+
+/* ---------- النقاط ---------- */
+.icv-dots .ic-frame::before {
+  inset: 0;
+  background-image: radial-gradient(hsl(var(--foreground) / 0.2) 1px, transparent 1px);
+  background-size: 0.42rem 0.42rem;
+}
+
+/* ---------- الأشرطة ---------- */
+.icv-diagonal .ic-frame::before {
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -40deg,
+    hsl(var(--foreground) / 0.11) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+/* ---------- الركن ---------- */
+.icv-corner .ic-frame::after {
+  inset: 0;
+  background: linear-gradient(225deg, var(--ic-edge, hsl(var(--gold))) 0 32%, transparent 32%);
+  opacity: 0.9;
+}
+
+/* ---------- الشارة ---------- */
+.icv-notch .ic-frame::after {
+  inset: auto -2px -2px auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--ic-edge, hsl(var(--gold)));
+  box-shadow: 0 0 0 2px hsl(var(--card));
+}
+
+/* ---------- القوسان ---------- */
+.icv-laurel .ic-frame::before {
+  inset: -5px;
+  border-radius: 999px;
+  border: 2px solid var(--ic-edge, hsl(var(--gold) / 0.75));
+  /* قوسان لا حلقة: الجانبان يبقيان والطرفان يُقصّان */
+  clip-path: polygon(0 12%, 26% 12%, 26% 88%, 0 88%, 100% 88%, 74% 88%, 74% 12%, 100% 12%);
+}
+
+/* ---------- الشمسة ---------- */
+.icv-shamsa .ic-frame::before {
+  inset: -8px;
+  background: conic-gradient(
+    from 22.5deg,
+    var(--ic-edge, hsl(var(--gold) / 0.42)) 0 12%, transparent 12% 25%,
+    var(--ic-edge, hsl(var(--gold) / 0.42)) 25% 37%, transparent 37% 50%,
+    var(--ic-edge, hsl(var(--gold) / 0.42)) 50% 62%, transparent 62% 75%,
+    var(--ic-edge, hsl(var(--gold) / 0.42)) 75% 87%, transparent 87%
+  );
+  border-radius: 999px;
+  z-index: -1;
+}
+
+/* ---------- الطبقات ---------- */
+.icv-stack .ic-frame::before {
+  inset: 0;
+  transform: translate(5px, 5px);
+  background: var(--ic-bg, hsl(var(--primary) / 0.18));
+  z-index: -2;
+}
+.icv-stack .ic-frame::after {
+  inset: 0;
+  transform: translate(2.5px, 2.5px);
+  background: var(--ic-bg, hsl(var(--primary) / 0.3));
+  z-index: -1;
+}
+
+/* ---------- التوهّج الداخلي ---------- */
+.icv-innerGlow .ic-frame::before {
+  inset: 0;
+  box-shadow: inset 0 0 10px 2px var(--ic-edge, hsl(var(--primary) / 0.45));
+}
+
+/* ---------- الحدّ المزاح ---------- */
+.icv-offset .ic-frame::before {
+  inset: 0;
+  transform: translate(4px, 4px);
+  border: 1.5px solid var(--ic-edge, hsl(var(--foreground) / 0.5));
+  z-index: -1;
+}
+
+/* الأغلفةُ ذاتُ الطبقات الخلفية تحتاج سياقَ تكديسٍ ليقع خلفَها لا فوقها */
+.icv-halo .ic-frame,
+.icv-shamsa .ic-frame,
+.icv-stack .ic-frame,
+.icv-offset .ic-frame { isolation: isolate; }
+
+/* من فضّل تقليل الحركة يبقى الغلافُ ولا يدور. */
+@media (prefers-reduced-motion: reduce) {
+  [class*="icv-"] .ic-frame::before,
+  [class*="icv-"] .ic-frame::after { animation: none !important; }
 }

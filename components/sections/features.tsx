@@ -61,13 +61,23 @@ export function Features() {
                     className="sx-knot pointer-events-none absolute right-0 top-0 text-accent/45 transition-opacity group-hover:opacity-90"
                   />
 
-                  {/* ميدالية الرقم */}
+                  {/*
+                    لوحُ الرقم.
+                    كان وردةً ثمانيّةً بدائرةٍ داخلها — وتلك صورةُ علامةِ نهاية
+                    الآية في المصحف، لا يليق أن تُرقَّم بها مزايا منصّة. فصار
+                    لوحاً مقصوصَ الركنين بخطٍّ تحته: علامةُ ترقيمٍ خالصة لا
+                    تستعير من المصحف شيئاً.
+                  */}
                   <span className="pointer-events-none absolute left-5 top-5 grid size-9 place-items-center">
                     <svg viewBox="0 0 36 36" className="absolute inset-0 size-full text-accent/45" fill="none" aria-hidden="true">
-                      <path d="M18 1.5 26 5.5 30.5 13.5 30.5 22.5 26 30.5 18 34.5 10 30.5 5.5 22.5 5.5 13.5 10 5.5Z" stroke="currentColor" strokeWidth="1" />
-                      <circle cx="18" cy="18" r="11" stroke="currentColor" strokeWidth="0.8" opacity="0.55" />
+                      <path
+                        d="M11 3.5H29A3.5 3.5 0 0 1 32.5 7V25L25 32.5H7A3.5 3.5 0 0 1 3.5 29V11Z"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      />
+                      <path d="M12.5 26.5H23.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity="0.7" />
                     </svg>
-                    <span className="font-display relative text-sm font-bold text-accent">{ar(i + 1)}</span>
+                    <span className="font-display relative -mt-1 text-sm font-bold text-accent">{ar(i + 1)}</span>
                   </span>
 
                   {/* لوحة الأيقونة */}
