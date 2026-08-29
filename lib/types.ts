@@ -258,6 +258,8 @@ export type SiteContent = {
    * فارغاً يبقى السلوك القديم — الشعارُ إن وُجد وإلا العلامة.
    */
   appIcon?: "logo" | "avatar" | "mark";
+  /** تصميم زرّي الهيرو (lib/button-styles.ts). */
+  buttonStyle?: string;
   /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
   mobileHome?: string;
   /** إيقاع الحركة في المنصّة (lib/motion-styles.ts). */

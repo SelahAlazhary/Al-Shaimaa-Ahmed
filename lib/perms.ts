@@ -140,7 +140,7 @@ const APPEARANCE_KEYS = new Set([
   "studentSkin", "studentLayout", "studentMobile", "studentDesign",
   "sideNav", "dockStyle", "navIcons", "navColors",
   "tileStyle", "tileColors", "tileArt",
-  "toolbarStyle", "navbarStyle", "navbarStick", "toolbarStick", "navbarHidden", "toolbarHidden", "appIcon", "mobileHome", "motionStyle",
+  "toolbarStyle", "navbarStyle", "navbarStick", "toolbarStick", "navbarHidden", "toolbarHidden", "appIcon", "buttonStyle", "mobileHome", "motionStyle",
   "heroStyle", "plansStyle", "homeLayout",
   "stagesStyle", "featuresStyle", "testimonialsStyle",
   "faqStyle", "ctaStyle", "footerStyle",

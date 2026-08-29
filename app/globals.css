@@ -2677,3 +2677,92 @@ body {
 .bar-hidden #hero { padding-top: 3.5rem; }
 
 .tools-hidden .app-body > header { display: none; }
+
+/* ============================================================
+   تصاميم زرّي الهيرو
+   ------------------------------------------------------------
+   الزرّان هما البابان اللذان يدخل منهما الزائر، وأكثرُ عنصرين يُنظر
+   إليهما. والتصميمُ هو العلاقةُ بينهما لا مظهرُ كلٍّ منفرداً: الأوّل
+   يقود والثاني يُساند.
+
+   الشكلُ يُطبَّق على طبقات اللوح كلِّها (‎--c‎ هو نصف قطر القصّ في كل
+   طبقة)، فيبقى الحدّ والخيط الداخلي متوازيين مهما تغيّر الشكل.
+   ============================================================ */
+
+/* ---------- شكل الزرّ ---------- */
+.bt-shape-pill .hero-actions .plq-layer { border-radius: 9999px; clip-path: none; }
+.bt-shape-round .hero-actions .plq-layer { border-radius: 1.1rem; clip-path: none; }
+.bt-shape-square .hero-actions .plq-layer { border-radius: 0.2rem; clip-path: none; }
+.bt-shape-arch .hero-actions .plq-layer { border-radius: 9999px 9999px 0.9rem 0.9rem; clip-path: none; }
+.bt-shape-slant .hero-actions .plq-layer {
+  border-radius: 0.35rem;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.9rem) 100%, 0 100%);
+}
+.bt-shape-ticket .hero-actions .plq-layer {
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% calc(50% - 0.42rem), calc(100% - 0.3rem) 50%, 100% calc(50% + 0.42rem),
+    100% 100%, 0 100%,
+    0 calc(50% + 0.42rem), 0.3rem 50%, 0 calc(50% - 0.42rem)
+  );
+}
+
+/* ---------- الزرّ الثاني ---------- */
+/* شفّاف: يبقى الحدّ ويذهب المِلء */
+.bt-pair-ghost .hero-actions > *:nth-child(2) .plq-face,
+.bt-pair-ghost .hero-actions > *:nth-child(2) .plq-inner { background: transparent; }
+.bt-pair-ghost .hero-actions > *:nth-child(2) .plq-plate { background: hsl(var(--gold) / 0.55); }
+
+/* نصّ وسهم بلا إطار — أخفّ ما يكون */
+.bt-pair-text .hero-actions > *:nth-child(2) .plq-layer { display: none; }
+.bt-pair-text .hero-actions > *:nth-child(2) {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 0.4em;
+  text-decoration-color: hsl(var(--gold) / 0.6);
+  text-decoration-thickness: 2px;
+}
+
+/* مصمت بلون أهدأ */
+.bt-pair-solid .hero-actions > *:nth-child(2) .plq-plate { background: hsl(var(--muted)); }
+.bt-pair-solid .hero-actions > *:nth-child(2) .plq-face,
+.bt-pair-solid .hero-actions > *:nth-child(2) .plq-inner { background: hsl(var(--muted)); }
+
+/* حدّ سميك بلا تعبئة */
+.bt-pair-outline .hero-actions > *:nth-child(2) .plq-plate { background: hsl(var(--primary)); }
+.bt-pair-outline .hero-actions > *:nth-child(2) .plq-face,
+.bt-pair-outline .hero-actions > *:nth-child(2) .plq-inner { background: hsl(var(--background)); }
+.bt-pair-outline .hero-actions > *:nth-child(2) { --edge: 2.5px; }
+
+/* ---------- الحركة عند المرور ---------- */
+.bt-hover-none .hero-actions > * { transition: none; }
+.bt-hover-lift .hero-actions > * { transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.bt-hover-lift .hero-actions > *:hover { transform: translateY(-3px); }
+
+.bt-hover-glow .hero-actions > * { transition: box-shadow 0.28s ease; }
+.bt-hover-glow .hero-actions > *:hover {
+  box-shadow: 0 0 0 3px hsl(var(--gold) / 0.28), 0 18px 40px -22px hsl(var(--primary) / 0.9);
+}
+
+/* الثاني يمتلئ بلون الأوّل — دعوةٌ صريحة للضغط */
+.bt-hover-fill .hero-actions > *:nth-child(2) .plq-face,
+.bt-hover-fill .hero-actions > *:nth-child(2) .plq-inner { transition: background 0.26s ease; }
+.bt-hover-fill .hero-actions > *:nth-child(2):hover .plq-face,
+.bt-hover-fill .hero-actions > *:nth-child(2):hover .plq-inner { background: hsl(var(--primary)); }
+.bt-hover-fill .hero-actions > *:nth-child(2):hover { color: hsl(var(--primary-foreground)); }
+
+/* بريقٌ يزحف عبر الزرّ */
+.bt-hover-slide .hero-actions > * { position: relative; overflow: hidden; }
+.bt-hover-slide .hero-actions > *::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.35), transparent);
+  transform: skewX(-18deg);
+  transition: inset-inline-start 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.bt-hover-slide .hero-actions > *:hover::after { inset-inline-start: 115%; }

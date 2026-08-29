@@ -24,6 +24,7 @@ import type { SectionStyle } from "@/lib/section-styles";
 import type { FaqStyle, CtaStyle, FooterStyle } from "@/lib/block-styles";
 import type { MobileHome } from "@/lib/mobile-home";
 import { motionVars, type MotionStyle } from "@/lib/motion-styles";
+import type { ButtonStyle } from "@/lib/button-styles";
 
 const W = 160;
 const H = 108;
@@ -2340,6 +2341,110 @@ export function MotionPreview({ mo, skin }: { mo: MotionStyle; skin: StudentSkin
       {mo.hover === "tilt" && (
         <rect x={x0 + cw + gap} y={y0} width={cw} height={ch} rx={6} fill="none" stroke={tone} strokeWidth={1.2}
           strokeDasharray="3 3" opacity={0.7} transform={`rotate(-3 ${x0 + cw + gap + cw / 2} ${y0 + ch / 2})`} />
+      )}
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  معاينة زرّي الهيرو                                                 */
+/* ------------------------------------------------------------------ */
+
+export function ButtonPreview({ style, skin }: { style: ButtonStyle; skin: StudentSkin }) {
+  const v = skin.vars;
+  const tone = hsl(v.primary);
+  const gold = hsl(v.gold);
+  const text = hsl(v.foreground);
+
+  const bw = 58;
+  const bh = 17;
+  const gap = 7;
+  const x1 = W / 2 - bw - gap / 2;
+  const x2 = W / 2 + gap / 2;
+  const y = H / 2 - bh / 2 + 6;
+
+  /* شكل الزرّ — مسارٌ لأن القصّ شكلٌ حقيقي لا حدّ */
+  const shape = (x: number, inset = 0) => {
+    const X = x + inset, Y = y + inset, w = bw - inset * 2, h = bh - inset * 2;
+    switch (style.shape) {
+      case "plaque": {
+        const c = 4 - inset * 0.6;
+        return `M${X + c} ${Y} H${X + w - c} L${X + w} ${Y + c} V${Y + h - c} L${X + w - c} ${Y + h} H${X + c} L${X} ${Y + h - c} V${Y + c} Z`;
+      }
+      case "ticket": {
+        const m = Y + h / 2;
+        return `M${X} ${Y} H${X + w} V${m - 3} L${X + w - 1.6} ${m} L${X + w} ${m + 3} V${Y + h} H${X} V${m + 3} L${X + 1.6} ${m} L${X} ${m - 3} Z`;
+      }
+      case "slant":
+        return `M${X} ${Y} H${X + w} L${X + w - 5} ${Y + h} H${X} Z`;
+      case "arch":
+        return `M${X} ${Y + h - 3} V${Y + h / 2} A${w / 2} ${h / 2} 0 0 1 ${X + w} ${Y + h / 2} V${Y + h - 3} Q${X + w} ${Y + h} ${X + w - 3} ${Y + h} H${X + 3} Q${X} ${Y + h} ${X} ${Y + h - 3} Z`;
+      default:
+        return null;
+    }
+  };
+
+  const rx = style.shape === "pill" ? bh / 2 : style.shape === "round" ? 5 : style.shape === "square" ? 1 : 0;
+
+  /* الزرّ الثاني — علاقتُه بالأوّل هي التصميم */
+  const secondFill =
+    style.pair === "ghost" || style.pair === "outline" ? hsl(v.background)
+      : style.pair === "solid" ? hsl(v.muted)
+        : hsl(v.card);
+  const secondStroke =
+    style.pair === "outline" ? tone : style.pair === "solid" ? "none" : gold;
+  const secondW = style.pair === "outline" ? 2.2 : 1.2;
+
+  const d1 = shape(x1);
+  const d2 = shape(x2);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
+      <rect width={W} height={H} fill={hsl(v.background)} />
+
+      {/* عنوان مصغّر يعطي الزرّين سياقهما */}
+      <rect x={W / 2 - 34} y={16} width={68} height={5} rx={2.5} fill={text} opacity={0.55} />
+      <rect x={W / 2 - 24} y={26} width={48} height={3} rx={1.5} fill={text} opacity={0.22} />
+
+      {/* الزرّ الأوّل — يقود */}
+      {d1 ? (
+        <path d={d1} fill={tone} />
+      ) : (
+        <rect x={x1} y={y} width={bw} height={bh} rx={rx} fill={tone} />
+      )}
+      <rect x={x1 + 12} y={y + bh / 2 - 1.6} width={bw - 24} height={3.2} rx={1.6} fill="#fff" opacity={0.9} />
+
+      {/* حلقة التوهّج */}
+      {style.hover === "glow" && (
+        <rect x={x1 - 2.5} y={y - 2.5} width={bw + 5} height={bh + 5} rx={rx + 2.5}
+          fill="none" stroke={gold} strokeWidth={1.4} opacity={0.5} />
+      )}
+
+      {/* الزرّ الثاني — يُساند */}
+      {style.pair === "text" ? (
+        <>
+          <rect x={x2 + 10} y={y + bh / 2 - 1.6} width={bw - 26} height={3.2} rx={1.6} fill={tone} opacity={0.85} />
+          <rect x={x2 + 10} y={y + bh / 2 + 4} width={bw - 26} height={1.4} rx={0.7} fill={gold} opacity={0.7} />
+        </>
+      ) : d2 ? (
+        <path d={d2} fill={secondFill} stroke={secondStroke === "none" ? undefined : secondStroke} strokeWidth={secondW} />
+      ) : (
+        <rect x={x2} y={y} width={bw} height={bh} rx={rx}
+          fill={secondFill} stroke={secondStroke === "none" ? undefined : secondStroke} strokeWidth={secondW} />
+      )}
+      {style.pair !== "text" && (
+        <rect x={x2 + 12} y={y + bh / 2 - 1.6} width={bw - 24} height={3.2} rx={1.6}
+          fill={style.pair === "solid" ? text : tone} opacity={0.75} />
+      )}
+
+      {/* البريق الزاحف */}
+      {style.hover === "slide" && (
+        <path d={`M${x1 + 14} ${y} l6 0 -9 ${bh} -6 0 Z`} fill="#fff" opacity={0.35} />
+      )}
+
+      {/* أثر الارتفاع */}
+      {style.hover === "lift" && (
+        <rect x={x1} y={y + bh + 2} width={bw} height={1.6} rx={0.8} fill={tone} opacity={0.18} />
       )}
     </svg>
   );
