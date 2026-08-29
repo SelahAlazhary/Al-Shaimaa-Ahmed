@@ -94,6 +94,9 @@ export function permForPath(href: string): AdminPerm | null {
     "/admin/analytics": "analytics",
     "/admin/security": "security",
     "/admin/backup": "backup",
+    /* قواعد البيانات: الاعتمادُ فيها يفتح القاعدةَ كلَّها لا نسخةً منها،
+       فهي للمالكة وحدها — و«team» لا تُمنح لأحد غيرها. */
+    "/admin/databases": "team",
     "/admin/testimonials": "testimonials",
     "/admin/support": "support",
     "/admin/team": "team",

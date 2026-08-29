@@ -178,6 +178,7 @@ export function publicIntegrations(db: DB): PublicIntegrations {
     },
     youtubeApiKey: Boolean(process.env.YOUTUBE_API_KEY || db.integrations?.youtubeApiKey),
     push: pushConfigured(),
+    databases: (db.integrations?.databases ?? []).length,
   };
 }
 

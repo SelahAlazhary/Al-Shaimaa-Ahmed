@@ -686,6 +686,29 @@ export type BackupEntry = {
   error?: string;
 };
 
+/**
+ * قاعدةُ بياناتٍ في السلسلة.
+ * الرئيسيةُ تُقرأ ويُكتب فيها، والفروعُ نُسخٌ تحلّ محلَّها إن تعطّلت أو
+ * امتلأت. وكلُّها تحمل النسخةَ نفسَها — ومنها قائمةُ القواعد ذاتُها،
+ * فأيُّ قاعدةٍ تردّ تعرف أخواتِها.
+ */
+export type DbNode = {
+  id: string;
+  name: string;
+  /** عنوان قاعدة Realtime Database. */
+  url: string;
+  /** اعتمادُ الوصول — سرٌّ قديم أو حسابُ خدمة. لا يغادر الخادم. */
+  secret?: string;
+  clientEmail?: string;
+  privateKey?: string;
+  role: "primary" | "branch";
+  enabled: boolean;
+  order?: number;
+  /** السعة بالميجابايت — تجاوزُ ٩٢٪ منها ينقل الكتابة للتالية. */
+  capacityMB?: number;
+  addedAt?: string;
+};
+
 export type Integrations = {
   google?: GoogleIntegration;
   driveBackupFolderId?: string;
@@ -695,6 +718,8 @@ export type Integrations = {
   youtubeApiKey?: string;
   /** بوت تليجرام — التوكن سرّ لا يُرسل للواجهة إطلاقاً. */
   telegram?: TelegramIntegration;
+  /** سلسلةُ قواعد البيانات — تُنسخ في كلٍّ منها فتعرف أخواتِها. */
+  databases?: DbNode[];
 };
 /** ما يُسمح بإرساله للواجهة عن التكاملات (بلا أي رموز). */
 export type PublicIntegrations = {
@@ -705,6 +730,8 @@ export type PublicIntegrations = {
   push?: boolean;
   /** حالة بوت تليجرام — بلا توكن: وجوده ومعرّف المحادثة واسمه فقط. */
   telegram?: { configured: boolean; enabled: boolean; chatId?: string; username?: string; webhookSetAt?: string };
+  /** عدد قواعد البيانات المضبوطة — بلا عناوين ولا اعتمادات. */
+  databases?: number;
 };
 
 /* ---------- قناة يوتيوب ---------- */

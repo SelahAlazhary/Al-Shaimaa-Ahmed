@@ -2,7 +2,9 @@ import "server-only";
 import fs from "fs";
 import path from "path";
 import type { DB } from "./types";
-import { firebaseConfigured, fbGet, fbSet, firebaseSecure } from "./firebase";
+import { firebaseConfigured, fbGet, fbSet, firebaseSecure, fbGetFrom, fbSetTo, type FirebaseConfig } from "./firebase";
+import { orderNodes, markUp, markDown, writeTarget } from "./db-nodes";
+import type { DbNode } from "./types";
 
 /**
  * طبقة التخزين.
@@ -118,7 +120,14 @@ export async function ensureStore(seed?: () => DB): Promise<DB> {
 
   if (firebaseUsable()) {
     try {
-      const remote = await fbGet<DB>(ROOT);
+      /*
+        تُجرَّب القواعد بترتيبها حتى تردّ واحدة.
+        ------------------------------------------------------------
+        بقاعدةٍ واحدة يبقى السلوك كما كان حرفاً بحرف — محاولةٌ واحدة
+        ثم الخطأ. والفروعُ لا تُزاد إلا حين تُضاف، فلا تُدفع كلفةٌ لم
+        تُطلب.
+      */
+      const remote = await readChain();
       if (remote && toArrayLength(remote.users)) {
         normalizeLists(remote);
         cache.data = remote;
@@ -187,7 +196,7 @@ export function commit(db: DB) {
 
   if (!firebaseUsable()) return;
   pending = pending
-    .then(() => fbSet(ROOT, { ...db, _syncedAt: new Date().toISOString() }))
+    .then(() => writeChain({ ...db, _syncedAt: new Date().toISOString() }))
     .then(() => {
       lastSyncAt = new Date().toISOString();
       lastError = null;
@@ -220,4 +229,111 @@ export function storeState() {
     cachedAt: cache.loadedAt ? new Date(cache.loadedAt).toISOString() : null,
     firebaseUsable: firebaseUsable(),
   };
+}
+
+
+/* ================================================================== */
+/*  سلسلة القواعد                                                      */
+/* ================================================================== */
+/*
+  الغرضان: السعةُ والاستمرار. قاعدةٌ تمتلئ فتستوعب التاليةُ ما بعدها،
+  وقاعدةٌ تتعطّل فتحلّ التاليةُ محلَّها بلا تدخّل.
+
+  وكلُّ قاعدةٍ تحمل النسخةَ كاملةً — ومنها قائمةُ القواعد نفسُها. فأيُّ
+  قاعدةٍ تردّ تعرف أخواتِها، وتُحلّ بذلك مسألةُ «كيف نقرأ القائمة
+  والرئيسيةُ معطّلة؟».
+*/
+
+/** القواعد المعروفة الآن: المحفوظةُ في آخر نسخةٍ قُرئت + قاعدةُ البيئة. */
+function knownNodes(): DbNode[] {
+  return orderNodes(cache.data?.integrations?.databases);
+}
+
+/** يُحوّل القاعدة إلى إعدادِ اتصال. */
+function asConfig(n: DbNode): FirebaseConfig {
+  return {
+    databaseURL: n.url,
+    clientEmail: n.clientEmail,
+    privateKey: n.privateKey,
+    secret: n.secret,
+  };
+}
+
+/**
+ * يقرأ من أوّل قاعدةٍ تردّ.
+ * الأخطاءُ تُجمع فلا تضيع، وتُرفع آخرُها إن سقطت السلسلةُ كلُّها.
+ */
+async function readChain(): Promise<DB | null> {
+  const nodes = knownNodes();
+
+  /* بلا فروع: المسار القديم نفسُه بلا زيادة. */
+  if (nodes.length <= 1) {
+    const data = await fbGet<DB>(ROOT);
+    return data;
+  }
+
+  let last: Error | null = null;
+  for (const n of nodes) {
+    try {
+      const { data, bytes } = await fbGetFrom<DB>(asConfig(n), ROOT);
+      markUp(n.url, bytes);
+      if (data) {
+        activeUrl = n.url;
+        return data;
+      }
+    } catch (e) {
+      last = e as Error;
+      markDown(n.url, (e as Error).message);
+    }
+  }
+  if (last) throw last;
+  return null;
+}
+
+/**
+ * يكتب في القاعدة العاملة، ثم يَنسخ إلى البقيّة.
+ * النسخُ لا يُنتظَر ولا يُفشِل: الكتابةُ نجحت متى قبلتها قاعدةٌ واحدة،
+ * والبقيّةُ نسخٌ للأمان تلحق متى استطاعت.
+ */
+async function writeChain(payload: DB & { _syncedAt: string }): Promise<void> {
+  const nodes = knownNodes();
+
+  if (nodes.length <= 1) {
+    await fbSet(ROOT, payload);
+    return;
+  }
+
+  const target = writeTarget(cache.data?.integrations?.databases) ?? nodes[0];
+  let wrote = false;
+  let last: Error | null = null;
+
+  /* الهدفُ أوّلاً، فإن أبى جُرِّبت البقيّة بترتيبها. */
+  for (const n of [target, ...nodes.filter((x) => x.url !== target.url)]) {
+    try {
+      await fbSetTo(asConfig(n), ROOT, payload);
+      markUp(n.url);
+      activeUrl = n.url;
+      wrote = true;
+      break;
+    } catch (e) {
+      last = e as Error;
+      markDown(n.url, (e as Error).message);
+    }
+  }
+
+  if (!wrote && last) throw last;
+
+  /* نسخُ الأمان — بلا انتظار وبلا إفشال. */
+  for (const n of nodes) {
+    if (n.url === activeUrl) continue;
+    void fbSetTo(asConfig(n), ROOT, payload)
+      .then(() => markUp(n.url))
+      .catch((e: Error) => markDown(n.url, e.message));
+  }
+}
+
+/** عنوانُ القاعدة التي يُقرأ منها ويُكتب فيها الآن — للعرض في اللوحة. */
+let activeUrl = "";
+export function activeNodeUrl(): string {
+  return activeUrl;
 }

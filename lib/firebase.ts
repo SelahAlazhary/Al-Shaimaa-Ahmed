@@ -131,9 +131,19 @@ async function requestToken(c: FirebaseConfig) {
   return { res, data };
 }
 
+/*
+  الرموز تُخزَّن لكل حساب خدمة على حدة.
+  ------------------------------------------------------------------
+  كان الرمزُ واحداً مخزَّناً لجميع القواعد، فلمّا صارت القواعد أكثر من
+  واحدة أخذت الثانيةُ رمزَ الأولى — فتُرفض. المفتاحُ هو البريد نفسه.
+*/
+const tokens = new Map<string, { value: string; exp: number }>();
+
 async function accessToken(c: FirebaseConfig): Promise<string | null> {
   if (!c.clientEmail || !c.privateKey) return null;
-  if (cachedToken && cachedToken.exp - 60_000 > Date.now()) return cachedToken.value;
+  const key = c.clientEmail;
+  const hit = tokens.get(key);
+  if (hit && hit.exp - 60_000 > Date.now()) return hit.value;
 
   let { res, data } = await requestToken(c);
 
@@ -152,11 +162,24 @@ async function accessToken(c: FirebaseConfig): Promise<string | null> {
     const extra = Math.abs(off) > 30 ? ` (ساعة الجهاز تختلف عن الوقت الحقيقي بـ ${off} ثانية)` : "";
     throw new Error((data.error_description || data.error || "تعذّر الحصول على رمز فايربيز") + extra);
   }
-  cachedToken = { value: data.access_token, exp: Date.now() + Number(data.expires_in ?? 3600) * 1000 };
-  return cachedToken.value;
+  const fresh = { value: data.access_token, exp: Date.now() + Number(data.expires_in ?? 3600) * 1000 };
+  tokens.set(key, fresh);
+  return fresh.value;
 }
 
 /** عنوان المسار مع بيانات الاعتماد. */
+export async function urlFor(c: FirebaseConfig, path: string, query = ""): Promise<string> {
+  const base = `${c.databaseURL.replace(/\/$/, "")}/${path.replace(/^\//, "")}.json`;
+  const token = await accessToken(c);
+  const auth = token
+    ? `access_token=${token}`
+    : c.secret
+      ? `auth=${encodeURIComponent(c.secret)}`
+      : "";
+  const qs = [auth, query].filter(Boolean).join("&");
+  return qs ? `${base}?${qs}` : base;
+}
+
 async function url(path: string, query = ""): Promise<string> {
   const c = readConfig();
   if (!c) throw new Error("فايربيز غير مضبوط");
@@ -252,6 +275,52 @@ export async function fbPing(): Promise<{ ok: boolean; error?: string }> {
   try {
     await fbGet("__health");
     await fbSet("__health", { at: new Date().toISOString() });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  قراءة وكتابة على قاعدةٍ بعينها                                     */
+/*  ------------------------------------------------------------------ */
+/*  المسارات أعلاه تعمل على القاعدة المضبوطة في البيئة. وهذه تأخذ       */
+/*  القاعدةَ صراحةً — تلزم لسلسلة القواعد حيث تُجرَّب واحدةٌ بعد أخرى.   */
+
+/** يقرأ من قاعدةٍ محدّدة، ويعيد الحجمَ المقروء معه. */
+export async function fbGetFrom<T>(
+  c: FirebaseConfig,
+  path: string
+): Promise<{ data: T | null; bytes: number }> {
+  const res = await fetch(await urlFor(c, path), { cache: "no-store" });
+  if (!res.ok) throw new Error(`فايربيز: فشل القراءة (${res.status})`);
+  const text = await res.text();
+  const raw = text ? JSON.parse(text) : null;
+  return {
+    data: raw === null ? null : (decodeFromFirebase(raw) as T),
+    /* الحجمُ المقروء هو ما يُنقل في كل قراءة — وهو المقياس الذي يهمّ. */
+    bytes: text.length,
+  };
+}
+
+/** يكتب في قاعدةٍ محدّدة. */
+export async function fbSetTo(c: FirebaseConfig, path: string, value: unknown): Promise<void> {
+  const res = await fetch(await urlFor(c, path), {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(encodeForFirebase(value) ?? null),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`فايربيز: فشل الكتابة (${res.status})${detail ? ` — ${detail.slice(0, 160)}` : ""}`);
+  }
+}
+
+/** فحصٌ سريع لقاعدة — يُستعمل في اللوحة وفي اختيار القاعدة العاملة. */
+export async function fbPingNode(c: FirebaseConfig): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await fetch(await urlFor(c, ".info/serverTimeOffset"), { cache: "no-store" });
     return { ok: true };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
