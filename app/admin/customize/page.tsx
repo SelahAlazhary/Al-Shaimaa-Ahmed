@@ -206,6 +206,7 @@ export default function CustomizePage() {
                 { id: "logo", label: "الشعار المرفوع" },
                 { id: "avatar", label: "صورة المعلّمة" },
                 { id: "mark", label: "علامة المنصّة" },
+                { id: "custom", label: "صورة أرفعها للأيقونة" },
               ] as const).map((o) => {
                 const on = (form.appIcon ?? "logo") === o.id;
                 return (
@@ -223,7 +224,7 @@ export default function CustomizePage() {
               })}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/pwa-icon?size=96&v=${form.appIcon ?? "logo"}`}
+                src={`/api/pwa-icon?size=96&v=${form.appIcon ?? "logo"}-${(form.appIconImage ?? "").slice(-12)}`}
                 alt="معاينة أيقونة التطبيق"
                 width={56}
                 height={56}
@@ -233,6 +234,56 @@ export default function CustomizePage() {
                 المعاينة تتحدّث بعد الحفظ — الأيقونة تُولَّد على الخادم.
               </span>
             </div>
+            {/*
+              الأيقونةُ المرفوعة مستقلّةٌ عن الشعار: أيقونةُ الهاتف مربّعةٌ
+              صغيرة تُقرأ من بعيد، والشعارُ قد يكون عريضاً بنصٍّ دقيق — فما
+              يصلح لأحدهما يفسد الآخر.
+            */}
+            {(form.appIcon ?? "logo") === "custom" && (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border p-3">
+                <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-dashed border-border bg-muted/30">
+                  {form.appIconImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={mediaSrc(form.appIconImage)} alt="أيقونة التطبيق" className="max-h-full max-w-full object-contain" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">لا صورة</span>
+                  )}
+                </div>
+                <input
+                  id="app-icon-file"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    const url = await uploadImage(file);
+                    if (!url) return;
+                    set({ appIconImage: url });
+                    await saveContent({ appIcon: "custom", appIconImage: url });
+                  }}
+                />
+                <Button variant="outline" onClick={() => document.getElementById("app-icon-file")?.click()}>
+                  <Upload className="size-4" /> رفع صورة الأيقونة
+                </Button>
+                {form.appIconImage ? (
+                  <button
+                    type="button"
+                    className="rounded-xl border border-border px-3 py-2 text-[11px] font-bold text-muted-foreground transition hover:border-rose-500/50 hover:text-rose-500"
+                    onClick={async () => { set({ appIconImage: "" }); await saveContent({ appIconImage: "" }); }}
+                  >
+                    إزالة
+                  </button>
+                ) : null}
+                <p className="w-full text-[11px] leading-relaxed text-muted-foreground">
+                  مربّعة، ٥١٢×٥١٢ فأكثر، PNG بخلفيةٍ شفّافة أو مصمتة. تُحفظ فور رفعها،
+                  والمعاينةُ أعلاه تتحدّث بعد لحظة — الأيقونةُ تُولَّد على الخادم.
+                </p>
+              </div>
+            )}
+
+
           </Card>
           <Card className="lg:col-span-2">
             <h3 className="mb-1 font-display font-extrabold">مكان استضافة الملفات المرفوعة</h3>

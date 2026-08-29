@@ -319,10 +319,85 @@ export async function fbSetTo(c: FirebaseConfig, path: string, value: unknown): 
 
 /** فحصٌ سريع لقاعدة — يُستعمل في اللوحة وفي اختيار القاعدة العاملة. */
 export async function fbPingNode(c: FirebaseConfig): Promise<{ ok: boolean; error?: string }> {
+  const r = await fbProbe(c, false);
+  return { ok: r.ok, error: r.error };
+}
+
+export type FbProbe = {
+  /** تردّ وتُقرأ. */
+  ok: boolean;
+  /** تقبل الكتابة (يُفحص فقط حين يُطلب). */
+  writable: boolean | null;
+  /**
+   * قواعدُها مفتوحة: قُرئت وكُتبت بلا اعتماد.
+   * هذا **ليس نجاحاً** بل ثغرة — أيُّ أحدٍ يعرف العنوان يقرأ بيانات
+   * الطلاب ويكتب فيها. فيُرفع تحذيراً لا يُبتلع.
+   */
+  openRules: boolean;
+  /** حجمُ ما قُرئ — به تُقاس السعة. */
+  bytes: number;
+  status: number;
+  error?: string;
+};
+
+/**
+ * فحصٌ حقيقي لقاعدة.
+ * ------------------------------------------------------------------
+ * **لماذا لا يكفي `fetch` وحدَه؟** `fetch` لا يرمي على ٤٠٤ ولا على
+ * ٤٠١ — يرمي على عطل الشبكة فقط. فكان الفحصُ القديم يُمرّر كلَّ عنوانٍ
+ * لا وجود له وكلَّ قاعدةٍ ترفض الوصول، ويقول «تعمل». فهنا تُقرأ الحالةُ
+ * نفسُها لا مجرّد وصول الطلب.
+ *
+ * وتُميَّز ثلاثُ حالات لا واحدة: لا تردّ · تردّ وترفض · تردّ وتقبل.
+ * والثالثةُ تنقسم: تقبل باعتمادٍ (سليمة) أو تقبل بلا اعتماد (مفتوحة).
+ */
+export async function fbProbe(c: FirebaseConfig, write = true): Promise<FbProbe> {
+  const out: FbProbe = { ok: false, writable: null, openRules: false, bytes: 0, status: 0 };
+  const hasCred = Boolean(c.secret || (c.clientEmail && c.privateKey));
+
   try {
-    await fetch(await urlFor(c, ".info/serverTimeOffset"), { cache: "no-store" });
-    return { ok: true };
+    const res = await fetch(await urlFor(c, "platform", "shallow=true"), { cache: "no-store" });
+    out.status = res.status;
+    const text = await res.text().catch(() => "");
+    out.bytes = text.length;
+
+    if (!res.ok) {
+      out.error =
+        res.status === 401 || res.status === 403
+          ? "ترفض الوصول — قواعدُها مقفلة ولا اعتماد معها"
+          : res.status === 404
+            ? "لا توجد قاعدةٌ بهذا العنوان"
+            : `ردَّت بالحالة ${res.status}`;
+      return out;
+    }
+    out.ok = true;
   } catch (e) {
-    return { ok: false, error: (e as Error).message };
+    out.error = `لا تردّ: ${(e as Error).message}`;
+    return out;
   }
+
+  if (!write) return out;
+
+  try {
+    const res = await fetch(await urlFor(c, "platform/_probe"), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ at: new Date().toISOString() }),
+      cache: "no-store",
+    });
+    out.writable = res.ok;
+    if (!res.ok) {
+      out.error = res.status === 401 || res.status === 403
+        ? "تقبل القراءة ولا تقبل الكتابة — قواعدُها تمنع الكتابة"
+        : `فشلت الكتابة (${res.status})`;
+    } else if (!hasCred) {
+      /* كُتب فيها بلا اعتماد: مفتوحةٌ للعالم. */
+      out.openRules = true;
+    }
+  } catch (e) {
+    out.writable = false;
+    out.error = `فشلت الكتابة: ${(e as Error).message}`;
+  }
+
+  return out;
 }

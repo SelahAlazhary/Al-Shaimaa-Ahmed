@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { mediaSrc } from "@/lib/media";
 import { getDB } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -53,10 +54,17 @@ export async function GET(req: Request) {
     المتصفّح، فلا يعرف أصلَ الصفحة.
   */
   const pick = content.appIcon ?? "logo";
-  const raw = pick === "avatar" ? content.teacher.avatar
-    : pick === "mark" ? ""
-      : content.teacher.logo;
-  const logo = raw?.startsWith("/") ? `${origin}${raw}` : raw;
+  const raw = pick === "custom" ? (content.appIconImage || content.teacher.logo)
+    : pick === "avatar" ? content.teacher.avatar
+      : pick === "mark" ? ""
+        : content.teacher.logo;
+  /*
+    المولّد يجلب الصورة من الشبكة لا من المتصفّح، فلا يعرف أصلَ الصفحة:
+    المسارُ النسبي يُجعل مطلقاً. وروابطُ درايف تُمرَّر عبر وسيطنا لأنّ
+    جوجل تحجبها عند إرسال ترويسة Referer.
+  */
+  const routed = mediaSrc(raw);
+  const logo = routed.startsWith("/") ? `${origin}${routed}` : routed;
   const markSrc = `data:image/svg+xml;base64,${Buffer.from(markSvg()).toString("base64")}`;
 
   return new ImageResponse(

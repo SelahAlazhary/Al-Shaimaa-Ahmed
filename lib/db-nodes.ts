@@ -24,7 +24,7 @@ import type { DbNode } from "./types";
 const COOLDOWN = 60_000;
 
 /** حالةٌ عابرة لكل قاعدة — لا تُحفَظ. */
-type Health = { failedAt: number; error: string; bytes?: number };
+type Health = { failedAt: number; error: string; bytes?: number; open?: boolean; at?: number };
 const health = new Map<string, Health>();
 
 /** القاعدة المضبوطة في متغيّرات البيئة — المدخلُ الذي لا يعتمد على شيء. */
@@ -69,21 +69,46 @@ function sameUrl(a: string, b: string): boolean {
 
 /** تُعلَّم قاعدةٌ معطّلة فتُؤخَّر عن التالية. */
 export function markDown(url: string, error: string) {
-  health.set(url, { failedAt: Date.now(), error: error.slice(0, 200), bytes: health.get(url)?.bytes });
+  const prev = health.get(url);
+  health.set(url, {
+    failedAt: Date.now(),
+    error: error.slice(0, 200),
+    bytes: prev?.bytes,
+    open: prev?.open,
+    at: Date.now(),
+  });
+}
+
+/**
+ * تُعلَّم قاعدةٌ مفتوحةُ القواعد.
+ * وهذه ليست حالةَ عطل: القاعدةُ تعمل تماماً — وهذا وجهُ الخطر. فتُحفظ
+ * منفصلةً عن العطل فلا تُرتَّب بها ولا تُستبعَد، وتُعرض تحذيراً.
+ */
+export function markOpen(url: string, open: boolean) {
+  const prev = health.get(url) ?? { failedAt: 0, error: "" };
+  health.set(url, { ...prev, open, at: Date.now() });
 }
 
 /** تُعلَّم سليمة فتعود إلى مكانها. */
 export function markUp(url: string, bytes?: number) {
   const prev = health.get(url);
-  health.set(url, { failedAt: 0, error: "", bytes: bytes ?? prev?.bytes });
+  health.set(url, { failedAt: 0, error: "", bytes: bytes ?? prev?.bytes, open: prev?.open, at: Date.now() });
 }
 
 /** حالةُ قاعدة الآن — للعرض في اللوحة. */
 export function nodeHealth(url: string, now = Date.now()) {
   const h = health.get(url);
-  if (!h) return { ok: null as boolean | null, error: "", bytes: undefined as number | undefined };
+  if (!h) {
+    return {
+      ok: null as boolean | null,
+      error: "",
+      bytes: undefined as number | undefined,
+      open: false,
+      at: 0,
+    };
+  }
   const down = h.failedAt > 0 && now - h.failedAt < COOLDOWN;
-  return { ok: !down, error: down ? h.error : "", bytes: h.bytes };
+  return { ok: !down, error: down ? h.error : "", bytes: h.bytes, open: Boolean(h.open), at: h.at ?? 0 };
 }
 
 /**
