@@ -26,6 +26,8 @@ import type { MobileHome } from "@/lib/mobile-home";
 import { motionVars, type MotionStyle } from "@/lib/motion-styles";
 import type { ButtonStyle } from "@/lib/button-styles";
 import type { HeroShell, HeroShellOpts } from "@/lib/hero-shell";
+import { iconFrameClass, iconFrameVars, type IconFrame } from "@/lib/icon-frames";
+import { iconMotionClass, type IconMotion } from "@/lib/icon-motion";
 
 const W = 160;
 const H = 108;
@@ -2476,12 +2478,16 @@ export function HeroShellPreview({
   /* هامشُ اللوح — الممتدُّ يلامس الحوافّ والمنفصلُ يبتعد */
   const m = shell.inset ? 7 : 0;
   const x = m, y = m, w = W - m * 2, h = H - m * 2;
-  /* الزيادةُ لأسفل تُرى في المعاينة كما تُرى في الصفحة */
   const grow = Math.max(0, Math.min(400, opts?.extra ?? 0)) / 400;
 
   /* ---------- مسار الشكل ---------- */
+  const RADIUS: Record<string, number> = {
+    square: 0, soft: 6, round: 12, pill: 12, arch: 12,
+    plaque: 0, wave: 0, slant: 0, notch: 8, blob: 0, topRound: 12,
+  };
+
   const path = (() => {
-    const R = { square: 0, soft: 6, round: 12, pill: 12, arch: 12, plaque: 0, wave: 0 }[shell.shape];
+    const R = RADIUS[shell.shape] ?? 0;
     switch (shell.shape) {
       case "arch": {
         const a = Math.min(w / 2, h * 0.55);
@@ -2496,59 +2502,143 @@ export function HeroShellPreview({
         return `M${x + c} ${y} H${x + w - c} L${x + w} ${y + c} V${y + h - c} L${x + w - c} ${y + h} H${x + c} L${x} ${y + h - c} V${y + c} Z`;
       }
       case "wave": {
-        /* أربع فصوصٍ سفلية — كالقناع في الصفحة */
-        const n = 4, s = w / n, b = y + h - 9;
+        const n = 4, sw = w / n, b = y + h - 9;
         let d = `M${x} ${y} H${x + w} V${b}`;
-        for (let i = 0; i < n; i++) {
-          const cx = x + w - i * s;
-          d += ` A${s / 2} 9 0 0 1 ${cx - s} ${b}`;
-        }
+        for (let i = 0; i < n; i++) d += ` A${sw / 2} 9 0 0 1 ${x + w - (i + 1) * sw} ${b}`;
         return d + " Z";
       }
+      case "slant":
+        return `M${x} ${y} H${x + w} V${y + h} H${x} V${y + h - 14} Z`;
+      case "notch":
+        return `M${x + 6} ${y} H${x + w - 6} Q${x + w} ${y} ${x + w} ${y + 6} V${y + h} H${x + w / 2 + 14} L${x + w / 2} ${y + h - 7} L${x + w / 2 - 14} ${y + h} H${x} V${y + 6} Q${x} ${y} ${x + 6} ${y} Z`;
+      case "blob":
+        return `M${x} ${y + h * 0.26} Q${x} ${y} ${x + w * 0.42} ${y} Q${x + w} ${y} ${x + w} ${y + h * 0.22} Q${x + w} ${y + h} ${x + w * 0.6} ${y + h} Q${x} ${y + h} ${x} ${y + h * 0.26} Z`;
+      case "topRound":
+        return `M${x} ${y + h} V${y + 14} Q${x} ${y} ${x + 14} ${y} H${x + w - 14} Q${x + w} ${y} ${x + w} ${y + 14} V${y + h} Z`;
       default:
         return `M${x + R} ${y} H${x + w - R} Q${x + w} ${y} ${x + w} ${y + R} V${y + h - R} Q${x + w} ${y + h} ${x + w - R} ${y + h} H${x + R} Q${x} ${y + h} ${x} ${y + h - R} V${y + R} Q${x} ${y} ${x + R} ${y} Z`;
     }
   })();
 
+  const g = (n: string) => `${uid}-${n}`;
+  const bg1 = opts?.bg;
+  const bg2 = opts?.bg2;
+
   /* ---------- السطح ---------- */
-  const grad = `${uid}-g`;
-  const fill =
-    shell.surface === "none" ? "none"
-      : shell.surface === "gradient" ? `url(#${grad})`
-        : shell.surface === "ink" ? (opts?.bg || tone)
-          : shell.surface === "tint" ? (opts?.bg || tone)
-            : (opts?.bg || hsl(v.card));
-  const fillOpacity =
-    shell.surface === "tint" ? 0.12 : shell.surface === "glass" ? 0.6 : 1;
+  const ink = shell.surface === "ink" || shell.surface === "spotlight";
+  const fill = (() => {
+    switch (shell.surface) {
+      case "none": return "none";
+      case "gradient": return `url(#${g("grad")})`;
+      case "ink": return bg1 || tone;
+      case "tint": return bg1 || tone;
+      case "glass": return bg1 || hsl(v.card);
+      case "spotlight": return bg1 || tone;
+      case "duotone": return `url(#${g("duo")})`;
+      case "brutal": return bg1 || gold;
+      case "neu": return bg1 || hsl(v.muted);
+      default: return bg1 || hsl(v.card);
+    }
+  })();
+  const fillOpacity = shell.surface === "tint" ? 0.14 : shell.surface === "glass" ? 0.62 : 1;
 
-  /* ---------- الحدّ ---------- */
-  const edgeColor = opts?.edge || (shell.edge === "thick" ? tone : gold);
-  const edgeW = { none: 0, hairline: 1, gold: 1.4, thick: 3, glow: 1.2, dashed: 1.6 }[shell.edge];
+  const edgeColor = opts?.edge || (shell.edge === "thick" ? tone : shell.edge === "hard" ? text : gold);
+  const edgeW: Record<string, number> = {
+    none: 0, hairline: 1, gold: 1.4, thick: 3, glow: 1.2, dashed: 1.6,
+    sheen: 0, hard: 0, soft: 0, double: 1.6,
+  };
+  const ew = edgeW[shell.edge] ?? 0;
 
-  /* نصُّ اللوح — الحبرُ يقلب ما بداخله */
-  const ink = shell.surface === "ink";
-  const headline = opts?.text || (ink ? "#ffffff" : text);
+  const headline = opts?.text || (ink || shell.surface === "brutal" ? (shell.surface === "brutal" ? text : "#ffffff") : text);
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="block w-full rounded-2xl" style={{ aspectRatio: `${W} / ${H}` }}>
       <defs>
-        <linearGradient id={grad} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={opts?.bg || hsl(v.card)} />
-          <stop offset="1" stopColor={opts?.bg2 || hsl(v.muted)} />
+        <linearGradient id={g("grad")} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={bg1 || hsl(v.card)} />
+          <stop offset="1" stopColor={bg2 || hsl(v.muted)} />
         </linearGradient>
-        <filter id={`${uid}-b`} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="3" />
+        <linearGradient id={g("duo")} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor={bg1 || tone} stopOpacity="0.16" />
+          <stop offset="0.5" stopColor={bg1 || tone} stopOpacity="0.16" />
+          <stop offset="0.5" stopColor={bg2 || gold} stopOpacity="0.22" />
+          <stop offset="1" stopColor={bg2 || gold} stopOpacity="0.22" />
+        </linearGradient>
+        <radialGradient id={g("spot")} cx="0.5" cy="0" r="0.85">
+          <stop offset="0" stopColor={gold} stopOpacity="0.55" />
+          <stop offset="1" stopColor={gold} stopOpacity="0" />
+        </radialGradient>
+        <pattern id={g("grid")} width="12" height="12" patternUnits="userSpaceOnUse">
+          <path d="M12 0H0V12" fill="none" stroke={text} strokeOpacity="0.12" strokeWidth="0.8" />
+        </pattern>
+        <pattern id={g("dots")} width="7" height="7" patternUnits="userSpaceOnUse">
+          <circle cx="1.2" cy="1.2" r="1" fill={text} fillOpacity="0.2" />
+        </pattern>
+        <pattern id={g("stripe")} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(-38)">
+          <rect width="3" height="10" fill={tone} fillOpacity="0.13" />
+        </pattern>
+        <clipPath id={g("clip")}><path d={path} /></clipPath>
+        <filter id={g("blur")} x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="4" />
         </filter>
       </defs>
 
       <rect width={W} height={H} fill={hsl(v.background)} />
 
-      {shell.edge === "glow" && <path d={path} fill={edgeColor} opacity={0.4} filter={`url(#${uid}-b)`} />}
+      {/* الظلال تُرسم قبل اللوح فتقع تحته */}
+      {shell.edge === "glow" && <path d={path} fill={edgeColor} opacity={0.4} filter={`url(#${g("blur")})`} />}
+      {shell.edge === "soft" && <path d={path} fill={text} opacity={0.28} filter={`url(#${g("blur")})`} transform="translate(0 5)" />}
+      {shell.edge === "hard" && <path d={path} fill={edgeColor} transform="translate(4 4)" />}
+      {shell.surface === "neu" && (
+        <>
+          <path d={path} fill={text} opacity={0.18} filter={`url(#${g("blur")})`} transform="translate(4 4)" />
+          <path d={path} fill="#ffffff" opacity={0.85} filter={`url(#${g("blur")})`} transform="translate(-4 -4)" />
+        </>
+      )}
 
       {shell.surface !== "none" && <path d={path} fill={fill} fillOpacity={fillOpacity} />}
-      {edgeW > 0 && (
-        <path d={path} fill="none" stroke={edgeColor} strokeWidth={edgeW}
+
+      {/* طبقاتُ النقش — مقصوصةٌ على شكل اللوح فلا تتجاوزه */}
+      <g clipPath={`url(#${g("clip")})`}>
+        {shell.surface === "mesh" && (
+          <>
+            <ellipse cx={x + w * 0.16} cy={y + h * 0.24} rx={38} ry={26} fill={bg2 || tone} opacity={0.32} filter={`url(#${g("blur")})`} />
+            <ellipse cx={x + w * 0.86} cy={y + h * 0.16} rx={30} ry={22} fill={gold} opacity={0.3} filter={`url(#${g("blur")})`} />
+            <ellipse cx={x + w * 0.62} cy={y + h * 0.95} rx={34} ry={24} fill={bg2 || tone} opacity={0.26} filter={`url(#${g("blur")})`} />
+          </>
+        )}
+        {shell.surface === "aurora" && (
+          <>
+            <rect x={x - 20} y={y} width={30} height={h * 2} fill={bg2 || tone} opacity={0.32} transform={`rotate(16 ${W / 2} ${H / 2})`} filter={`url(#${g("blur")})`} />
+            <rect x={x + w * 0.34} y={y - 10} width={26} height={h * 2} fill={gold} opacity={0.3} transform={`rotate(-14 ${W / 2} ${H / 2})`} filter={`url(#${g("blur")})`} />
+            <rect x={x + w * 0.7} y={y} width={22} height={h * 2} fill={tone} opacity={0.24} transform={`rotate(20 ${W / 2} ${H / 2})`} filter={`url(#${g("blur")})`} />
+          </>
+        )}
+        {shell.surface === "spotlight" && <rect x={x} y={y} width={w} height={h} fill={`url(#${g("spot")})`} />}
+        {shell.surface === "grid" && <rect x={x} y={y} width={w} height={h} fill={`url(#${g("grid")})`} />}
+        {shell.surface === "dots" && <rect x={x} y={y} width={w} height={h} fill={`url(#${g("dots")})`} />}
+        {shell.surface === "stripe" && <rect x={x} y={y} width={w} height={h} fill={`url(#${g("stripe")})`} />}
+        {shell.surface === "noise" && (
+          <g fill={text} fillOpacity={0.16}>
+            {Array.from({ length: 90 }, (_, i) => (
+              <circle key={i} cx={x + ((i * 37) % w)} cy={y + ((i * 53) % h)} r={0.5} />
+            ))}
+          </g>
+        )}
+      </g>
+
+      {/* الحدّ */}
+      {ew > 0 && (
+        <path d={path} fill="none" stroke={edgeColor} strokeWidth={ew}
           strokeDasharray={shell.edge === "dashed" ? "5 4" : undefined} />
+      )}
+      {shell.surface === "brutal" && <path d={path} fill="none" stroke={opts?.edge || text} strokeWidth={2.4} />}
+      {shell.edge === "sheen" && (
+        <path d={`M${x + 8} ${y + 0.8} H${x + w - 8}`} stroke={edgeColor} strokeWidth={1.4} strokeLinecap="round" opacity={0.9} />
+      )}
+      {shell.edge === "double" && (
+        <path d={path} fill="none" stroke="#ffffff" strokeWidth={1} opacity={0.6} transform="scale(0.985)"
+          style={{ transformOrigin: "center" }} />
       )}
 
       {/* محتوى الهيرو مصغَّراً: صورةٌ وعنوانٌ وزرّان */}
@@ -2558,11 +2648,42 @@ export function HeroShellPreview({
       <rect x={W / 2 - 30} y={y + 61} width={28} height={9} rx={3} fill={ink ? "#ffffff" : tone} opacity={0.9} />
       <rect x={W / 2 + 2} y={y + 61} width={28} height={9} rx={3} fill="none" stroke={gold} strokeWidth={1} />
 
-      {/* الزيادةُ لأسفل — شريطٌ يبيّن المساحة المضافة */}
       {grow > 0 && (
         <rect x={x + 6} y={y + h - 6 - grow * (h - 84)} width={w - 12} height={Math.max(2, grow * (h - 84))}
           rx={2} fill={tone} opacity={0.16} />
       )}
     </svg>
+  );
+}
+
+/**
+ * معاينة إطار الأيقونة.
+ * ------------------------------------------------------------------
+ * هذه المعاينة **حيّةٌ بالأصناف نفسِها** لا رسمٌ يحاكيها: تُلبَس البطاقةُ
+ * صنفَ الإطار وصنفَ الحركة، فما يقع في المعاينة هو ما يقع في المنصّة —
+ * بما فيه الحركة، تُرى تدور قبل أن تُختار.
+ */
+export function IconFramePreview({
+  frame,
+  motion,
+  colors,
+}: {
+  frame: IconFrame;
+  motion?: IconMotion;
+  colors?: { bg?: string; bg2?: string; fg?: string; edge?: string };
+}) {
+  return (
+    <div
+      className={`grid h-[72px] place-items-center rounded-2xl bg-muted/50 ${iconFrameClass(frame)} ${motion ? iconMotionClass(motion) : ""}`}
+      style={iconFrameVars(colors)}
+    >
+      <span className="ic-frame grid size-11 place-items-center text-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
+          strokeLinecap="round" strokeLinejoin="round" className="size-5">
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+          <path d="M8 8h7M8 12h5" />
+        </svg>
+      </span>
+    </div>
   );
 }

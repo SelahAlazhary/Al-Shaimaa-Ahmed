@@ -19,10 +19,12 @@ import {
 import {
   SkinPreview, LayoutPreview, HomeLayoutPreview, MobilePreview, DesignPreview,
   SideNavPreview, DockPreview, FramePreview, TilePreview, ToolbarPreview, PlansPreview,
-  HeroStylePreview, HeroShellPreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview, MobileHomePreview, MotionPreview, ButtonPreview,
+  HeroStylePreview, HeroShellPreview, IconFramePreview, SectionPreview, FaqPreview, CtaPreview, FooterPreview, MobileHomePreview, MotionPreview, ButtonPreview,
 } from "@/components/admin/skin-preview";
 import { HERO_STYLES, findHeroStyle, DEFAULT_HERO_STYLE, type HeroStyle } from "@/lib/hero-styles";
 import { HERO_SHELLS, findHeroShell, DEFAULT_HERO_SHELL, type HeroShell, type HeroShellOpts } from "@/lib/hero-shell";
+import { ICON_FRAMES, findIconFrame, DEFAULT_ICON_FRAME, type IconFrame } from "@/lib/icon-frames";
+import { ICON_MOTIONS, findIconMotion, DEFAULT_ICON_MOTION, type IconMotion } from "@/lib/icon-motion";
 import {
   SECTION_STYLES, findSectionStyle, DEFAULT_SECTION_STYLE, SX_SECTIONS,
   type SectionStyle, type SxSectionKey,
@@ -58,7 +60,7 @@ const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570"
 
 const SHELL_SWATCH = ["#173972", "#0f172a", "#1e293b", "#c9a227", "#7c3aed", "#0ea5e9", "#f8fafc", "#ffffff"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons" | "glow" | "shell";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons" | "glow" | "shell" | "icons";
 
 
 /** اختيار تثبيت الشريط — إعدادٌ لا هيئة، فله صفُّه الخاصّ. */
@@ -139,6 +141,9 @@ export default function AppearancePage() {
   const btnStyle = findButtonStyle(content.buttonStyle);
   const shell = findHeroShell(content.heroShell);
   const shOpts: HeroShellOpts = content.heroShellOpts ?? {};
+  const iconFrame = findIconFrame(content.iconFrame);
+  const iconMotion = findIconMotion(content.iconMotion);
+  const icColors = content.iconFrameColors ?? {};
   const glow = (content.glow ?? []) as GlowRule[];
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
@@ -223,6 +228,14 @@ export default function AppearancePage() {
       label: "تنسيق الهاتف",
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    icons: {
+      label: "إطار الأيقونات",
+      isDefault:
+        iconFrame.id === DEFAULT_ICON_FRAME &&
+        iconMotion.id === DEFAULT_ICON_MOTION &&
+        Object.keys(icColors).length === 0,
+      patch: () => ({ iconFrame: DEFAULT_ICON_FRAME, iconMotion: DEFAULT_ICON_MOTION, iconFrameColors: {} }),
     },
     shell: {
       label: "لوح الرئيسية",
@@ -366,6 +379,21 @@ export default function AppearancePage() {
     await saveContent({ buttonStyle: x.id });
     setBusy(null);
   };
+
+  const pickFrame = async (x: IconFrame) => {
+    setBusy(x.id);
+    await saveContent({ iconFrame: x.id });
+    setBusy(null);
+  };
+
+  const pickIconMotion = async (x: IconMotion) => {
+    setBusy(`im-${x.id}`);
+    await saveContent({ iconMotion: x.id });
+    setBusy(null);
+  };
+
+  const patchIcColors = (p: Record<string, string>) =>
+    void saveContent({ iconFrameColors: { ...icColors, ...p } });
 
   const pickShell = async (x: HeroShell) => {
     setBusy(x.id);
@@ -524,6 +552,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "footer"} onClick={() => setTab("footer")} icon={<PanelBottom className="size-4" />}>
           الفوتر ({FOOTER_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "icons"} onClick={() => setTab("icons")} icon={<Sparkles className="size-4" />}>
+          إطار الأيقونات
         </TabBtn>
         <TabBtn active={tab === "shell"} onClick={() => setTab("shell")} icon={<Shapes className="size-4" />}>
           لوح الرئيسية
@@ -1495,6 +1526,147 @@ export default function AppearancePage() {
             );
           })}
         </div>
+        </>
+      )}
+
+      {tab === "icons" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">إطار الأيقونات وحركتها</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              الأيقونةُ في المنصّة لا تقف عاريةً: تحتها لوحٌ صغير يفصلها عمّا حولها ويعطيها وزناً.
+              وكان هذا اللوح مكتوباً في كلّ موضعٍ على حدة، فصار سجلّاً واحداً يسري على بطاقات
+              المؤشّرات والمزايا والخطط وبوابة الطالب واللوحة معاً.
+            </p>
+          </Card>
+
+          {/* ---------- ألوان الإطار ---------- */}
+          <Card className="mb-5">
+            <p className="font-display mb-1 text-sm font-bold">ألوان الإطار</p>
+            <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+              الشكلُ هيئةٌ واللونُ هوية — واللونُ المتروك يرث لون الثيم.
+            </p>
+            <div className="grid gap-2.5">
+              {([
+                ["bg", "لون السطح"],
+                ["bg2", "اللون الثاني (للتدرّج)"],
+                ["fg", "لون الرمز"],
+                ["edge", "لون الحدّ"],
+              ] as const).map(([k, label]) => (
+                <div key={k} className="flex flex-wrap items-center gap-2">
+                  <span className="w-32 shrink-0 text-xs font-semibold text-muted-foreground">{label}</span>
+                  {SHELL_SWATCH.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-label={c}
+                      onClick={() => patchIcColors({ [k]: c })}
+                      className={`size-7 rounded-lg border transition ${
+                        (icColors[k] || "").toLowerCase() === c ? "border-primary ring-2 ring-primary/40" : "border-border"
+                      }`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                  <label
+                    className="grid size-7 cursor-pointer place-items-center rounded-lg border border-dashed border-border"
+                    style={{ background: icColors[k] || "transparent" }}
+                  >
+                    <input type="color" className="size-0 opacity-0" value={icColors[k] || "#173972"}
+                      onChange={(e) => patchIcColors({ [k]: e.target.value })} />
+                  </label>
+                  {icColors[k] ? (
+                    <button
+                      type="button"
+                      onClick={() => patchIcColors({ [k]: "" })}
+                      className="rounded-lg border border-border px-2 py-1 text-[10px] font-bold text-muted-foreground transition hover:border-primary/40"
+                    >
+                      لون الثيم
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* ---------- ٢٠ إطاراً ---------- */}
+          <p className="font-display mb-3 font-bold">الإطار ({ICON_FRAMES.length.toLocaleString("ar-EG")})</p>
+          <div className="mb-8 grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+            {ICON_FRAMES.map((x) => {
+              const on = x.id === iconFrame.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickFrame(x)}
+                  disabled={busy !== null}
+                  className={`rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <IconFramePreview frame={x} colors={icColors} />
+                  <div className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{x.hint}</p>
+                    </div>
+                    {busy === x.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ---------- ٤٠ حركة ---------- */}
+          <Card className="mb-4">
+            <p className="font-display mb-1 text-sm font-bold">
+              الحركة ({ICON_MOTIONS.length.toLocaleString("ar-EG")} نوعاً)
+            </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              تُختار واحدةٌ فتسري على أيقونات المنصّة كلِّها — لأنّ الحركة لغةٌ لا زينة، وصفحةٌ كلُّ
+              أيقونةٍ فيها تتحرّك حركةً مختلفة تقول ضجيجاً لا معنى. و«عند المرور» تنتظر اليد فتردّ
+              عليها، وهي الأنسب للوحة. والمعاينةُ هنا حيّةٌ بالأصناف نفسِها.
+            </p>
+          </Card>
+
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+            {ICON_MOTIONS.map((x) => {
+              const on = x.id === iconMotion.id;
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => pickIconMotion(x)}
+                  disabled={busy !== null}
+                  className={`rounded-3xl border-2 p-2 text-right transition disabled:opacity-60 ${
+                    on ? "border-primary shadow-bento" : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <IconFramePreview frame={iconFrame} motion={x} colors={icColors} />
+                  <div className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold">{x.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">
+                        {x.trigger === "hover" ? "عند المرور" : "دائمة"}
+                      </p>
+                    </div>
+                    {busy === `im-${x.id}` ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : on ? (
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-white">
+                        <Check className="size-3" />
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </>
       )}
 

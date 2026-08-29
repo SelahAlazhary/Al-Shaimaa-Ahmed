@@ -89,7 +89,7 @@ export function StatTile({
       <div className="tile-head relative flex items-start justify-between gap-2">
         {icon && (
           <span
-            className="tile-badge grid size-10 place-items-center rounded-2xl text-[hsl(var(--accent-foreground))] shadow-sm"
+            className="ic-frame tile-badge grid size-10 place-items-center rounded-2xl text-[hsl(var(--accent-foreground))] shadow-sm"
             style={{ background: "linear-gradient(135deg, hsl(var(--gold-light)), hsl(var(--gold)))" }}
           >
             {icon}

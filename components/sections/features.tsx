@@ -71,7 +71,7 @@ export function Features() {
                   </span>
 
                   {/* لوحة الأيقونة */}
-                  <span className="relative mb-5 grid size-12 place-items-center text-primary">
+                  <span className="ic-frame relative mb-5 grid size-12 place-items-center text-primary">
                     <ArchTile size={48} className="absolute inset-0" />
                     <Icon anim="draw" className="relative size-6" />
                   </span>

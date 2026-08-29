@@ -12,6 +12,8 @@ import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
 import { findMotion, motionClass, motionVars } from "@/lib/motion-styles";
 import { ActivityTracker } from "@/components/student/activity-tracker";
 import { findSideNav, sideNavClass, findDock, dockClass, navColorVars, DEFAULT_ICON_SET } from "@/lib/nav-styles";
+import { findIconFrame, iconFrameClass, iconFrameVars } from "@/lib/icon-frames";
+import { findIconMotion, iconMotionClass } from "@/lib/icon-motion";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "بوابة الطالب", robots: { index: false } };
@@ -50,8 +52,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
     {/* مراسل النشاط — بوابة الطالب وحدها، فنشاط المشرف ليس تقريراً */}
     <ActivityTracker />
     <div
-      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${tileClass(tile)} ${tileArtClass(tileArt)} ${toolbarClass(bar)} ${stickClass(pub.content?.toolbarStick)} ${motionClass(findMotion(pub.content?.motionStyle))} ${pub.content?.toolbarHidden ? "tools-hidden" : ""}`}
-      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors), ...tileArtVars(tileArt), ...motionVars(findMotion(pub.content?.motionStyle)) }}
+      className={`student-skin relative min-h-full ${mobileClass(mobile)} ${sideNavClass(side)} ${dockClass(dock)} ic-${icons} ${iconFrameClass(findIconFrame(pub.content?.iconFrame))} ${iconMotionClass(findIconMotion(pub.content?.iconMotion))} ${tileClass(tile)} ${tileArtClass(tileArt)} ${toolbarClass(bar)} ${stickClass(pub.content?.toolbarStick)} ${motionClass(findMotion(pub.content?.motionStyle))} ${pub.content?.toolbarHidden ? "tools-hidden" : ""}`}
+      style={{ ...navColorVars(pub.content?.navColors), ...tileColorVars(pub.content?.tileColors), ...tileArtVars(tileArt), ...motionVars(findMotion(pub.content?.motionStyle)), ...iconFrameVars(pub.content?.iconFrameColors) }}
       data-skin={skin.id}
       data-layout={layout.id}
       data-card={skin.card}

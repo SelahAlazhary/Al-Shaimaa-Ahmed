@@ -19,7 +19,18 @@ export type ShellSurface =
   | "glass"     // زجاجي مضبّب
   | "gradient"  // تدرّج بين لونين
   | "ink"       // لوح الحبر — نصٌّ فاتح
-  | "tint";     // غلالة خفيفة من لون الهوية
+  | "tint"      // غلالة خفيفة من لون الهوية
+  /* ---- أنماطٌ مشهورة في واجهات اليوم ---- */
+  | "mesh"      // تدرّجٌ شبكيّ: بقعٌ لونيّة تتداخل (Stripe · Linear)
+  | "aurora"    // شفقٌ قطبي: أشرطةٌ لونيّة مائلة تسبح خلف المحتوى
+  | "spotlight" // كشّافٌ من أعلى يُنير المنتصف ويُظلم الأطراف (Vercel)
+  | "grid"      // شبكةٌ هندسية خافتة تتلاشى عند الحواف
+  | "dots"      // نقاطٌ منتظمة كورق المهندس (Notion · Framer)
+  | "noise"     // حبيباتٌ دقيقة تكسر نظافةَ السطح المصمت
+  | "neu"       // نيومورفيزم: سطحٌ ناتئٌ بظلّين متقابلين
+  | "brutal"    // بروتالِزم: لونٌ صريحٌ وحدٌّ أسود وظلٌّ صلب
+  | "stripe"    // أشرطةٌ قطريّة رفيعة
+  | "duotone";  // نصفان بلونين يلتقيان في المنتصف
 
 /** حوافّ اللوح. */
 export type ShellShape =
@@ -29,7 +40,11 @@ export type ShellShape =
   | "pill"      // دائري تماماً من الأسفل
   | "arch"      // قوسٌ من أعلى كالمحراب
   | "plaque"    // أركان مقصوصة كلوح المخطوط
-  | "wave";     // حافّة سفلى متموّجة
+  | "wave"      // حافّة سفلى متموّجة
+  | "slant"     // حافّة سفلى مائلة (نمطٌ شائع في صفحات الهبوط)
+  | "notch"     // حزٌّ في المنتصف السفلي
+  | "blob"      // حوافُّ عضويّة غير منتظمة
+  | "topRound"; // مستديرٌ من أعلى فقط، ممتدٌّ من أسفل
 
 /** الحدّ. */
 export type ShellEdge =
@@ -38,7 +53,11 @@ export type ShellEdge =
   | "gold"      // خيطٌ مذهّب
   | "thick"     // حدّ سميك
   | "glow"      // هالةٌ حول اللوح
-  | "dashed";   // حدّ متقطّع
+  | "dashed"    // حدّ متقطّع
+  | "sheen"     // خيطٌ مضيءٌ في الأعلى وحده (Linear · Vercel)
+  | "hard"      // ظلٌّ صلبٌ مزاح بلا تمويه — البروتالِزم
+  | "soft"      // ظلٌّ واسعٌ ناعمٌ يرفع اللوح
+  | "double";   // حدّان: خارجيٌّ فاتحٌ وداخليٌّ داكن
 
 export type HeroShell = {
   id: string;
@@ -79,6 +98,28 @@ export const HERO_SHELLS: HeroShell[] = [
   hs("outlineRound", "المفرَّغ", "حدٌّ سميك بلا تعبئة", "none", "round", "thick", true),
   hs("outlineWave", "المفرَّغ المتموّج", "حدٌّ سميك وحافّة موجية", "none", "wave", "thick", false),
   hs("squareBleed", "الممتدّ الحادّ", "بلا استدارة ولا هامش — خطٌّ سفليٌّ فقط", "card", "square", "hairline", false),
+
+  /* ---------- عشرون هيئةً من أنماط الواجهات المشهورة ---------- */
+  hs("mesh", "التدرّج الشبكي", "بقعٌ لونيّة تتداخل — نمط Stripe", "mesh", "round", "none", true),
+  hs("meshGlow", "الشبكي المتوهّج", "بقعٌ لونيّة وهالةٌ حولها", "mesh", "round", "glow", true),
+  hs("aurora", "الشفق", "أشرطةٌ لونيّة مائلة تسبح خلف النصّ", "aurora", "topRound", "none", false),
+  hs("auroraSheen", "الشفق ببريق", "شفقٌ وخيطٌ مضيءٌ في أعلاه", "aurora", "round", "sheen", true),
+  hs("spotlight", "الكشّاف", "ضوءٌ من أعلى يُنير المنتصف — نمط Vercel", "spotlight", "square", "none", false),
+  hs("spotlightCard", "الكشّاف المحصور", "كشّافٌ في لوحٍ مستدير", "spotlight", "round", "sheen", true),
+  hs("grid", "الشبكة الهندسية", "خطوطٌ خافتة تتلاشى عند الحواف", "grid", "square", "none", false),
+  hs("gridCard", "الشبكة المحصورة", "شبكةٌ في لوحٍ ناعم", "grid", "soft", "hairline", true),
+  hs("dots", "ورق المهندس", "نقاطٌ منتظمة — نمط Notion", "dots", "round", "hairline", true),
+  hs("dotsBleed", "النقاط الممتدّة", "نقاطٌ تملأ العرض بلا لوح", "dots", "square", "none", false),
+  hs("noise", "الحبيبي", "حبيباتٌ دقيقة تكسر نظافةَ السطح", "noise", "round", "hairline", true),
+  hs("neu", "النيومورفيزم", "سطحٌ ناتئٌ بظلّين متقابلين", "neu", "round", "none", true),
+  hs("neuSoft", "النيومورفيزم الناعم", "نتوءٌ خفيفٌ باستدارةٍ واسعة", "neu", "soft", "none", true),
+  hs("brutal", "البروتالِزم", "لونٌ صريحٌ وحدٌّ أسود وظلٌّ صلب", "brutal", "square", "hard", true),
+  hs("brutalRound", "البروتالِزم الناعم", "بروتالِزم باستدارةٍ خفيفة", "brutal", "soft", "hard", true),
+  hs("stripe", "الأشرطة القطريّة", "خطوطٌ رفيعة مائلة", "stripe", "slant", "none", false),
+  hs("duotone", "النصفان", "لونان يلتقيان في المنتصف", "duotone", "notch", "none", false),
+  hs("blob", "العضوي", "حوافُّ غير منتظمة كالبقعة", "gradient", "blob", "soft", true),
+  hs("floatCard", "اللوح الطافي", "ظلٌّ واسعٌ يرفعه عن الصفحة", "card", "round", "soft", true),
+  hs("doubleEdge", "الحدّ المزدوج", "حدّان: خارجيٌّ فاتحٌ وداخليٌّ داكن", "card", "round", "double", true),
 ];
 
 export const DEFAULT_HERO_SHELL = HERO_SHELLS[0].id;

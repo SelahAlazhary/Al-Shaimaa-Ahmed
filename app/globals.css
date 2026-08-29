@@ -2931,3 +2931,315 @@ body {
 .img-cut { mix-blend-mode: multiply; }
 /* في الوضع الداكن يقلب الدورُ: الأسودُ هو ما يُسقَط لا الأبيض */
 .dark .img-cut { mix-blend-mode: screen; }
+
+/* ============================================================
+   إطاراتُ الأيقونات وحركاتُها
+   ------------------------------------------------------------
+   اللوحُ الصغير تحت الأيقونة كان مكتوباً في كلّ موضعٍ على حدة، فلا
+   يتغيّر إلّا بتعديل أربعة ملفّات. فصار صنفاً واحداً `.ic-frame` تحمله
+   كلُّ أيقونةٍ في المنصّة، وأصنافُ الجذر تحكمه.
+
+   والأصلُ `ic-shape-none` لا يمسّ شيئاً: من لم يختر إطاراً بقي على ما
+   كتبه كلُّ موضعٍ لنفسه — فلا تنقلب المنصّة بإضافة الميزة.
+   ============================================================ */
+
+/* الإطارُ لا يُفرض حجماً: كلُّ موضعٍ يعرف حجمَ أيقونته. */
+.ic-frame { position: relative; }
+
+/* ---------- الشكل ---------- */
+[class*="ic-shape-"]:not(.ic-shape-none) .ic-frame { border-radius: 0; }
+.ic-shape-soft .ic-frame     { border-radius: 0.7rem; }
+.ic-shape-round .ic-frame    { border-radius: 1rem; }
+.ic-shape-circle .ic-frame   { border-radius: 999px; }
+.ic-shape-squircle .ic-frame { border-radius: 38%; }
+.ic-shape-plaque .ic-frame {
+  clip-path: polygon(28% 0, 72% 0, 100% 28%, 100% 72%, 72% 100%, 28% 100%, 0 72%, 0 28%);
+}
+.ic-shape-arch .ic-frame   { border-radius: 999px 999px 0.7rem 0.7rem; }
+.ic-shape-shamsa .ic-frame {
+  clip-path: polygon(50% 0, 79% 9%, 91% 21%, 100% 50%, 91% 79%, 79% 91%, 50% 100%, 21% 91%, 9% 79%, 0 50%, 9% 21%, 21% 9%);
+}
+.ic-shape-shield .ic-frame {
+  clip-path: polygon(0 0, 100% 0, 100% 68%, 50% 100%, 0 68%);
+}
+.ic-shape-ticket .ic-frame {
+  clip-path: polygon(0 0, 100% 0, 100% 40%, 92% 50%, 100% 60%, 100% 100%, 0 100%, 0 60%, 8% 50%, 0 40%);
+}
+.ic-shape-hex .ic-frame {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+/* ---------- التعبئة ---------- */
+/* اللوحُ يُمسح أوّلاً ثمّ يُطلى: المواضعُ تكتب تدرّجاتها في `style`،
+   وهي أقوى من أيّ صنف — فتُلغى بـ`background-image:none`. */
+[class*="ic-fill-"]:not(.ic-fill-keep) .ic-frame { background-image: none; }
+.ic-fill-none .ic-frame     { background-color: transparent; }
+.ic-fill-tint .ic-frame     { background-color: var(--ic-bg, hsl(var(--primary) / 0.12)); }
+.ic-fill-solid .ic-frame    { background-color: var(--ic-bg, hsl(var(--primary))); }
+.ic-fill-gradient .ic-frame {
+  background-image: linear-gradient(135deg, var(--ic-bg, hsl(var(--primary))), var(--ic-bg2, hsl(var(--gold))));
+}
+.ic-fill-glass .ic-frame {
+  background-color: var(--ic-bg, hsl(var(--card) / 0.5));
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+}
+/* المصمتُ والمتدرّجُ يقلبان لونَ الأيقونة، وإلّا اختفت في سطحها */
+.ic-fill-solid .ic-frame,
+.ic-fill-gradient .ic-frame { color: var(--ic-fg, #fff); }
+.ic-fill-tint .ic-frame     { color: var(--ic-fg, hsl(var(--primary))); }
+
+/* ---------- الحدّ ---------- */
+.ic-edge-hair .ic-frame  { box-shadow: inset 0 0 0 1px var(--ic-edge, hsl(var(--border))); }
+.ic-edge-gold .ic-frame  { box-shadow: inset 0 0 0 1.5px var(--ic-edge, hsl(var(--gold) / 0.6)); }
+.ic-edge-thick .ic-frame { box-shadow: inset 0 0 0 2.5px var(--ic-edge, hsl(var(--primary) / 0.55)); }
+.ic-edge-dash .ic-frame  { border: 1.5px dashed var(--ic-edge, hsl(var(--gold) / 0.55)); }
+.ic-edge-inset .ic-frame { box-shadow: inset 0 2px 6px hsl(var(--foreground) / 0.16); }
+.ic-edge-raise .ic-frame { box-shadow: 0 6px 14px -6px var(--ic-edge, hsl(var(--primary) / 0.75)); }
+
+/* ============================================================
+   الحركات — أربعون، تُختار واحدةٌ فتسري على الكلّ
+   ------------------------------------------------------------
+   تقع على الأيقونة نفسِها لا على لوحها: اللوحُ يبقى ثابتاً والرمزُ
+   يتحرّك، وإلّا تراقص الإطارُ مع ما فيه فبدا العنصرُ كلُّه مضطرباً.
+   ============================================================ */
+[class*="ivm-"] .ic-frame > svg,
+[class*="ivm-"] .ic-frame > * { transform-box: fill-box; transform-origin: center; }
+
+@keyframes ivm-spin{to{transform:rotate(360deg)}}
+.ivm-spin .ic-frame > svg, .ivm-spin .ic-frame > img{animation:ivm-spin 6.0s linear infinite}
+@keyframes ivm-spinSlow{to{transform:rotate(360deg)}}
+.ivm-spinSlow .ic-frame > svg, .ivm-spinSlow .ic-frame > img{animation:ivm-spinSlow 14.0s linear infinite}
+@keyframes ivm-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.ivm-pulse .ic-frame > svg, .ivm-pulse .ic-frame > img{animation:ivm-pulse 2.1s ease-in-out infinite}
+@keyframes ivm-heartbeat{0%,28%,100%{transform:scale(1)}14%{transform:scale(1.16)}21%{transform:scale(1.02)}}
+.ivm-heartbeat .ic-frame > svg, .ivm-heartbeat .ic-frame > img{animation:ivm-heartbeat 1.8s ease-out infinite}
+@keyframes ivm-breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
+.ivm-breathe .ic-frame > svg, .ivm-breathe .ic-frame > img{animation:ivm-breathe 4.0s ease-in-out infinite}
+@keyframes ivm-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.ivm-bob .ic-frame > svg, .ivm-bob .ic-frame > img{animation:ivm-bob 2.6s ease-in-out infinite}
+@keyframes ivm-float{0%,100%{transform:translateY(0) rotate(0)}33%{transform:translateY(-3px) rotate(2deg)}66%{transform:translateY(2px) rotate(-2deg)}}
+.ivm-float .ic-frame > svg, .ivm-float .ic-frame > img{animation:ivm-float 5.0s ease-in-out infinite}
+@keyframes ivm-sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.ivm-sway .ic-frame > svg, .ivm-sway .ic-frame > img{animation:ivm-sway 3.4s ease-in-out infinite}
+@keyframes ivm-swing{0%,100%{transform:rotate(0)}25%{transform:rotate(9deg)}75%{transform:rotate(-9deg)}}
+.ivm-swing .ic-frame > svg, .ivm-swing .ic-frame > img{animation:ivm-swing 3.2s ease-in-out infinite}
+@keyframes ivm-pendulum{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+.ivm-pendulum .ic-frame > svg, .ivm-pendulum .ic-frame > img{animation:ivm-pendulum 2.8s ease-in-out infinite}
+@keyframes ivm-rock{0%,100%{transform:rotate(0)}20%{transform:rotate(4deg)}40%{transform:rotate(-4deg)}60%{transform:rotate(2deg)}80%{transform:rotate(-2deg)}}
+.ivm-rock .ic-frame > svg, .ivm-rock .ic-frame > img{animation:ivm-rock 2.2s ease-in-out infinite}
+@keyframes ivm-wobble{0%,100%{transform:translateX(0) rotate(0)}30%{transform:translateX(2px) rotate(3deg)}60%{transform:translateX(-2px) rotate(-3deg)}}
+.ivm-wobble .ic-frame > svg, .ivm-wobble .ic-frame > img{animation:ivm-wobble 3.0s ease-in-out infinite}
+@keyframes ivm-jelly{0%,100%{transform:scale(1,1)}30%{transform:scale(1.12,.9)}45%{transform:scale(.93,1.1)}60%{transform:scale(1.04,.97)}}
+.ivm-jelly .ic-frame > svg, .ivm-jelly .ic-frame > img{animation:ivm-jelly 2.4s ease-in-out infinite}
+@keyframes ivm-blink{0%,88%,100%{opacity:1}92%{opacity:.25}}
+.ivm-blink .ic-frame > svg, .ivm-blink .ic-frame > img{animation:ivm-blink 2.6s ease-in-out infinite}
+@keyframes ivm-fade{0%,100%{opacity:1}50%{opacity:.45}}
+.ivm-fade .ic-frame > svg, .ivm-fade .ic-frame > img{animation:ivm-fade 3.0s ease-in-out infinite}
+@keyframes ivm-glowSoft{0%,100%{filter:drop-shadow(0 0 0 currentColor)}50%{filter:drop-shadow(0 0 5px currentColor)}}
+.ivm-glowSoft .ic-frame > svg, .ivm-glowSoft .ic-frame > img{animation:ivm-glowSoft 2.8s ease-in-out infinite}
+@keyframes ivm-shimmer{0%{opacity:.7;transform:scale(.98)}40%{opacity:1;transform:scale(1.03)}100%{opacity:.7;transform:scale(.98)}}
+.ivm-shimmer .ic-frame > svg, .ivm-shimmer .ic-frame > img{animation:ivm-shimmer 3.2s linear infinite}
+@keyframes ivm-flash{0%,86%,100%{filter:brightness(1)}90%{filter:brightness(1.9)}}
+.ivm-flash .ic-frame > svg, .ivm-flash .ic-frame > img{animation:ivm-flash 4.0s ease-out infinite}
+@keyframes ivm-drift{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+.ivm-drift .ic-frame > svg, .ivm-drift .ic-frame > img{animation:ivm-drift 5.5s ease-in-out infinite}
+@keyframes ivm-orbit{0%{transform:rotate(0) translateX(2px) rotate(0)}100%{transform:rotate(360deg) translateX(2px) rotate(-360deg)}}
+.ivm-orbit .ic-frame > svg, .ivm-orbit .ic-frame > img{animation:ivm-orbit 5.0s linear infinite}
+@keyframes ivm-radar{0%{transform:scale(.9);opacity:1}70%{transform:scale(1.18);opacity:.35}100%{transform:scale(.9);opacity:1}}
+.ivm-radar .ic-frame > svg, .ivm-radar .ic-frame > img{animation:ivm-radar 2.6s ease-out infinite}
+@keyframes ivm-ripple{0%,100%{transform:scale(1)}25%{transform:scale(1.08)}50%{transform:scale(.96)}75%{transform:scale(1.04)}}
+.ivm-ripple .ic-frame > svg, .ivm-ripple .ic-frame > img{animation:ivm-ripple 3.0s ease-out infinite}
+@keyframes ivm-tilt{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.04)}}
+.ivm-tilt .ic-frame > svg, .ivm-tilt .ic-frame > img{animation:ivm-tilt 4.4s ease-in-out infinite}
+@keyframes ivm-twist{0%,100%{transform:rotateY(0)}50%{transform:rotateY(28deg)}}
+.ivm-twist .ic-frame > svg, .ivm-twist .ic-frame > img{animation:ivm-twist 3.6s ease-in-out infinite}
+@keyframes ivm-flip{0%,60%,100%{transform:rotateY(0)}80%{transform:rotateY(180deg)}}
+.ivm-flip .ic-frame > svg, .ivm-flip .ic-frame > img{animation:ivm-flip 5.0s ease-in-out infinite}
+@keyframes ivm-roll{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(5px) rotate(180deg)}}
+.ivm-roll .ic-frame > svg, .ivm-roll .ic-frame > img{animation:ivm-roll 6.0s ease-in-out infinite}
+@keyframes ivm-hop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}45%{transform:translateY(-1px)}}
+.ivm-hop .ic-frame > svg, .ivm-hop .ic-frame > img{animation:ivm-hop 2.4s cubic-bezier(0.34,1.56,0.64,1) infinite}
+@keyframes ivm-bounce{0%,100%{transform:translateY(0) scaleY(1)}40%{transform:translateY(-5px) scaleY(1.06)}55%{transform:translateY(0) scaleY(.92)}70%{transform:translateY(0) scaleY(1)}}
+.ivm-bounce .ic-frame > svg, .ivm-bounce .ic-frame > img{animation:ivm-bounce 2.0s ease-in-out infinite}
+@keyframes ivm-drop{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-4px)}}
+.ivm-drop .ic-frame > svg, .ivm-drop .ic-frame > img{animation:ivm-drop 3.4s cubic-bezier(0.34,1.56,0.64,1) infinite}
+@keyframes ivm-nudge{0%,80%,100%{transform:translateX(0)}88%{transform:translateX(-3px)}94%{transform:translateX(2px)}}
+.ivm-nudge .ic-frame > svg, .ivm-nudge .ic-frame > img{animation:ivm-nudge 3.0s ease-out infinite}
+@keyframes ivm-shake{0%,86%,100%{transform:translateX(0)}88%{transform:translateX(-2px)}90%{transform:translateX(2px)}92%{transform:translateX(-2px)}94%{transform:translateX(2px)}}
+.ivm-shake .ic-frame > svg, .ivm-shake .ic-frame > img{animation:ivm-shake 4.0s linear infinite}
+@keyframes ivm-spring{0%,70%,100%{transform:scale(1)}80%{transform:scale(1.18)}88%{transform:scale(.96)}}
+.ivm-spring .ic-frame > svg, .ivm-spring .ic-frame > img{animation:ivm-spring 3.2s cubic-bezier(0.34,1.56,0.64,1) infinite}
+@keyframes ivm-popHover{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+.ivm-popHover .ic-frame:hover > svg, .ivm-popHover .ic-frame:hover > img{animation:ivm-popHover 0.5s cubic-bezier(0.34,1.56,0.64,1) 1}
+@keyframes ivm-turnHover{to{transform:rotate(360deg)}}
+.ivm-turnHover .ic-frame:hover > svg, .ivm-turnHover .ic-frame:hover > img{animation:ivm-turnHover 0.9s cubic-bezier(0.4,0,0.2,1) 1}
+@keyframes ivm-tiltHover{0%{transform:rotate(0)}40%{transform:rotate(-12deg)}100%{transform:rotate(0)}}
+.ivm-tiltHover .ic-frame:hover > svg, .ivm-tiltHover .ic-frame:hover > img{animation:ivm-tiltHover 0.6s ease-out 1}
+@keyframes ivm-jumpHover{0%,100%{transform:translateY(0)}45%{transform:translateY(-7px)}}
+.ivm-jumpHover .ic-frame:hover > svg, .ivm-jumpHover .ic-frame:hover > img{animation:ivm-jumpHover 0.55s cubic-bezier(0.34,1.56,0.64,1) 1}
+@keyframes ivm-shakeHover{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+.ivm-shakeHover .ic-frame:hover > svg, .ivm-shakeHover .ic-frame:hover > img{animation:ivm-shakeHover 0.5s linear 1}
+
+/* «الرسم» و«الخطّ الزاحف» يعملان على حدود الرمز لا على الرمز كلِّه */
+@keyframes ivm-draw{from{stroke-dashoffset:64}to{stroke-dashoffset:0}}
+@keyframes ivm-dash{to{stroke-dashoffset:-64}}
+.ivm-draw .ic-frame > svg > * { stroke-dasharray: 64; animation: ivm-draw 3s ease-in-out infinite; }
+.ivm-draw .ic-frame > svg > *:nth-child(2) { animation-delay: 0.12s; }
+.ivm-draw .ic-frame > svg > *:nth-child(3) { animation-delay: 0.24s; }
+.ivm-dash .ic-frame > svg > * { stroke-dasharray: 8 6; animation: ivm-dash 2.4s linear infinite; }
+
+/* من فضّل تقليل الحركة لا تتحرّك عنده أيقونة — تبقى ولا تدور. */
+@media (prefers-reduced-motion: reduce) {
+  [class*="ivm-"] .ic-frame > svg,
+  [class*="ivm-"] .ic-frame > img,
+  [class*="ivm-"] .ic-frame > svg > * { animation: none !important; }
+}
+
+
+/* ============================================================
+   لوح الهيرو — الهيئات المشهورة
+   ------------------------------------------------------------
+   عشرون هيئةً من أنماط الواجهات التي استقرّت في السنوات الأخيرة، مكتوبةً
+   بـCSS خالص: لا صورةَ خلفيّة تُحمَّل ولا مكتبةَ رسمٍ تُضاف — التدرّجاتُ
+   الشبكيّة والشبكاتُ والنقاطُ كلُّها `background-image` متعدّدة الطبقات،
+   فتتمدّد بأيّ عرضٍ ولا تزن شيئاً ولا تتكسّر عند التكبير.
+
+   والزخرفةُ في طبقة الخلفية لا في عنصرٍ زائف: `::before` و`::after` في
+   الهيرو مشغولان بزخارف سجلّ الهيرو نفسِه، والكتابةُ فيهما تمحوها.
+   ============================================================ */
+
+/* ---------- التدرّج الشبكي ---------- */
+.hsh-surface-mesh #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image:
+    radial-gradient(38rem 26rem at 12% 18%, var(--hsh-bg2, hsl(var(--primary) / 0.28)), transparent 62%),
+    radial-gradient(30rem 22rem at 88% 12%, hsl(var(--gold) / 0.26), transparent 60%),
+    radial-gradient(34rem 24rem at 62% 96%, var(--hsh-bg2, hsl(var(--primary) / 0.2)), transparent 64%);
+}
+
+/* ---------- الشفق ---------- */
+.hsh-surface-aurora #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image:
+    linear-gradient(103deg, transparent 18%, var(--hsh-bg2, hsl(var(--primary) / 0.3)) 34%, transparent 52%),
+    linear-gradient(72deg, transparent 30%, hsl(var(--gold) / 0.28) 48%, transparent 66%),
+    linear-gradient(122deg, transparent 46%, hsl(var(--accent) / 0.22) 62%, transparent 80%);
+}
+
+/* ---------- الكشّاف ---------- */
+.hsh-surface-spotlight #hero {
+  background-color: var(--hsh-bg, hsl(var(--primary)));
+  background-image: radial-gradient(58rem 34rem at 50% -12%, hsl(var(--gold) / 0.42), transparent 68%);
+  color: var(--hsh-text, hsl(var(--primary-foreground)));
+}
+.hsh-surface-spotlight #hero h1,
+.hsh-surface-spotlight #hero p { color: inherit; }
+.hsh-surface-spotlight #hero .text-muted-foreground { color: hsl(var(--primary-foreground) / 0.72) !important; }
+
+/* ---------- الشبكة الهندسية ---------- */
+.hsh-surface-grid #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.07) 1px, transparent 1px);
+  background-size: 3rem 3rem;
+  /* الشبكةُ تتلاشى عند الحواف، وإلّا بدت ورقةَ حساباتٍ مقصوصة */
+  -webkit-mask-image: radial-gradient(70% 70% at 50% 45%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(70% 70% at 50% 45%, #000 40%, transparent 100%);
+}
+
+/* ---------- النقاط ---------- */
+.hsh-surface-dots #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image: radial-gradient(hsl(var(--foreground) / 0.16) 1.2px, transparent 1.2px);
+  background-size: 1.6rem 1.6rem;
+}
+
+/* ---------- الحبيبي ---------- */
+.hsh-surface-noise #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.055) 0.6px, transparent 0.6px),
+    radial-gradient(hsl(var(--foreground) / 0.045) 0.6px, transparent 0.6px);
+  background-size: 0.35rem 0.35rem, 0.55rem 0.55rem;
+  background-position: 0 0, 0.17rem 0.27rem;
+}
+
+/* ---------- النيومورفيزم ---------- */
+.hsh-surface-neu #hero {
+  background: var(--hsh-bg, hsl(var(--muted)));
+  box-shadow:
+    12px 12px 30px hsl(var(--foreground) / 0.13),
+    -12px -12px 30px hsl(0 0% 100% / 0.75);
+}
+
+/* ---------- البروتالِزم ---------- */
+.hsh-surface-brutal #hero {
+  background: var(--hsh-bg, hsl(var(--gold)));
+  border: 3px solid var(--hsh-edge, hsl(var(--foreground)));
+}
+
+/* ---------- الأشرطة القطريّة ---------- */
+.hsh-surface-stripe #hero {
+  background-color: var(--hsh-bg, hsl(var(--card)));
+  background-image: repeating-linear-gradient(
+    -38deg,
+    hsl(var(--primary) / 0.09) 0 0.6rem,
+    transparent 0.6rem 2.2rem
+  );
+}
+
+/* ---------- النصفان ---------- */
+.hsh-surface-duotone #hero {
+  background-image: linear-gradient(
+    100deg,
+    var(--hsh-bg, hsl(var(--primary) / 0.1)) 0 49.6%,
+    var(--hsh-bg2, hsl(var(--gold) / 0.14)) 50.4% 100%
+  );
+}
+
+/* ---------- أشكالٌ إضافية ---------- */
+.hsh-shape-slant #hero {
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 4.5rem));
+}
+.hsh-shape-notch #hero {
+  border-radius: 1.5rem;
+  clip-path: polygon(
+    0 0, 100% 0, 100% 100%, calc(50% + 5rem) 100%,
+    50% calc(100% - 2.2rem), calc(50% - 5rem) 100%, 0 100%
+  );
+}
+.hsh-shape-blob #hero  { border-radius: 42% 58% 36% 64% / 22% 26% 74% 78%; }
+.hsh-shape-topRound #hero { border-radius: 2.75rem 2.75rem 0 0; }
+
+/* ---------- حدودٌ إضافية ---------- */
+/* البريق: خيطٌ مضيءٌ في أعلى اللوح وحدَه — يتلاشى نحو الطرفين */
+.hsh-edge-sheen #hero {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--hsh-edge, hsl(var(--gold) / 0.85)),
+    transparent
+  ) 1;
+}
+.hsh-edge-hard #hero {
+  box-shadow: 9px 9px 0 var(--hsh-edge, hsl(var(--foreground)));
+}
+.hsh-edge-soft #hero {
+  box-shadow: 0 40px 80px -46px hsl(var(--foreground) / 0.55);
+}
+.hsh-edge-double #hero {
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.5),
+    inset 0 0 0 3px var(--hsh-edge, hsl(var(--primary) / 0.35));
+}
+
+/* الحدُّ في الوضع الداكن يقلب النيومورفيزم: لا ضوءَ أبيض على سطحٍ داكن */
+.dark .hsh-surface-neu #hero {
+  box-shadow:
+    12px 12px 30px hsl(0 0% 0% / 0.45),
+    -12px -12px 30px hsl(var(--foreground) / 0.06);
+}

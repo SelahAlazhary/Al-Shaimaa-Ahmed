@@ -165,7 +165,7 @@ function PlanCard({ plan, subjectName, termEnd, href, index, loggedIn }: {
           </span>
         ) : (
           <span
-            className="grid size-14 place-items-center self-start rounded-2xl"
+            className="ic-frame grid size-14 place-items-center self-start rounded-2xl"
             style={{ background: `${tone}1a`, color: tone }}
           >
             {scopeIcon}

@@ -17,6 +17,8 @@ import { findToolbar, toolbarClass, stickClass } from "@/lib/toolbar-styles";
 import { findMobileHome, mobileHomeClass } from "@/lib/mobile-home";
 import { findButtonStyle, buttonClass } from "@/lib/button-styles";
 import { findHeroShell, heroShellClass, heroShellVars } from "@/lib/hero-shell";
+import { findIconFrame, iconFrameClass, iconFrameVars } from "@/lib/icon-frames";
+import { findIconMotion, iconMotionClass } from "@/lib/icon-motion";
 import { MobileDock } from "@/components/sections/mobile-dock";
 import { findMotion, motionClass, motionVars } from "@/lib/motion-styles";
 
@@ -42,12 +44,14 @@ export default async function Home() {
   const MH = findMobileHome(content.mobileHome);
   const MO = findMotion(content.motionStyle);
   const SH = findHeroShell(content.heroShell);
+  const IF = findIconFrame(content.iconFrame);
+  const IM = findIconMotion(content.iconMotion);
   const shOpts = content.heroShellOpts;
 
   return (
     <main
-      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)} ${content.navbarHidden ? "bar-hidden" : ""} ${buttonClass(findButtonStyle(content.buttonStyle))} ${heroShellClass(SH)} ${shOpts?.text ? "hsh-text" : ""}`}
-      style={{ ...motionVars(MO), ...heroShellVars(shOpts) }}
+      className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)} ${content.navbarHidden ? "bar-hidden" : ""} ${buttonClass(findButtonStyle(content.buttonStyle))} ${heroShellClass(SH)} ${shOpts?.text ? "hsh-text" : ""} ${iconFrameClass(IF)} ${iconMotionClass(IM)}`}
+      style={{ ...motionVars(MO), ...heroShellVars(shOpts), ...iconFrameVars(content.iconFrameColors) }}
       data-home-layout={L.id}
       data-toolbar={bar.id}
     >
