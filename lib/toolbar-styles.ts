@@ -46,6 +46,8 @@ export type BarArt =
   | "longshadow"  // ظلّ طويل مائل
   | "rule"        // شريط شفّاف وخيط مذهّب وحده
   | "float"       // كبسولة صغيرة تطفو فوق خيط
+  | "pill"        // كبسولة عائمة بحوافّ دائرية كاملة
+  | "pods"        // حُبيبات: الشعار والروابط والأدوات في أقراص منفصلة
   | "window";     // نافذة بقوائم رأسية
 
 /** شكل حقل البحث. */
@@ -151,6 +153,12 @@ export const TOOLBAR_STYLES: ToolbarStyle[] = [
 
   tb("window", "النافذة", "إطار نافذة بقوائم رأسية تفصل الأقسام",
     "window", "glass", "wide", "line", "tall", false),
+
+  tb("pill", "الكبسولة العائمة", "حوافّ دائرية كاملة يطفو بهامش عن كل الجهات",
+    "pill", "glass", "pill", "none", "normal", true),
+
+  tb("pods", "الحُبيبات", "الشعار والروابط والأدوات في أقراص عائمة منفصلة",
+    "pods", "floating", "icon", "none", "compact", true),
 ];
 
 export const DEFAULT_TOOLBAR = TOOLBAR_STYLES[0].id;

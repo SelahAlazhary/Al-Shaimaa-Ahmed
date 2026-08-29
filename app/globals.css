@@ -2606,3 +2606,61 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- ٢٠ · الكبسولة العائمة ---------- */
+/* حوافّ دائرية كاملة، وهامشٌ عن كل الجهات لا عن الأعلى وحده —
+   فيبدو معلَّقاً في الفراغ لا ملتصقاً بحافّة. */
+.tb-art-pill .site-bar-wrap {
+  top: 1.1rem;
+  padding-inline: 1.25rem;
+}
+.tb-art-pill .site-bar::before,
+.tb-art-pill .app-body > header::before {
+  border-radius: 9999px;
+  box-shadow:
+    0 24px 50px -26px hsl(var(--primary) / 0.85),
+    inset 0 0 0 1px hsl(var(--gold) / 0.28);
+}
+.tb-art-pill .site-bar,
+.tb-art-pill .app-body > header {
+  padding-inline: 1.6rem;
+  max-width: 62rem;
+  margin-inline: auto;
+}
+/* حلقةٌ خارجية رفيعة تزيد إحساس الطفو */
+.tb-art-pill .site-bar::after,
+.tb-art-pill .app-body > header::after {
+  inset: -0.32rem;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--gold) / 0.16);
+}
+
+/* ---------- ٢١ · الحُبيبات ---------- */
+/* ثلاثة أقراص عائمة: الشعار وحده، والروابط في كبسولة، والأدوات في
+   كبسولة — فالشريط لا يبدو شريطاً بل مجموعةَ عناصر تطفو معاً. */
+.tb-art-pods .site-bar-wrap { top: 1.1rem; padding-inline: 1.25rem; }
+.tb-art-pods .site-bar::before,
+.tb-art-pods .app-body > header::before { background: none; box-shadow: none; }
+.tb-art-pods .site-bar,
+.tb-art-pods .app-body > header {
+  gap: 0.7rem;
+  padding: 0;
+  max-width: 64rem;
+  margin-inline: auto;
+}
+/* كل مجموعة تأخذ قرصها */
+.tb-art-pods .site-bar > a:first-child,
+.tb-art-pods .site-bar-links,
+.tb-art-pods .site-bar > :last-child,
+.tb-art-pods .app-body > header > :first-child,
+.tb-art-pods .app-body > header .tb-actions {
+  background: var(--bar-surface, hsl(var(--card)));
+  border-radius: 9999px;
+  padding: 0.55rem 1.05rem;
+  box-shadow:
+    0 18px 40px -26px hsl(var(--primary) / 0.8),
+    inset 0 0 0 1px hsl(var(--border));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+.tb-art-pods .site-bar > a:first-child { padding-inline: 0.75rem; }

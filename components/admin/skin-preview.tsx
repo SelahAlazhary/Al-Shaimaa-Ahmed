@@ -993,7 +993,9 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
 
   const H_BAR = bar.height === "compact" ? 15 : bar.height === "tall" ? 25 : 20;
   const side = 30;                    // شريط جانبي يوضّح السياق
-  const top = bar.art === "hang" ? 7 : bar.art === "wings" || bar.art === "float" ? 5 : 0;
+  const top = bar.art === "hang" ? 7
+    : bar.art === "pill" || bar.art === "pods" ? 6
+      : bar.art === "wings" || bar.art === "float" ? 5 : 0;
   const bx = 0;
   const bw = W - side;
   const by = top;
@@ -1060,7 +1062,7 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
 
   const path = silhouette();
   const rx =
-    bar.art === "float" ? H_BAR / 2
+    bar.art === "float" || bar.art === "pill" ? H_BAR / 2
       : bar.art === "wings" ? 5
         : bar.art === "hang" ? 0
           : bar.art === "frame" ? 4
@@ -1105,8 +1107,23 @@ export function ToolbarPreview({ bar, skin }: { bar: ToolbarStyle; skin: Student
         </>
       )}
 
+      {/* الحُبيبات: ثلاثة أقراص بدل شريط واحد */}
+      {bar.art === "pods" ? (
+        <g>
+          <rect x={bx} y={b} width={26} height={H_BAR} rx={H_BAR / 2} fill={fill} />
+          <rect x={bx + 30} y={b} width={bw - 74} height={H_BAR} rx={H_BAR / 2} fill={fill} />
+          <rect x={r - 40} y={b} width={40} height={H_BAR} rx={H_BAR / 2} fill={fill} />
+        </g>
+      ) : null}
+
+      {/* حلقة الكبسولة العائمة */}
+      {bar.art === "pill" && (
+        <rect x={bx - 1.6} y={b - 1.6} width={bw + 3.2} height={H_BAR + 3.2} rx={(H_BAR + 3.2) / 2}
+          fill="none" stroke={gold} strokeWidth={0.7} opacity={0.45} />
+      )}
+
       {/* جسم الشريط */}
-      {path ? (
+      {bar.art === "pods" ? null : path ? (
         <path d={path} fill={fill} stroke={bar.surface === "outline" ? hsl(v.border) : "none"} strokeWidth={0.8} />
       ) : (
         <rect
