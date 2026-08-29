@@ -35,6 +35,8 @@ import {
 import { MOBILE_HOMES, findMobileHome, DEFAULT_MOBILE_HOME, type MobileHome } from "@/lib/mobile-home";
 import { MOTION_STYLES, findMotion, DEFAULT_MOTION, type MotionStyle } from "@/lib/motion-styles";
 import { BUTTON_STYLES, findButtonStyle, DEFAULT_BUTTON_STYLE, type ButtonStyle } from "@/lib/button-styles";
+import { GlowEditor } from "@/components/admin/glow-editor";
+import type { GlowRule } from "@/lib/glow";
 import { PLANS_STYLES, findPlansStyle, DEFAULT_PLANS_STYLE, type PlansStyle } from "@/lib/plans-styles";
 import { TOOLBAR_STYLES, findToolbar, DEFAULT_TOOLBAR, BAR_STICKS, type ToolbarStyle } from "@/lib/toolbar-styles";
 import {
@@ -53,7 +55,7 @@ import { HOME_LAYOUTS, findHomeLayout, DEFAULT_HOME_LAYOUT, type HomeLayout } fr
 /** ألوان جاهزة تُستخدم في أكثر من منتقٍ. */
 const SWATCH = ["#233b8b", "#095e86", "#245c4b", "#87263a", "#8a6212", "#4a3570", "#1f5a5e", "#2b3140"];
 
-type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons";
+type Tab = "skin" | "design" | "tiles" | "layout" | "side" | "bar" | "dock" | "mobile" | "home" | "plans" | "hero" | "sections" | "faq" | "cta" | "footer" | "navbar" | "mhome" | "motion" | "buttons" | "glow";
 
 
 /** اختيار تثبيت الشريط — إعدادٌ لا هيئة، فله صفُّه الخاصّ. */
@@ -132,6 +134,7 @@ export default function AppearancePage() {
   const mHome = findMobileHome(content.mobileHome);
   const motion = findMotion(content.motionStyle);
   const btnStyle = findButtonStyle(content.buttonStyle);
+  const glow = (content.glow ?? []) as GlowRule[];
   const plansStyle = findPlansStyle(content.plansStyle);
   const heroStyle = findHeroStyle(content.heroStyle);
   /* كل قسم بطاقات يحمل اختياره بمفتاحه — فلا يُجبَر قسمٌ على شكل جاره. */
@@ -215,6 +218,11 @@ export default function AppearancePage() {
       label: "تنسيق الهاتف",
       isDefault: mobile.id === DEFAULT_MOBILE,
       patch: () => ({ studentMobile: DEFAULT_MOBILE }),
+    },
+    glow: {
+      label: "الوهج",
+      isDefault: glow.length === 0,
+      patch: () => ({ glow: [] }),
     },
     buttons: {
       label: "زرّا الهيرو",
@@ -472,6 +480,9 @@ export default function AppearancePage() {
         </TabBtn>
         <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<LayoutList className="size-4" />}>
           أقسام البطاقات ({SECTION_STYLES.length.toLocaleString("ar-EG")})
+        </TabBtn>
+        <TabBtn active={tab === "glow"} onClick={() => setTab("glow")} icon={<Sparkles className="size-4" />}>
+          الوهج ({glow.length.toLocaleString("ar-EG")})
         </TabBtn>
         <TabBtn active={tab === "buttons"} onClick={() => setTab("buttons")} icon={<Sparkles className="size-4" />}>
           زرّا الهيرو ({BUTTON_STYLES.length.toLocaleString("ar-EG")})
@@ -1084,6 +1095,21 @@ export default function AppearancePage() {
               );
             })}
           </div>
+        </>
+      )}
+
+      {tab === "glow" && (
+        <>
+          <Card className="mb-5">
+            <p className="font-display mb-1 font-bold">الخلفيات والحواف المضيئة</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              كل قاعدة تختار عناصرها — واحداً أو أكثر أو الكلّ — وتُضيئها بخلفيةٍ خلفها أو
+              حافّةٍ على حدودها أو كليهما، بلونٍ واحد أو تدرّجٍ أو قوس قزح يدور. والمعاينة
+              هنا <b>حيّة بالقيم نفسِها</b> لا رسمٌ يصفها.
+            </p>
+          </Card>
+
+          <GlowEditor rules={glow} onChange={(next) => void saveContent({ glow: next })} />
         </>
       )}
 

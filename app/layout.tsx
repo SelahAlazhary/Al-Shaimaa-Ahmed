@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import localFont from "next/font/local";
 import { ContentProvider } from "@/components/content/content-provider";
+import { glowCss } from "@/lib/glow";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { RegisterSW } from "@/components/pwa/register-sw";
 import { getPublicDB, getScopedDB, loadDB } from "@/lib/db";
@@ -132,6 +133,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
      حمولة الطالب مُصفّاة بصفّه، ولو بُنيت منها لاختلف الوصف المهيكل من
      زائر لآخر — وجوجل يريد وصفاً ثابتاً يطابق ما تعرضه الصفحة للعموم. */
   const pub = getPublicDB();
+  /* الوهج من الحمولة العامّة — تنسيقُ الصفحة واحدٌ لكل من يراها. */
+  const glow = glowCss(pub.content?.glow);
   const base = await siteUrl(pub.content?.url);
   const jsonLd = buildJsonLd(pub.content ?? defaultContent, {
     base,
@@ -151,6 +154,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {jsonLd.map((block, i) => (
           <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }} />
         ))}
+        {/*
+          الوهج — يُترجَم من القواعد مرّةً على الخادم ويُحقن في الجذر،
+          فيعمل في الواجهة وبوابة الطالب واللوحة معاً بلا تكرار. ولا
+          يُكتب شيءٌ إن لم تكن قاعدةٌ مفعّلة.
+        */}
+        {glow && <style dangerouslySetInnerHTML={{ __html: glow }} />}
       </head>
       <body className={`${plex.variable} ${lalezar.variable} font-sans`}>
         <ContentProvider initialDB={db} initialSession={session}>

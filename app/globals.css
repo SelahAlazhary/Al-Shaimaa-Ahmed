@@ -2766,3 +2766,56 @@ body {
   pointer-events: none;
 }
 .bt-hover-slide .hero-actions > *:hover::after { inset-inline-start: 115%; }
+
+/* دورةُ الطيف — يشترك فيها الوهجُ في الموقع ومعاينتُه في اللوحة. */
+@keyframes glw-hue { to { filter: hue-rotate(360deg); } }
+
+/* ============================================================
+   الشريط على الهاتف — تباعدٌ يُتيح اللمس
+   ------------------------------------------------------------
+   الشريط مصمَّمٌ لعرضٍ واسع: عناصرُه متلاصقة لأن المساحة تحتمل. وعلى
+   الهاتف تضيق فتتلاصق أكثر — وإصبعٌ عرضُه تسعُ ملّيمترات لا يصيب زرّاً
+   عرضُه ستّة بينه وبين جاره ملّيمتران.
+
+   فتُوسَّع الفجوات وتُكبَّر مساحاتُ اللمس دون تكبير الأيقونات نفسِها،
+   ويُلفّ الشريطُ إن ضاق بدل أن يفيض.
+   ============================================================ */
+@media (max-width: 767px) {
+  /* المحدِّد مركّبٌ عمداً: قواعدُ السطح (‎.tb-surface-* .site-bar‎) صنفان،
+     وقاعدةٌ بصنفٍ واحد لا تغلبها مهما كانت داخل استعلام وسائط. */
+  .site-bar-wrap .site-bar {
+    gap: 0.6rem;
+    padding-inline: 0.9rem;
+  }
+  /* الأدوات: فجوةٌ أوسع ومساحةُ لمسٍ لا تقلّ عن ٤٤ بكسل */
+  .site-bar-wrap .site-bar > :last-child,
+  .app-body > header .tb-actions {
+    gap: 0.55rem;
+  }
+  /* المخفيّ لا يُوسَّع — وإلا حجز مساحةً وهو غائب */
+  .site-bar-wrap .site-bar a:not(.hidden),
+  .site-bar-wrap .site-bar button,
+  .app-body > header .tb-actions > * {
+    min-inline-size: 2.75rem;
+    min-block-size: 2.75rem;
+  }
+
+  /* شريط اللوحة: تنفّسٌ بين البحث والأدوات وزرّ القائمة */
+  .app-body > header {
+    gap: 0.7rem;
+    padding-inline: 0.9rem;
+  }
+
+  /* الحُبيبات والكبسولة يضيقان على الهاتف — تُقلَّص فجواتُهما لا تُلغى */
+  .tb-art-pods .site-bar { gap: 0.5rem; }
+  .tb-art-pods .site-bar > a:first-child,
+  .tb-art-pods .site-bar-links,
+  .tb-art-pods .site-bar > :last-child { padding: 0.45rem 0.7rem; }
+  .tb-art-pill .site-bar { padding-inline: 1rem; }
+  .tb-art-pill .site-bar-wrap,
+  .tb-art-pods .site-bar-wrap { padding-inline: 0.75rem; }
+
+  /* القائمة السفلية: تباعدٌ بين ألسنتها فلا تُضغط الجارة */
+  .app-dock-inner { gap: 0.25rem; padding-inline: 0.4rem; }
+  .app-tab { padding-block: 0.5rem; }
+}

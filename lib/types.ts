@@ -260,6 +260,8 @@ export type SiteContent = {
   appIcon?: "logo" | "avatar" | "mark";
   /** تصميم زرّي الهيرو (lib/button-styles.ts). */
   buttonStyle?: string;
+  /** قواعد الوهج — خلفياتٌ وحوافُّ مضيئة لعناصر مختارة. */
+  glow?: GlowRule[];
   /** تنسيق الواجهة الرئيسية على الهاتف (lib/mobile-home.ts). */
   mobileHome?: string;
   /** إيقاع الحركة في المنصّة (lib/motion-styles.ts). */
@@ -648,6 +650,32 @@ export type Activity = {
   ref?: string;
   /** تفصيلٌ قصير حين يلزم (درجة · مبلغ · اسم). */
   meta?: string;
+};
+
+/** وضع لون الوهج. */
+export type GlowMode = "solid" | "gradient" | "rgb";
+
+/** ما الذي يُضاء. */
+export type GlowTarget =
+  | "all" | "cards" | "buttons" | "bar" | "hero" | "plans"
+  | "sections" | "faq" | "cta" | "footer" | "tiles" | "sidebar" | "courses";
+
+/**
+ * قاعدةُ وهج — تُطبَّق على عنصرٍ أو عدّةٍ أو الكلّ.
+ * طبقتان لا ظلٌّ واحد: الظلُّ لا يقبل تدرّجاً ولا يدور، والحوافُّ
+ * المضيئة تحتاج تدرّجاً على الحدّ نفسِه.
+ */
+export type GlowRule = {
+  id: string;
+  targets: GlowTarget[];
+  bg: boolean;
+  edge: boolean;
+  mode: GlowMode;
+  c1?: string;
+  c2?: string;
+  intensity?: number;
+  speed?: number;
+  enabled?: boolean;
 };
 
 export type PushSub = {
