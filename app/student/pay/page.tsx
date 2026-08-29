@@ -24,8 +24,14 @@ import { PayGate } from "@/components/student/pay-gate";
 import { cleanPrefix, gatewayOn } from "@/lib/payments";
 import { plansFor } from "@/lib/plans";
 import { subjectActive } from "@/lib/access";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 export default function PayPage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("pay");
+
+  if (maintGate) return maintGate;
+
   return (
     <Suspense fallback={<StudentHomeSkeleton header statsInHeader cards={2} />}>
       <PayInner />

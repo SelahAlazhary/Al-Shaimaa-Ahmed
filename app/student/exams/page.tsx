@@ -7,8 +7,12 @@ import {
 } from "@/components/brand/icons";
 import { PageHeader, Card, StatusBadge } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 export default function StudentExamsPage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("exams");
+
   const { db, session } = useContent();
   const me = db?.users.find((u) => u.id === session?.uid);
   const fem = me?.gender === "female";
@@ -29,6 +33,8 @@ export default function StudentExamsPage() {
 
   const solved = exams.filter((e) => best(e.id)).length;
   const passed = exams.filter((e) => best(e.id)?.passed).length;
+
+  if (maintGate) return maintGate;
 
   return (
     <>

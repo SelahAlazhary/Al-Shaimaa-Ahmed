@@ -1,3 +1,4 @@
+import type { Maintenance } from "./maintenance";
 /** أنواع البيانات المشتركة بين الموقع ولوحات التحكّم وطبقة التخزين. */
 
 export type Layout = "dark" | "light";
@@ -282,6 +283,8 @@ export type SiteContent = {
    * الرابط فارغاً ظهر الاسمُ نصّاً لا وصلةً معطوبة.
    */
   developer?: { name?: string; url?: string; logo?: string; hidden?: boolean };
+  /** الصيانة: المنصّة كلُّها أو أقسامٌ بعينها (lib/maintenance.ts). */
+  maintenance?: Maintenance;
   glow?: GlowRule[];
   /** لوح قسم الهيرو: شكلُه (lib/hero-shell.ts) وألوانُه وارتفاعُه. */
   /** إطار الأيقونات وحركتُها (lib/icon-frames.ts · lib/icon-motion.ts). */

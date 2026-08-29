@@ -588,3 +588,12 @@ export const FEATURE_ICONS: Record<string, (p: IconProps) => ReactElement> = {
   MessagesSquare: IconSupport,
   MonitorPlay: IconScreen,
 };
+
+/** مفتاحُ ربط — الصيانة. */
+export function IconWrench(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M15.5 3.5a5.5 5.5 0 0 0-6.9 6.9L3.6 15.4a2 2 0 0 0 2.8 2.8l5-5a5.5 5.5 0 0 0 6.9-6.9l-3 3-2.8-2.8z" />
+    </Icon>
+  );
+}

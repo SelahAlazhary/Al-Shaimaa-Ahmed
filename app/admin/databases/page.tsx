@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Database, Plus, Trash2, Check, Loader2, ShieldAlert, RefreshCw, Crown, ClipboardPaste, ExternalLink, BookOpen, Unlock } from "lucide-react";
 import { PageHeader, Card } from "@/components/dashboard/ui";
+import { DbRulesCard, rulesUrl } from "@/components/admin/db-rules";
 
 type Node = {
   id: string;
@@ -274,6 +275,12 @@ export default function DatabasesPage() {
         </Card>
       )}
 
+      {guide && (
+        <Card className="mb-5">
+          <DbRulesCard hosts={nodes.filter((n) => !n.fromEnv).map((n) => ({ id: n.id, name: n.name, host: n.host }))} />
+        </Card>
+      )}
+
       {open && (
         <Card className="mb-5 grid gap-3">
           <p className="font-display font-bold">إضافة قاعدة</p>
@@ -458,6 +465,17 @@ export default function DatabasesPage() {
                 )}
                 {n.error && (
                   <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-[10px] font-bold text-rose-500">{n.error}</span>
+                )}
+                {/* بابُ القواعد بجانب القاعدة نفسِها — لا يُبحث عنه في الكونسول */}
+                {!n.fromEnv && (
+                  <a
+                    href={rulesUrl(n.host)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[10px] font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+                  >
+                    <ExternalLink className="size-3" /> قواعد الأمان
+                  </a>
                 )}
               </span>
             </div>

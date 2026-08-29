@@ -19,6 +19,7 @@ import { PageHeader, Card, StatusBadge } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
 import { liveVisible } from "@/lib/access";
 import type { Live } from "@/lib/types";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 /** ترتيب: مباشر ← مجدول (الأقرب موعداً) ← منتهي (الأحدث). */
 function orderLives(list: Live[]): Live[] {
@@ -61,6 +62,9 @@ function calendarUrl(l: Live): string | null {
 }
 
 export default function StudentLivePage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("live");
+
   const { db, content, session } = useContent();
   const me = db?.users.find((u) => u.id === session?.uid);
   const fem = me?.gender === "female";
@@ -81,6 +85,8 @@ export default function StudentLivePage() {
   const featured = all.find((l) => l.status === "مباشر") ?? all.find((l) => l.status === "مجدول");
   const rest = all.filter((l) => l.id !== featured?.id);
   const isLiveNow = featured?.status === "مباشر";
+
+  if (maintGate) return maintGate;
 
   return (
     <>

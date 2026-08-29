@@ -19,6 +19,9 @@ import { findButtonStyle, buttonClass } from "@/lib/button-styles";
 import { findHeroShell, heroShellClass, heroShellVars } from "@/lib/hero-shell";
 import { findIconFrame, iconFrameClass, iconFrameVars } from "@/lib/icon-frames";
 import { findIconMotion, iconMotionClass } from "@/lib/icon-motion";
+import { siteDown, scopeDown, maintText, type MaintScope } from "@/lib/maintenance";
+import { MaintenancePanel, MaintenanceBar } from "@/components/brand/maintenance";
+import { getSession } from "@/lib/session";
 import { MobileDock } from "@/components/sections/mobile-dock";
 import { findMotion, motionClass, motionVars } from "@/lib/motion-styles";
 
@@ -48,6 +51,18 @@ export default async function Home() {
   const IM = findIconMotion(content.iconMotion);
   const shOpts = content.heroShellOpts;
 
+  /*
+    الأدمن يمرّ من الصيانة: صيانةٌ تحجب من يصلحها ليست صيانة. ويُنبَّه
+    بشريطٍ أنّ المنصّة مغلقةٌ على غيره، فلا تبقى مغلقةً أسبوعاً بلا أن يدري.
+  */
+  const session = await getSession();
+  const staff = session?.role === "admin";
+  const mt = maintText(content);
+  if (siteDown(content) && !staff) {
+    return <MaintenancePanel full title={mt.title} message={mt.message} until={mt.until} />;
+  }
+  const down = (sc: MaintScope) => scopeDown(content, sc);
+
   return (
     <main
       className={`relative min-h-screen overflow-x-hidden ${WIDTH_CLASS[L.width]} ${DENSITY_CLASS[L.density]} ${toolbarClass(bar)} ${stickClass(content.navbarStick)} ${mobileHomeClass(MH)} ${motionClass(MO)} ${content.navbarHidden ? "bar-hidden" : ""} ${buttonClass(findButtonStyle(content.buttonStyle))} ${heroShellClass(SH)} ${shOpts?.text ? "hsh-text" : ""} ${iconFrameClass(IF)} ${iconMotionClass(IM)}`}
@@ -57,8 +72,17 @@ export default async function Home() {
     >
       {/* خلفية الصفحة — تُضبط من «تخصيص الموقع ← الصور» */}
       <SiteBackground />
+      {staff && (siteDown(content) || (content.maintenance?.scopes?.length ?? 0) > 0) && (
+        <MaintenanceBar what={siteDown(content) ? "المنصّة كلّها" : `${(content.maintenance?.scopes ?? []).length.toLocaleString("ar-EG")} قسماً`} />
+      )}
       <Navbar />
-      <Hero shape={L.hero} />
+      {down("hero") ? (
+        <div className="container pt-32">
+          <MaintenancePanel title={mt.title} message={mt.message} until={mt.until} />
+        </div>
+      ) : (
+        <Hero shape={L.hero} />
+      )}
 
       {L.order.map((id, i) => {
         const Section = SECTIONS[id];
@@ -66,7 +90,13 @@ export default async function Home() {
           <div key={id}>
             {/* الفاصل بين الأقسام لا قبل أوّلها */}
             {i > 0 && <SectionDivider kind={L.divider} />}
-            <Section />
+            {down(id as MaintScope) ? (
+              <div className="container py-16">
+                <MaintenancePanel title={mt.title} message={mt.message} until={mt.until} />
+              </div>
+            ) : (
+              <Section />
+            )}
           </div>
         );
       })}

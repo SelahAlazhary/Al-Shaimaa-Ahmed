@@ -6,8 +6,12 @@ import { useRouter } from "next/navigation";
 import { LogIn, Loader2, Eye, EyeOff } from "lucide-react";
 import { AuthShell, inputCls } from "@/components/auth/auth-shell";
 import { useContent } from "@/components/content/content-provider";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 export default function LoginPage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("login");
+
   const router = useRouter();
   const { refresh } = useContent();
   const [form, setForm] = useState({ username: "", password: "" });
@@ -34,6 +38,8 @@ export default function LoginPage() {
     const next = params.get("next");
     router.push(next || (data.role === "admin" ? "/admin" : "/student"));
   };
+
+  if (maintGate) return maintGate;
 
   return (
     <AuthShell

@@ -10,8 +10,12 @@ import {
   EDU_SYSTEMS, AZHAR, BRANCH_TRACK, SCIENCE_BRANCHES,
 } from "@/lib/data";
 import { showsTrack, showsBranch, signupProblem, normalizePhone } from "@/lib/signup-rules";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 export default function RegisterPage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("register");
+
   const { db, content } = useContent();
   const grades = db?.grades ?? [];
   const [form, setForm] = useState({ name: "", username: "", password: "", phone: "", eduSystem: "", stage: "", grade: "", track: "", branch: "", gender: "", school: "", governorate: "" });
@@ -87,6 +91,8 @@ export default function RegisterPage() {
       </AuthShell>
     );
   }
+
+  if (maintGate) return maintGate;
 
   return (
     <AuthShell

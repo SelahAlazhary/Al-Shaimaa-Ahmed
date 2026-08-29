@@ -8,10 +8,16 @@ import { SupportChat } from "@/components/support/chat";
 import { supportHref } from "@/lib/support";
 import { PageHeader, Card } from "@/components/dashboard/ui";
 import { useContent } from "@/components/content/content-provider";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 export default function HelpPage() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("support");
+
   const { content, wa } = useContent();
   const [open, setOpen] = useState<number | null>(0);
+
+  if (maintGate) return maintGate;
 
   return (
     <>

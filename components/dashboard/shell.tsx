@@ -17,8 +17,8 @@ import type { IconProps } from "@/components/brand/icons";
 import {
   IconGrid, IconUsers, IconLayers, IconBook, IconKey, IconClipboardCheck, IconRadio,
   IconChart, IconLifebuoy, IconHome, IconPalette, IconSearch, IconBell, IconMenu, IconClose,
-  IconMoon, IconSun, IconLogout, IconWallet, IconYoutube, IconDatabase, IconShield, IconStar,
-} from "@/components/brand/icons";
+  IconMoon, IconSun, IconLogout, IconWallet, IconYoutube, IconDatabase, IconShield, IconStar, IconWrench,
+}  from "@/components/brand/icons";
 import { BrandLockup } from "@/components/brand/logo";
 import { KuficBackdrop } from "@/components/brand/pattern";
 import { GoldRule } from "@/components/dashboard/ui";
@@ -47,6 +47,7 @@ const ICONS: Record<string, BrandIcon> = {
   Database: IconDatabase,
   Shield: IconShield,
   Star: IconStar,
+  Wrench: IconWrench,
 };
 
 export function DashboardShell({

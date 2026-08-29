@@ -19,6 +19,7 @@ import { planPrice, planColor, planWaLink, plansFor } from "@/lib/plans";
 import type { Subject, SitePlan } from "@/lib/types";
 import { mediaSrc } from "@/lib/media";
 import { cleanPrefix, gatewayOn } from "@/lib/payments";
+import { useMaintGate } from "@/components/brand/maint-gate";
 
 const COLORS = ["#12b981", "#2b8bf6", "#7c3aed", "#e11d48", "#f59e0b", "#0ea5e9"];
 
@@ -70,6 +71,9 @@ function PlanCard({ plan, subjectName, termEnd, href }: { plan: SitePlan; subjec
 export const eligible = eligibleFor;
 
 export default function MySubjects() {
+  /* بوّابةُ الصيانة — المشرفون يمرّون والطلاب يرون اللوح. */
+  const maintGate = useMaintGate("courses");
+
   const { db, session, wa, content } = useContent();
   const me = db?.users.find((u) => u.id === session?.uid);
   const subjects = (db?.subjects ?? []).filter((s) => s.status === "منشورة" && eligibleFor(s, me));
@@ -92,6 +96,8 @@ export default function MySubjects() {
   const [term, setTerm] = useState<1 | 2 | null>(null);
   const activeTerm = term ?? termsWithCourses[0] ?? 1;
   const termSubjects = subjects.filter((c) => (c.term ?? 1) === activeTerm);
+
+  if (maintGate) return maintGate;
 
   return (
     <>
